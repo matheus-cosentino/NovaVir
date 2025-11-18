@@ -1,6 +1,6 @@
 # DiscoVir
 
-[![snakemake-Env](https://img.shields.io/badge/conda-env-green.svg)](DiscoVir.yaml)
+[![snakemake-Env](https://img.shields.io/badge/Snakemake-env-green.svg)](DiscoVir.yaml)
 
 
 ```console
