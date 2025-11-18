@@ -15,6 +15,6 @@ o888bood8P'   o888o 8""888P' `Y8bod8P' `Y8bod8P'       `8'       o888o d888b
                                                                                 
 ```
 
-**Snakemake pipeline to aid the iddetification of novel viruses in Illumina data**
+**Scalable viral discovery pipeline: Uncovering viral diversity, evolutionary dynamics, and ecological patterns from Illumina data using Snakemake and SLURM**
 
 Developed By M. Cosentino, 2025.
