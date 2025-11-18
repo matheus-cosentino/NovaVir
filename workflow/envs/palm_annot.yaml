@@ -1,0 +1,9 @@
+name: palm_annot
+channels:
+  - bioconda
+  - conda-forge
+  - nodefaults
+dependencies:
+  - hmmer=3.4
+  - emboss
+  - cd-hit=4.8.1

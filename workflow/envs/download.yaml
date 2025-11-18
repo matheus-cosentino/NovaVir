@@ -1,0 +1,9 @@
+name: download
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - sra-tools=3.2.1
+  - wget
+  - zstd

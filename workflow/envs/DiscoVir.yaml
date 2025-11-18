@@ -1,0 +1,11 @@
+name: DiscoVir
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - snakemake=9.11.1
+  - pysradb
+  - entrez-direct
+  - snakemake-executor-plugin-slurm
+

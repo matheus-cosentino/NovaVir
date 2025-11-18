@@ -1,0 +1,33 @@
+configfile: "workflow_config.yaml"
+
+# cluster params
+jobs: 20
+
+#snakemake params
+executor: slurm
+restart-times: 1
+latency-wait: 300
+keep-going: True
+rerun-incomplete: True
+use-conda: True
+show-failed-logs: True
+
+#default rules
+default-resources:
+  slurm_account: transvihmi
+  slurm_partition: short
+  tmpdir: /scratch
+  threads: 2
+  mem_mb: 8000
+  constraint: infiniband
+
+# Specific resources for some rules
+set-resources:
+  spades:
+    mem_mb: 60000
+    threads: 12
+    slurm_partition: normal
+  diamond_blastx_contigs:
+    mem_mb: 60000
+    threads: 12
+    slurm_partition: normal

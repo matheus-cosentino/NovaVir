@@ -1,0 +1,6 @@
+name: pandoc
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - pandoc=3.8
