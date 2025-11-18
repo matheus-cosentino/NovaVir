@@ -5,7 +5,7 @@ results/
 raw_data/
 
 # Ignore resources directory
-resources/
+resources/database
 
 # Ignore resources directory
 sra_accessions.txt/
