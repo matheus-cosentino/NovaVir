@@ -1,7 +1,7 @@
 # DiscoVir
 
 [![snakemake-Env](https://img.shields.io/badge/Snakemake-env-green.svg)](workflow/envs/DiscoVir.yaml)
-
+[![conda-Env](https://img.shields.io/badge/conda-env-blue.svg)](workflow/envs/DiscoVir.yaml)
 
 ```console
 
@@ -15,6 +15,6 @@ o888bood8P'   o888o 8""888P' `Y8bod8P' `Y8bod8P'       `8'       o888o d888b
                                                                                 
 ```
 
-**Scalable viral discovery pipeline: Uncovering viral diversity, evolutionary dynamics, and ecological patterns from Illumina data using Snakemake and SLURM**
+**Scalable viral discovery pipeline: Uncovering viral diversity, evolutionary dynamics and ecological patterns from Illumina data using Snakemake and SLURM**
 
 Developed By M. Cosentino, 2025.
