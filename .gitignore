@@ -6,9 +6,12 @@ raw_data/
 
 # Ignore resources directory
 resources/database
+resources/.DS_Store
+resources/report/.DS_Store
 
 # Ignore resources directory
 sra_accessions.txt/
 
 # Ignore .snakemake binaries
 .snakemake/
+
