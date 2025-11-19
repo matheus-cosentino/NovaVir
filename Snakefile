@@ -6,44 +6,59 @@ from glob import glob
 # --- 1. Load Configuration ---
 configfile: "config/workflow_config.yaml"
 
-# --- 2. Discover Samples ---
-RAW_DATA_DIR = "raw_data"
-# Use glob to find all '_1.fastq.gz' files, which represent paired-end samples
-local_fastqs = glob(os.path.join(RAW_DATA_DIR, "*_1.fastq.gz"))
+# --- 2. Discover Samples (MODIFIED FOR MIXED MODES) ---
+RAW_DATA_DIR = "data/raw_data"
+CONTIGS_DIR = "data/contigs"
 
-# This flag tracks if data was downloaded (True) or provided locally (False)
-DOWNLOADED_SRA = False
+# New: Dictionary to store the specific mode for each sample
+SAMPLE_MODES = {}
+# New: Flag to track if ANY sample requires SRA download (for cleanup logic)
+ANY_SRA_DOWNLOADED = False 
 
-if local_fastqs:
-    print("Found local FASTQ files in 'raw_data/'. Deriving sample names from them.")
-    # Extract sample names from filenames, e.g., "raw_data/SRR12345_1.fastq.gz" -> "SRR12345"
-    SAMPLES = [os.path.basename(f).replace("_1.fastq.gz", "") for f in local_fastqs]
-    # Perform a quick sanity check to ensure read pairs exist
-    for sample in SAMPLES:
-        paired_file = os.path.join(RAW_DATA_DIR, f"{sample}_2.fastq.gz")
-        if not os.path.exists(paired_file):
-            raise FileNotFoundError(f"Error: Found {sample}_1.fastq.gz but its pair ({paired_file}) is missing.")
-else:
-    print(" No local FASTQ files found. Attempting to read SRA accessions for download.")
-    try:
-        sra_file_path = config["sra_file"]
-        with open(sra_file_path, "r") as f:
-            SAMPLES = [line.strip() for line in f if line.strip()]
-        if not SAMPLES:
-            raise ValueError("The SRA file is empty.")
+# 1. Load Sample IDs from SRA file (which now serves as the master list)
+try:
+    sra_file_path = config["sra_file"]
+    with open(sra_file_path, "r") as f:
+        SAMPLES = [line.strip() for line in f if line.strip()]
+    if not SAMPLES:
+        raise ValueError("The sample list file is empty.")
+
+except (KeyError, FileNotFoundError):
+    raise ValueError(
+        "CRITICAL: The 'sra_file' path is missing from config.yaml or the file is invalid. "
+        "A list of sample IDs is required."
+    )
+
+# 2. Check the availability of each sample and assign its specific MODE
+final_samples = []
+for sample in SAMPLES:
+    fastq_r1 = os.path.join(RAW_DATA_DIR, f"{sample}_1.fastq.gz")
+    fastq_r2 = os.path.join(RAW_DATA_DIR, f"{sample}_2.fastq.gz")
+    contig_glob_path = os.path.join(CONTIGS_DIR, f"{sample}*")
+
+    # --- Mode Prioritization (Sample-specific assignment) ---
+
+    # Priority 1: FASTQ Local (Full Pipeline) - Requires BOTH R1 and R2
+    if os.path.exists(fastq_r1) and os.path.exists(fastq_r2):
+        SAMPLE_MODES[sample] = 'FASTQ'
         
-        # --- (NEW) MODIFICATION 2: Update flag ---
-        # If we get here, it means we are going to download the data
-        DOWNLOADED_SRA = True
+    # Priority 2: Contigs Pre-montados (Annotation Only Pipeline) - Check for .fasta or .fna
+    elif glob(contig_glob_path + '.fasta') or glob(contig_glob_path + '.fna'):
+        SAMPLE_MODES[sample] = 'CONTIGS'
+        
+    # Priority 3: SRA Download (Full Pipeline)
+    else:
+        SAMPLE_MODES[sample] = 'SRA'
+        ANY_SRA_DOWNLOADED = True # Set flag if any sample needs SRA
+        
+    final_samples.append(sample)
+        
+SAMPLES = final_samples # Update SAMPLES list
 
-    except (KeyError, FileNotFoundError):
-        # This error is raised if 'sra_file' is not in the config or the path is wrong
-        raise ValueError(
-            "CRITICAL: No local FASTQ files found in 'raw_data/' AND the 'sra_file' path "
-            "is either missing from config.yaml or the file path is invalid."
-        )
-
-print(f"Workflow will process the following samples: {SAMPLES}")
+print(f"Workflow Mode detected: MIXED (SRA, FASTQ, CONTIGS)")
+print(f"Workflow will process the following samples:")
+for sample, mode in SAMPLE_MODES.items():
+    print(f"  {sample}: {mode}")
 
 # --- 3. Define Global Environment Paths ---
 DOWNLOAD = workflow.source_path(config["envs"]["download"])
@@ -65,95 +80,93 @@ include: "workflow/rules/lineage.smk"
 include: "workflow/rules/reporting.smk"
 include: "workflow/rules/duskmatter.smk"
 
+# --- 4.5 Resolve Ambiguity (REQUIRED) ---
+# Prioritize 'link_preassembled_contigs' over 'spades' for conditional fallback
+#ruleorder: link_preassembled_contigs > spades
+
+
+# --- 5. Obtain the final target (MODIFIED FOR MIXED MODES) ---
 def get_final_targets(wildcards):
     final_files = []
     options = config.get("options", {})
     download_only = options.get("download_only", False)
+    
+    print(f"Workflow mode: FULL ANALYSIS / ANNOTATION (MIXED detected)")
 
-    if download_only:
-        print("Workflow mode: DOWNLOAD ONLY")
-        final_files.extend(
-            expand(
-                [
-                    "raw_data/{sample}_1.fastq.gz",
-                    "raw_data/{sample}_2.fastq.gz"
-                ],
-                sample=SAMPLES
-            )
-        )
-    else:
-        print("Workflow mode: FULL ANALYSIS")
-        
-        # --- FIX 1 ---
-        # The filename {sample} must be escaped as {{sample}}
-        final_files.extend(
-            expand(
-                f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_contigs_hits_with_lineage.tsv",
-                sample=SAMPLES
-            )
-        )
-        
-        if options.get("diversity_reads", False):
-            # This one was already correct in your file, leaving it as-is
+    for sample in SAMPLES:
+        mode = SAMPLE_MODES[sample]
+
+        # 1. Modo de Download (Applies only if the sample's mode is SRA/FASTQ)
+        if download_only and mode != 'CONTIGS':
             final_files.extend(
                 expand(
-                    f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_reads_hits_with_lineage.tsv",
-                    sample=SAMPLES
+                    [
+                        "raw_data/{sample}_1.fastq.gz",
+                        "raw_data/{sample}_2.fastq.gz"
+                    ],
+                    sample=[sample]
                 )
+            )
+            continue # Move to the next sample
+
+        # 2. Annotation Targets (Applies to all samples when not download_only)
+        
+        # Alvo principal de anotação de contigs
+        final_files.append(
+            f"{config['output_dir']}/{sample}/diamond/{sample}_contigs_hits_with_lineage.tsv"
+        )
+        
+        # Alvo opcional de reads (ONLY for SRA/FASTQ modes)
+        if options.get("diversity_reads", False) and mode != 'CONTIGS': 
+            final_files.append(
+                f"{config['output_dir']}/{sample}/diamond/{sample}_reads_hits_with_lineage.tsv"
             )
             
+        # Alvo opcional de palm_annot (RdRp) (Applies to all modes)
         if options.get("palm_annot", True):
-            final_files.extend(
-                expand(
-                    f"{config['output_dir']}/{{sample}}/duskmatter/{{sample}}_RdRp.tsv",
-                    sample=SAMPLES
-                )
+            final_files.append(
+                f"{config['output_dir']}/{sample}/duskmatter/{sample}_RdRp.tsv"
             )
+            
     return final_files
 
 rule all:
     input: get_final_targets
-# --- 6. Cleanup Handler ---
+
+
+# --- 6. Cleanup Handler (MODIFIED FOR MIXED MODES) ---
 
 def cleanup_downloaded_fastqs(log):
-    """
-    This function is called by Snakemake ONLY IF the
-    entire workflow finishes successfully (onsuccess).
-    """
-    # Get the 'download_only' value from the config
+    # Use the global flag to check if *any* SRA download happened
     download_only = config.get("options", {}).get("download_only", True)
-
-    # We ONLY delete if:
-    # 1. The data was downloaded from SRA (DOWNLOADED_SRA == True)
-    # 2. We are NOT in "download_only" mode (because the full analysis was done)
     
-    if DOWNLOADED_SRA and not download_only:
+    if ANY_SRA_DOWNLOADED and not download_only:
         print("\n--- INITIATING POST-SUCCESS CLEANUP ---")
         print("Workflow complete. Removing downloaded FASTQ files from 'raw_data/'...")
         
         files_removed = 0
-        for sample in SAMPLES:
-            # Recreate the paths to the files that were downloaded
-            f1 = os.path.join(RAW_DATA_DIR, f"{sample}_1.fastq.gz")
-            f2 = os.path.join(RAW_DATA_DIR, f"{sample}_2.fastq.gz")
-            
-            # Remove the files, if they exist
-            if os.path.exists(f1):
-                os.remove(f1)
-                print(f"Removed: {f1}")
-                files_removed += 1
-            if os.path.exists(f2):
-                os.remove(f2)
-                print(f"Removed: {f2}")
-                files_removed += 1
+        for sample, mode in SAMPLE_MODES.items():
+            # ONLY clean up if the sample was processed in SRA mode
+            if mode == 'SRA':
+                f1 = os.path.join(RAW_DATA_DIR, f"{sample}_1.fastq.gz")
+                f2 = os.path.join(RAW_DATA_DIR, f"{sample}_2.fastq.gz")
+                
+                if os.path.exists(f1):
+                    os.remove(f1)
+                    print(f"Removed: {f1}")
+                    files_removed += 1
+                if os.path.exists(f2):
+                    os.remove(f2)
+                    print(f"Removed: {f2}")
+                    files_removed += 1
                 
         print(f"Cleanup complete. {files_removed} files removed.")
         print("---------------------------------------\n")
         
-    elif DOWNLOADED_SRA and download_only:
-        print("\nWorkflow (download_only) complete. *Keeping* downloaded FASTQ files.")
+    elif ANY_SRA_DOWNLOADED and download_only:
+        print("\nWorkflow (download_only) complete. *Keeping* SRA downloaded FASTQ files.")
         
-    else: # If local_fastqs was True
+    else: # If no SRA was involved (only local FASTQ or CONTIGS)
         print("\nWorkflow complete. *Keeping* user-provided local FASTQ files.")
 
 # Register the function to run on success

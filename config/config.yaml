@@ -1,7 +1,5 @@
-configfile: "workflow_config.yaml"
-
 # cluster params
-jobs: 20
+jobs: 10
 
 #snakemake params
 executor: slurm

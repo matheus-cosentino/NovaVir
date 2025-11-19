@@ -1,3 +1,6 @@
+# Load Configuration
+configfile: "config/workflow_config.yaml"
+
 # Main output directory
 output_dir: "results"
 

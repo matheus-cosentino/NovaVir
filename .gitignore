@@ -7,8 +7,10 @@ raw_data/
 # Ignore resources directory
 resources/database/
 
-# Ignore resources directory
-sra_accessions.txt/
+# Ignore data directory
+data/contigs/
+data/raw_data/
+data/
 
 # Ignore .snakemake binaries
 .snakemake/
