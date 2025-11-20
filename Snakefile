@@ -77,7 +77,7 @@ include: "workflow/rules/fastp.smk"
 include: "workflow/rules/spades.smk"
 include: "workflow/rules/diamond.smk"
 include: "workflow/rules/lineage.smk"
-include: "workflow/rules/reporting.smk"
+#include: "workflow/rules/reporting.smk"
 include: "workflow/rules/duskmatter.smk"
 
 # --- 4.5 Resolve Ambiguity (REQUIRED) ---

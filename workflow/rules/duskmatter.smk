@@ -83,20 +83,9 @@ rule palm_annot:
     PALM
   log:
     f"{config['output_dir']}/{{sample}}/logs/{{sample}}_palmannot.log"
-  shell:
-    """
-    export PATH={params.palm_annot_dir}/bin:{params.palm_annot_dir}/py:$$PATH
-        
-    python3 {params.palm_annot_script} \
-     --input {input.fasta} \
-     --seqtype {params.seqtype} \
-     --fev {output.fev} \
-     --rdrp {output.rdrp} \
-     --minscore {params.minscore} \
-     --threads {resources.threads} \
-     --minpssmscore {params.minpssmscore} \
-      2> {log}
-        """
+  script:
+    "scripts/palm_annot_run.py"
+  
 
 # Regra para converter FEV para TSV 
 rule fev2tsv_single:
@@ -110,9 +99,6 @@ rule fev2tsv_single:
     PALM
   log:
     f"{config['output_dir']}/{{sample}}/logs/fev2tsv_{{sample}}.log"
-  shell:
-    """
-    export PATH={params.palm_annot_dir}/bin:{params.palm_annot_dir}/py:$$PATH
-    fev2tsv.py --input {input.fev} --output {output.tsv} 2> {log}
-    """
+  script:
+    "scripts/fev2tsv_run.py"
 
