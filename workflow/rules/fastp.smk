@@ -13,7 +13,7 @@ rule fastp:
     shadow: 
         "minimal" 
     log:
-        f"{config['output_dir']}/{{sample}}/{{sample}}_fastp.log"
+        f"{config['output_dir']}/{{sample}}/logs/{{sample}}_fastp.log"
     params:
         # We only need to define non-file parameters here now.
         length_required=config['params']['fastp']['length_required'],

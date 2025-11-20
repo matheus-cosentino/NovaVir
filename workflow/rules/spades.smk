@@ -127,11 +127,15 @@ rule link_preassembled_contigs:
         # Caminho completo do arquivo de entrada FASTA/FNA
         try:
             # Note: CONTIGS_DIR must be globally available (defined in the main Snakefile)
-            input_file = glob(os.path.join(CONTIGS_DIR, f"{wildcards.sample}.*"))[0]
+            input_glob = os.path.join(CONTIGS_DIR, f"{wildcards.sample}*")
+            possible_files = glob(input_glob + ".fasta") + glob(input_glob + ".fna")
+            if not possible_files:
+                raise IndexError
+            input_file = possible_files[0]
         except IndexError:
             # We don't need to check SAMPLE_MODES here, as the input check handles skipping.
             # We only need to check for the file's existence if we are scheduled.
-            raise FileNotFoundError(f"Error: Could not find pre-assembled contig file for {wildcards.sample} in {CONTIGS_DIR}/")
+            raise FileNotFoundError(f"Error: Could not find pre-assembled contig file for {wildcards.sample} in {CONTIGS_DIR}/ (searched for: {wildcards.sample}*.fasta/fna)")
 
         # 1. Cria o diretório de saída esperado 
         assembly_dir = os.path.dirname(output.contigs)

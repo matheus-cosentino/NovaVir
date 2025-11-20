@@ -10,7 +10,7 @@ rule get_nohit_fasta:
   output:
     nohits=f"{config['output_dir']}/{{sample}}/duskmatter/{{sample}}_contigs_nohit.fasta"
   log:
-    "results/{{sample}}/logs/{{sample}}_nohits.log"
+    f"{config['output_dir']}/{{sample}}/{{sample}}_nohits.log"
   conda:
     SCRIPTS
   script:
@@ -78,6 +78,7 @@ rule palm_annot:
     minscore = config["params"]["palm_annot"]["minscore"],
     minpssmscore = config["params"]["palm_annot"]["minpssmscore"],
     palm_annot_dir = config["db"]["palm_annot_dir"]
+    palm_annot_script = f"{config['db']['palm_annot_dir']}/py/palm_annot.py"
   conda:
     PALM
   log:
@@ -86,7 +87,7 @@ rule palm_annot:
     """
     export PATH={params.palm_annot_dir}/bin:{params.palm_annot_dir}/py:$$PATH
         
-    palm_annot.py \
+    python3 {params.palm_annot_script} \
      --input {input.fasta} \
      --seqtype {params.seqtype} \
      --fev {output.fev} \
