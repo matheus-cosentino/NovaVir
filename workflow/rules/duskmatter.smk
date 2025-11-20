@@ -77,7 +77,7 @@ rule palm_annot:
     seqtype = config["params"]["palm_annot"]["seqtype"],
     minscore = config["params"]["palm_annot"]["minscore"],
     minpssmscore = config["params"]["palm_annot"]["minpssmscore"],
-    palm_annot_dir = config["db"]["palm_annot_dir"]
+    palm_annot_dir = config["db"]["palm_annot_dir"],
     palm_annot_script = f"{config['db']['palm_annot_dir']}/py/palm_annot.py"
   conda:
     PALM
