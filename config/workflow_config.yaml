@@ -58,4 +58,4 @@ params:
   palm_annot: 
     seqtype: "aa" 
     minscore: 75
-    minpssmscore: 15.0
+    minpssmscore: 10
