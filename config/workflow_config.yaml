@@ -57,5 +57,5 @@ params:
   
   palm_annot: 
     seqtype: "aa" 
-    minscore: 75
+    minscore: 50
     minpssmscore: 10
