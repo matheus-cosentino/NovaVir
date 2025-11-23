@@ -73,9 +73,6 @@ rule split_hits_by_taxid:
         """
 
 rule append_lineage:
-    """
-    Takes the valid hits, gets the lineage for them, and creates the final output file.
-    """
     input:
         valid_hits=f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_contigs_valid_hits.temp",
         nodes="resources/database/nodes.dmp",
@@ -84,7 +81,8 @@ rule append_lineage:
         f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_contigs_hits_with_lineage.tsv"
     params:
         base_header="qseqid\tsseqid\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore",
-        lineage_header="Taxid\tLineage\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies"
+        # O cabeçalho final reflete as 12 novas colunas reformuladas
+        lineage_header="Taxid\tLineage\tCelular\tRealm\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies"
     log:
         f"{config['output_dir']}/{{sample}}/logs/{{sample}}_contigs_get_lineage.log"
     conda:
@@ -96,18 +94,25 @@ rule append_lineage:
         # Skip header and extract taxids
         tail -n +2 {input.valid_hits} | cut -f 13 > {output}.taxids.tmp
         
-        # Get lineage information
-        taxonkit lineage --data-dir "${{DB_DIR}}" {output}.taxids.tmp 2>> {log} | \
-        taxonkit reformat --data-dir "${{DB_DIR}}" \
-            -f "{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" -F -t 2>> {log} > {output}.lineage.tmp
+        # 1. Get lineage information, outputting TaxID (default col 1) + 12 reformatted columns (col 2-13), all separated by TAB
+        # Usamos '\t' para garantir que os campos sejam separados por tabulação.
+        taxonkit lineage --data-dir "${{DB_DIR}}" {output}.taxids.tmp 2>> {log} | \\
+        taxonkit reformat --data-dir "${{DB_DIR}}" \\
+            -f "{{C}}\\t{{a}}\\t{{r}}\\t{{d}}\\t{{k}}\\t{{K}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" \\
+             2>> {log} > {output}.lineage.tmp
         
-        # Create final output with comprehensive header
+        # 2. Extract ONLY the 12 reformatted columns (cols 2-13), dropping the TaxID (col 1),
+        # as the TaxID is already available in the main DIAMOND output (col 13).
+        # We use cut on the tab-separated intermediate file.
+        cut -f 2- {output}.lineage.tmp > {output}.reformat_only.tmp
+        
+        # 3. Create final output with comprehensive header
         echo -e "{params.base_header}\\t{params.lineage_header}" > {output}
         
-        # Combine original data (without taxid header) with lineage data
-        tail -n +2 {input.valid_hits} | cut -f 1-12 | \
-        paste - <(tail -n +2 {input.valid_hits} | cut -f 13) <(cat {output}.lineage.tmp) >> {output}
+        # 4. Combine original DIAMOND data (cols 1-12) + Taxid (col 13) + Reformatted Ranks (cols 14-25)
+        tail -n +2 {input.valid_hits} | cut -f 1-12 | \\
+        paste - <(tail -n +2 {input.valid_hits} | cut -f 13) {output}.reformat_only.tmp >> {output}
         
         # Cleanup
-        rm {output}.taxids.tmp {output}.lineage.tmp
+        rm {output}.taxids.tmp {output}.lineage.tmp {output}.reformat_only.tmp
         """

@@ -1,4 +1,5 @@
 # workflow/rules/spades.smk
+ruleorder: select_final_contigs > spades
 
 import os
 from glob import glob
@@ -48,7 +49,7 @@ def get_final_contigs_input(wildcards):
     if mode == 'CONTIGS':
         return f"{config['output_dir']}/{wildcards.sample}/assembly/{wildcards.sample}/linked_contigs.fasta"
     elif mode in ['SRA', 'FASTQ']:
-        return f"{config['output_dir']}/{wildcards.sample}/assembly/{wildcards.sample}/spades_contigs.fasta"
+        return f"{config['output_dir']}/{wildcards.sample}/assembly/{wildcards.sample}/contigs.fasta"
     else:
         raise ValueError(f"Unknown sample mode: {mode}")
 
@@ -73,12 +74,11 @@ rule spades:
         unpack(get_spades_rule_inputs)
     output:
         # Use a unique, prefixed output name
-        contigs=f"{config['output_dir']}/{{sample}}/assembly/{{sample}}/spades_contigs.fasta"
-    
+        contigs=f"{config['output_dir']}/{{sample}}/assembly/{{sample}}/contigs.fasta"
     shadow: 
         "minimal" 
     params:
-        outdir=f"{config['output_dir']}/{{sample}}/assembly/",
+        outdir=f"{config['output_dir']}/{{sample}}/assembly/{{sample}}/",
         extra=config["params"]["spades"]["extra"]
     log:
         f"{config['output_dir']}/{{sample}}/logs/{{sample}}_spades.log"
@@ -107,6 +107,8 @@ rule spades:
             --only-assembler \
             -o {params.outdir} \
             &> {log}
+
+   
         """
 
 
