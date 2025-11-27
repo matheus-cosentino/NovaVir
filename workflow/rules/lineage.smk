@@ -80,9 +80,8 @@ rule append_lineage:
     output:
         f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_contigs_hits_with_lineage.tsv"
     params:
-        base_header="qseqid\tsseqid\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore",
-        # O cabeçalho final reflete as 12 novas colunas reformuladas
-        lineage_header="Taxid\tLineage\tCelular\tRealm\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies"
+        base_header="qseqid\tsseqid\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore\tTaxid",
+        lineage_header="Lineage\tCelular\tAcelular\tRealm\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies"
     log:
         f"{config['output_dir']}/{{sample}}/logs/{{sample}}_contigs_get_lineage.log"
     conda:
@@ -98,7 +97,7 @@ rule append_lineage:
         # Usamos '\t' para garantir que os campos sejam separados por tabulação.
         taxonkit lineage --data-dir "${{DB_DIR}}" {output}.taxids.tmp 2>> {log} | \\
         taxonkit reformat --data-dir "${{DB_DIR}}" \\
-            -f "{{C}}\\t{{a}}\\t{{r}}\\t{{d}}\\t{{k}}\\t{{K}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" \\
+            -f "{{C}}\\t{{a}}\\t{{d}}\\t{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" \\
              2>> {log} > {output}.lineage.tmp
         
         # 2. Extract ONLY the 12 reformatted columns (cols 2-13), dropping the TaxID (col 1),

@@ -1,0 +1,795 @@
+---
+title: "Contigs Diversity Report"
+subtitle: "Sample **`r params$sample_name`**"
+author: "DiscoVir v.0.1 MSc. Matheus Cosentino"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    smooth_scroll: true
+    theme: yeti
+params:
+  sample_name: "DefaultSample" 
+  fasta_file: "path/to/fasta"
+  diamond_file: "path/to/diamond"
+  duskmatter_file: "path/to/duskmatter"
+  logos: "path/to/logo/" 
+  output_dir: "path/to/output"
+---
+
+🔍This report aims to provide a detailed view of the Library **`r params$sample_name`** contig assembly, comparing the overall sequence quality with the success of **taxonomic annotation via Diamond** against the nr5 NCBI Database & iddentification on putative Viral agents that compose the **Viral Dusk Matter** within the non-iddentifiaded contigs.
+
+The analysis is structured into four parts: 
+
+1. Overall **contig quality metrics**
+
+2. Global taxonomic diversity per **Kingdom**
+
+3. A hierarchical breakdown for **Viral Families** identified 
+
+4. Report of Contigs within HMMs hits for the **RNA-dependent RNA Polymerase (RdRp)** 
+
+Reproducibility of analysis and report are ensured by the DiscoVir pipeline (https://github.com/matheus-cosentino/discovir.git).
+
+```{r functions-local, message=FALSE, warning=FALSE, echo = FALSE}
+summarize_dnabin_lengths <- function(dnabin_object, object_label) {
+  if (!is.list(dnabin_object) || length(dnabin_object) == 0) {
+    return(data.frame(Metric = c("N Sequences", "Total Bases (Mb)", "Mean Len.", "Median Len.",
+                                 "Std. Dev.", "Min Len.", "Max Len.", "Q1 (25%)", "Q3 (75%)"),
+                      Value = NA,
+                      row.names = NULL) %>%
+             rename(!!object_label := Value))
+  }
+
+  sequence_lengths <- sapply(dnabin_object, length)
+  summary_stats <- summary(sequence_lengths)
+  stdev <- sd(sequence_lengths)
+  quantiles <- quantile(sequence_lengths, probs = c(0.25, 0.50, 0.75))
+
+  # Define os formatos desejados (são todos strings, exceto o float)
+  format_int <- "%d" 
+  format_float <- "%.3f"
+  format_mb <- "%.2f"
+
+  summary_df <- data.frame(
+    Metric = c("N Sequences", "Total Bases (Mb)", "Mean Len.", "Median Len.",
+               "Std. Dev.", "Min Len.", "Max Len.", "Q1 (25%)", "Q3 (75%)"),
+    Value = c(
+      # Valores que devem ser inteiros: usamos format_int
+      sprintf(format_int, length(sequence_lengths)),
+      # Total Bases (2 casas decimais): usamos format_mb
+      sprintf(format_mb, sum(sequence_lengths) / 1000000), 
+      # Média e Mediana (inteiros): usamos format_int
+      sprintf(format_int, round(summary_stats["Mean"])), 
+      sprintf(format_int, round(summary_stats["Median"])),
+      # Desvio Padrão (3 casas decimais): usamos format_float
+      sprintf(format_float, stdev), 
+      # Min, Max, Quartis (inteiros): usamos format_int
+      sprintf(format_int, round(summary_stats["Min."])),
+      sprintf(format_int, round(summary_stats["Max."])),
+      sprintf(format_int, round(quantiles["25%"])),
+      sprintf(format_int, round(quantiles["75%"]))
+    )
+  )
+
+  colnames(summary_df) <- c("Metric", object_label)
+  return(summary_df)
+}
+
+
+
+create_and_plot_frequency_chart <- function(data_subset, column_name, kingdom_label) {
+  
+  # Contagem e ordenação dos dados: os dados são ordenados de forma decrescente para que o gráfico destaque as categorias mais frequentes no topo.
+  data_summary <- data_subset %>%
+    count(.data[[column_name]], name = "Freq") %>%
+    arrange(desc(Freq)) %>%
+    rename(Entry = 1)
+  
+  # Títulos dinâmicos
+  main_title <- paste("Diversity of", column_name)
+  # subtitle <- paste("Reino (Kingdom):", kingdom_label)
+  
+  # Gerar o gráfico
+  # A função 'coord_flip()' é utilizada para girar o gráfico, tornando-o horizontal. Isso melhora drasticamente a legibilidade dos longos nomes de Phylums e Families.
+  p <- ggplot(data_summary, aes(x = reorder(Entry, Freq), y = Freq, fill = Entry)) +
+    geom_bar(stat = "identity") +
+    # 'hjust = -0.1' posiciona o rótulo de texto ligeiramente à direita da barra, melhorando a estética do gráfico horizontal.
+    geom_text(aes(label = scales::comma(Freq)), hjust = -0.2, size = 4) +
+    scale_y_continuous(labels = scales::comma) + 
+    coord_flip() +
+    labs(
+      title = main_title,
+      # subtitle = subtitle,
+      x = column_name,
+      y = "Number of Contigs"
+    ) +
+    theme_minimal(base_size = 12) +
+    scale_fill_viridis_d(option = "D") +
+    theme(
+      legend.position = "none"
+    )
+  
+  print(p)
+}
+
+PlotPP <- function(ps){
+  # Bind Local Variables
+  segstrt <- segend <- segment <- NULL
+  
+  # plot variables
+  pp.col <- c("red", "gray50", "green", "gray50", "blue")
+  vbump = 0.85
+  
+  # motif variables
+  # length
+  mA <- 11
+  mB <- 14
+  mC <- 7
+  
+  # Segment coordinates
+  ## Query
+  ps.query <- data.frame( segment = c("query"),
+                          segstrt = 1,
+                          segend = ps$qlen)
+  
+  ## Palmprint
+  # note this uses a mixture of 1- and 0-base such that
+  # motif coordinates are correct 0-base and plotting works
+  # in ggplot
+  ps.pp <- data.frame(segment = c("A", "v1", "B", "v2", "C"),
+                         segstrt = c(ps$pp_start,
+                                     ps$pp_start + mA,
+                                     ps$pp_start + mA + ps$v1_length + 1,
+                                     ps$pp_start + mA + ps$v1_length + mB,
+                                     ps$pp_start + mA + ps$v1_length + mB + ps$v2_length + 1),
+                         segend = c(ps$pp_start + mA,
+                                     ps$pp_start + mA + ps$v1_length + 1,
+                                     ps$pp_start + mA + ps$v1_length + mB,
+                                     ps$pp_start + mA + ps$v1_length + mB + ps$v2_length + 1,
+                                     ps$pp_end))
+  
+  ppPlot <- ggplot() +
+    # Draw Query diagram
+    geom_segment(data = ps.query,
+                 aes(x = segstrt, xend = segend, y = 0, yend = 0),
+                 linetype = 1, size = 4, color = "gray") +
+    xlab("query position (aa)") +
+    # Draw Palmprint diagram
+    geom_segment(data = ps.pp,
+                 aes(x = segstrt, xend = segend, y = 0, yend = 0, color = segment),
+                 linetype = 1, size = 10, color = pp.col) +
+    geom_text( data = ps.pp,
+               aes(x = ((segstrt + segend)/2) , y = vbump, label = segment, hjust = "center"),
+               color = pp.col) +
+    ggtitle(label = paste0(">", ps$query)) +
+    ylim(c(-1, 1)) +
+    xlim(c(0, NA)) +
+    theme(axis.text.y=element_blank(),
+          axis.ticks.y=element_blank(),
+          axis.title.y=element_blank(),
+          legend.position="none",
+          panel.background=element_blank(),
+          panel.border=element_blank(),
+          panel.grid.major=element_blank(),
+          panel.grid.minor=element_blank(),
+          plot.background=element_rect(fill = "white",
+                                       colour = "white"))
+  
+  return(ppPlot)
+}
+
+```
+
+```{r logo-setup, echo=FALSE, message=FALSE, warning=FALSE,}
+# CRITICAL: This chunk separates the single vector of logo paths (params$logos)
+# into two distinct vectors based on the expected filenames defined in the R script.
+
+# Expected pipeline logo filename (must match the R script's EXPECTED_LOGOS)
+pipeline_logo_name <- "DiscoVir_Logo.png"
+
+# 1. Identify and assign the pipeline logo path
+# Corrected: Use the vector of file paths (params$logos) for both filtering and assignment
+pipeline_logo_path <- params$logos[grepl(pipeline_logo_name, params$logos, fixed = TRUE)]
+
+# 2. Identify and assign the institutional logo paths
+institution_logo_paths <- params$logos[!grepl(pipeline_logo_name, params$logos, fixed = TRUE)]
+
+# Check if the pipeline logo was found
+if (length(pipeline_logo_path) == 0) {
+    warning("Pipeline logo (DiscoVir_Logo.png) not found in the passed paths.")
+    # Assign an empty string or placeholder if missing
+    pipeline_logo_path <- "" 
+}
+```
+
+```{r setup, message=FALSE, warning=FALSE, echo = FALSE}
+# Initial configurations and library loading
+library(readr)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(scales)
+library(viridis)
+library(ape)
+library(stringr)
+library(knitr)
+
+options(digits = 10)
+
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+# 1. Read FASTA file and clean headers
+fasta_expanded_path <- path.expand(params$fasta_file)
+
+if (!file.exists(fasta_expanded_path)) {
+    stop(paste("CRITICAL ERROR: Expanded FASTA path does not exist:", fasta_expanded_path))
+}
+
+fasta <- read.FASTA(fasta_expanded_path)
+names(fasta) <- str_remove_all(names(fasta), pattern = " .+")
+
+
+output_dir_expanded <- path.expand(params$output_dir)
+if (!dir.exists(output_dir_expanded)) {
+    dir.create(output_dir_expanded, recursive = TRUE)
+}
+
+# CRITICAL FIX: DO NOT MODIFY 'params'. Assign to a new global variable.
+OUTPUT_DIR_ABS <- normalizePath(output_dir_expanded, mustWork = TRUE, winslash = "/") # New global variable for file paths
+
+# 2. Read Diamond taxonomy file
+# This TSV file is the product of sequence similarity annotation, providing the basis for all subsequent taxonomic classification.
+data <- read.table(params$diamond_file, sep = "\t", fill = T, header = T, na.strings = "", as.is = T)
+
+data <- data %>%
+  mutate(
+    Overall = coalesce(Realm, Acelular)
+  )
+
+
+# 4. Split contigs into groups: With Hits (tax) and Without Hits (notax)
+# This separation is fundamental for quality analysis. Long contigs without hits (`fasta_notax`) may indicate sequences from novel assemblies or annotation failures, whereas short contigs without hits may be assembly artifacts. Comparing the length metrics between the two groups is critical.
+index_fas <- which(names(fasta) %in% data$qseqid)
+fasta_tax <- fasta[index_fas]
+fasta_notax <- fasta[-index_fas]
+
+# 5. Set up objects for future loops
+# 'split_data' stores data subsets by Kingdom, and 'kingdom_names' lists the unique names for iteration in Section 3.
+split_data <- split(data, data$Overall)
+
+kingdom_names <- names(split_data)
+
+```
+
+## 🔬 Overview of Contigs Quality and Taxonomic Assignment
+
+This section provides a summary and detailed analysis of contig quality based on successful **taxonomic identification** using the **DIAMOND alignment tool**.
+
+### Quality Metrics and Grouping
+Contigs are categorized into three distinct groups for comparative analysis:
+
+1.  **All Contigs:** The complete set of assembled contigs (overall assembly quality).
+2.  **Contigs with Hits:** Contigs successfully assigned a taxonomy via DIAMOND.
+3.  **Contigs without Hits (No-Hits):** Contigs lacking any successful taxonomic identification.
+
+### Analytical Insight
+A **detailed comparison of length metrics** (including **Mean, Median, Minimum, and Maximum** length) across these three groups yields immediate insights into two critical aspects:
+
+* **Assembly Efficacy:** How assembly quality (especially length) correlates with successful database alignment.
+* **Data Novelty:** The characteristics of the "No-Hits" group often represent **novel** or highly divergent sequences, which are generally shorter or more fragmented.
+
+
+```{r contig_quality, message=FALSE, warning=FALSE, echo = FALSE, fig.width=10, fig.height=10, out.width="100%"}
+# Length Summary Function
+# This function calculates essential metrics like N50 (simulated by Max Len. in simple contexts) and quartiles. Robust initial checking (is.list/length == 0) ensures the script does not halt even if a dataset is empty, returning NAs to maintain the table structure.
+
+# Data Processing and Combination
+object_list <- c("fasta", "fasta_tax", "fasta_notax")
+summary_results <- list()
+
+for (obj_name in object_list) {
+ dnabin_obj <- get(obj_name, envir = .GlobalEnv)
+ summary_table_single <- summarize_dnabin_lengths(dnabin_obj, obj_name)
+ summary_results[[obj_name]] <- summary_table_single
+}
+
+final_summary_table <- summary_results[[1]]
+for (i in 2:length(summary_results)) {
+ final_summary_table <- merge(final_summary_table, summary_results[[i]], by = "Metric", all = TRUE)
+}
+
+colnames(final_summary_table) <- c("Metric", "All Contigs", "Contigs with Hits","Contigs no Hits")
+
+knitr::kable(
+ final_summary_table,
+ caption = "Statistics of Assembled Contigs per Taxonomy Category",
+ align = c('l', 'r', 'r', 'r')
+)
+
+output_filename <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name,"contigs_summary.tsv"))
+
+
+write.table(
+  final_summary_table,
+  file = output_filename,
+  sep = "\t",
+  row.names = FALSE,
+  quote = FALSE # Opcional: evita aspas em torno dos campos de texto
+)
+
+```
+
+## 📊 Overall Taxonomic Diversity Analysis
+This section analyzes the frequency distribution of all **annotated contigs** at the **broadest taxonomic level** to provide a overall understanding of the sample's composition.
+
+### Scope of Analysis
+The analysis is conducted across the four major biological domains:
+**Viruses**
+**Eukaryota**
+**Bacteria**
+**Archaea**
+
+### Analytical Goals
+Identifying the **dominant** groups and their respective proportions within the sample serves as the critical first step in two main areas:
+
+* **Sample Characterization:** Establishing the baseline composition of the entire dataset.
+
+* **Discovery Assessment: ** Evaluating the overall discovery effort and the distribution of annotated sequences across the major taxonomic domains.
+
+```{r kingdom, message=FALSE, warning=FALSE, echo = FALSE, fig.width=10, fig.height=8, out.width="90%"}
+# 1. Count Kingdom frequencies and prepare the table
+data_summary <- as.data.frame(table(data$Overall)) %>%
+ rename(Entry = Var1, Freq = Freq) %>%
+ mutate(Entry = factor(Entry, levels = Entry[order(Freq, decreasing = TRUE)]))
+
+# summary table file
+summary_for_table <- data_summary %>%
+ mutate(
+ Total = sum(Freq),
+ Percentage = round((Freq / Total) * 100, 2)
+ ) %>%
+ arrange(desc(Freq)) %>%
+ select(Category = Entry, Count = Freq, Percentage = Percentage)
+
+knitr::kable(
+ summary_for_table,
+ caption = "Summary of Contig Hits per Kingdom",
+ col.names = c("Category", "Contigs", "Percentage (%)")
+)
+
+output_filename <- file.path(OUTPUT_DIR_ABS,paste0(params$sample_name,"contigs_summary_per_Kingdom.tsv"))
+# output_filename <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name,"contigs_summary.tsv"))
+
+write.table(
+  summary_for_table,
+  file = output_filename,
+  sep = "\t",
+  row.names = FALSE,
+  quote = FALSE # Opcional: evita aspas em torno dos campos de texto
+)
+
+```
+### Bar chart with logarithmic scale. 
+It allows for visualizing the vast difference in counts **between Bacteria, Archaea, Eukarya and Viruses**. 
+"Virus" counts tend to be much lower, reflecting the nature of their genome - *smaller and less conserved* - and the characteristics of the database used. The simultaneous visualization of these orders of magnitude ensures that minority categories are not visually obscured, although their *low representation requires careful interpretation*.
+
+```{r kingdom_graphs, echo = FALSE, fig.width=10, fig.height=8, out.width="90%"}
+# 3. Generate the Global Frequency Plot (KINGDOM plot)
+# The use of 'scale_y_log10' is vital here to visualize the immense count disparity between Superkingdoms. The log scale ensures that low-frequency categories (like viruses) are visible alongside the dominant categories.
+KINGDOM <- ggplot(data_summary, aes(x = Entry, y = Freq, fill = Entry)) +
+ geom_bar(stat = "identity") +
+ scale_y_log10(labels = scales::comma) +
+ geom_text(aes(label = scales::comma(Freq)), vjust = -0.5) +
+ labs(
+ title = "Principal Classification (Log10)",
+ x = "Classification",
+ y = "Frequency (Log10)"
+ ) +
+ theme_minimal(base_size = 14) +
+ scale_fill_viridis_d(option = "D") +
+ theme(
+ legend.position = "none",
+ axis.text.x = element_text(angle = 45, hjust = 1)
+)
+
+print(KINGDOM)
+
+output_filename <- file.path(OUTPUT_DIR_ABS,paste0(params$sample_name,"KINGDOM_Classification_Log10.png"))
+
+ggsave(
+  filename = output_filename,
+  plot = KINGDOM,
+  width = 8,
+  height = 6,
+  dpi = 300
+)
+
+```
+
+## 🦠📊 Overall Viral Diversity Analysis
+
+This section analyzes the **frequency distribution** of annotated contigs at the **Viral Family level**.
+
+### Purpose and Importance
+* **Characterization:** Identifying the dominant viral groups and their proportions is the critical **first step** in characterizing the sample composition.
+* **Discovery Effort:** This analysis provides an overall assessment of the **viral discovery effort** and diversity within the sample.
+
+### Graphical Representation Diversity
+
+
+```{r contigs-viral-graph, echo=FALSE, fig.width=10, fig.height=15, out.width="90%"}
+
+# 1. Função de Plotagem de Frequência Detalhada (Horizontal Bar Chart)
+
+# subset virus
+virus_data <- data %>%
+  filter(Overall == "Viruses") %>%
+  mutate(Family = replace_na(Family, "Unclassified"))
+
+# make filtered txt of Virus Only
+output_filename <- file.path(OUTPUT_DIR_ABS,paste0(params$sample_name,"Viral_Diamond.tsv"))
+
+write.table(
+  virus_data,
+  file = output_filename,
+  sep = "\t",
+  row.names = FALSE,
+  quote = FALSE # Opcional: evita aspas em torno dos campos de texto
+)
+
+
+# plot graphs
+virus_plot <- create_and_plot_frequency_chart(virus_data, "Family", kingdom_label = "Viruses")
+
+output_filename <- file.path(OUTPUT_DIR_ABS,paste0(params$sample_name,"Virus_Classification_Log10.png"))
+
+ggsave(
+  filename = output_filename,
+  plot = virus_plot,
+  width = 8,
+  height = 6,
+  dpi = 300
+)
+
+```
+
+Contigs determined as **Unclassified** are viruses lacking proper, official taxonomy at the reference level, typically due to: (1)  Non-up-to-date records in public databases (e.g., NCBI); (2) absence of an official classification within the **International Committee on Taxonomy of Viruses (ICTV)**.
+
+### Overall Family Diversity & Richness
+
+```{r contigs_table_viral_family, message=FALSE, echo=FALSE, fig.width=10, fig.height=5, out.width="90%"}
+
+#  get summary of viruses
+sum_virus <- as.data.frame(table(virus_data$Family)) %>%
+  rename(Entry = Var1, Freq = Freq) 
+
+# Calculate the grand total count (sum of all frequencies)
+grand_total_count <- sum(sum_virus$Freq)
+
+# --- 2. Calculate Percentages and Prepare Table ---
+
+summary_for_table <- sum_virus %>%
+  # Recalculate Total for percentage calculation (this is correct here)
+  mutate(
+    Total_Count = grand_total_count,
+    Percentage = round((Freq / Total_Count) * 100, 2)
+  ) %>%
+  # Arrange by frequency (Count)
+  arrange(desc(Freq)) %>%
+  # Select and rename columns for final output
+  select(Category = Entry, Count = Freq, Percentage)
+
+# --- 3. Create table of diversity per Viral family id ---
+
+total_row <- summary_for_table %>%
+  # Calculate the sum of Counts and sum of Percentages
+  summarise(
+    Category = "**TOTAL**",
+    Count = sum(Count),
+    Percentage = sum(Percentage) # Should be 100.00 or very close
+  ) %>%
+  # Re-round the total percentage to ensure clean output
+  mutate(Percentage = round(Percentage, 2))
+
+# Combine the summary table with the total row at the end
+final_table <- bind_rows(summary_for_table, total_row)
+
+# --- 4. Render the Table ---
+
+knitr::kable(
+  final_table,
+  caption = "Summary of Contig per Viral Family",
+  col.names = c("Family", "Contigs", "Percentage (%)")
+)
+
+
+```
+
+
+## 🦠🧬 Viral Contigs Summary by Family
+
+This table provides an **essential summary** of the assembled contigs, organized by viral family, for **quality assessment (QA)**.
+
+* **Purpose:** To quickly assess the quality of assembled contigs and determine if they represent **near-complete viral genomes** or are candidates of interest.
+* **Context:** Different viral families possess **distinct genomic sizes and quality metrics**.
+* **Summary Detail:** The table summarizes the **overall assembled contigs** for each identified viral family.
+
+```{r contigs-viral-family, echo=FALSE, fig.width=10, fig.height=15, out.width="90%"}
+summary_virus_lengths <- list()
+# Iterate over the UNIQUE names of the families
+for(name in unique(virus_data$Family)){ 
+    qseqid_for_family <- virus_data$qseqid[which(virus_data$Family %in% name)]
+    index <- which(names(fasta) %in% qseqid_for_family)
+    in_fasta <- fasta[index]
+    summary_table_single <- summarize_dnabin_lengths(in_fasta, name)
+    summary_virus_lengths[[name]] <- summary_table_single
+    
+    # CRITICAL: Write the per-family FASTA file here as a side effect (optional, but good practice)
+    file_name <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name, "_",name, ".fasta"))
+    write.FASTA(in_fasta, file = file_name)
+}
+
+# Combine all summary tables
+final_length_summary <- summary_virus_lengths[[1]]
+
+if (length(summary_virus_lengths) > 1) {
+    for (i in 2:length(summary_virus_lengths)) {
+        final_length_summary <- merge(final_length_summary, summary_virus_lengths[[i]], by = "Metric", all = TRUE)
+    }
+}
+
+output_filename <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name,"viral_contigs_summary.tsv"))
+write.table(
+    final_length_summary,
+    file = output_filename,
+    sep = "\t",
+    row.names = FALSE,
+    quote = FALSE
+)
+
+# Render the Table
+knitr::kable(
+    final_length_summary,
+    caption = "Length Statistics of Contigs per Viral Family",
+    align = c('l', rep('r', length(summary_virus_lengths)))
+)
+```
+
+## 🦠🌌 Viral Dusk Matter Putative Members Iddentification
+
+Among contigs genomic fragments that remain unclassified by standard taxonomic methods, a bioinformatic strategy of iddentification of putative members of the **Viral Dusk Matter** was implemented. The primary marker used for identification is the **RNA-dependent RNA Polymerase (RdRp)** sequence. The RdRp gene is highly conserved across numerous RNA viruses, making it an ideal marker for identifying novel or divergent viral sequences characteristic of the VDM.
+
+
+***Contig Pool**: The starting material consists of non-taxonomically classified contigs derived from metagenomic sequencing.
+
+***ORF Extraction**: Prior to downstream analysis, Open Reading Frames (ORFs) were extracted from the contigs using a comprehensive set of non-standard genetic code tables: 1, 3, 4, 5, 6, 11, and 16. This multi-code approach maximizes the detection of translation products from highly divergent or unusual viral genomes.
+
+***Pipeline**: The strategy to RdRp iddentificatted was thorugh the Palm_annot pipeline ([https://github.com/rcedgar/palm](https://github.com/rcedgar/palm)\_annot.git).
+
+
+```{r dusk_matter_functions, echo=FALSE}
+PlotPP <- function(ps){
+  # Bind Local Variables
+  segstrt <- segend <- segment <- NULL
+  
+  # plot variables
+  pp.col <- c("#440154", "gray60", "#3b528b", "gray60", "#fde725")
+  vbump = 0.85
+  
+  # --- MODIFICAÇÃO PRINCIPAL AQUI ---
+  # O 'ps' é um data frame de 1 linha. Precisamos extrair o vetor da lista.
+  
+  # Query
+  ps.query <- data.frame( segment = c("query"),
+                          segstrt = 1,
+                          segend = ps$qlen)
+  
+  # Palmprint - Extrair os vetores da lista aninhada (usando [[1]])
+  ps.pp <- data.frame(segment = unlist(ps$order_labels),
+                         segstrt = unlist(ps$order_starts),
+                         segend = unlist(ps$order_ends),
+                         color= unlist(ps$order_colors)) # Criar uma coluna 'color'
+  
+  ppPlot <- ggplot() +
+    # Draw Query diagram
+    geom_segment(data = ps.query,
+                 aes(x = segstrt, xend = segend, y = 0, yend = 0),
+                 linetype = 1, size = 4, color = "gray") +
+    xlab("query position (aa)") +
+    # Draw Palmprint diagram: Use a coluna 'color' que criamos
+    geom_segment(data = ps.pp,
+                 aes(x = segstrt, xend = segend, y = 0, yend = 0),
+                 linetype = 1, size = 10, color = ps.pp$color) + # Usar ps.pp$color
+    # Draw labels: Use o dataframe 'ps.pp' com as coordenadas corretas
+    geom_text( data = ps.pp,
+               aes(x = ((segstrt + segend)/2) , y = vbump, label = segment, hjust = "center"),
+               color = ps.pp$color) + # Usar ps.pp$color
+    ggtitle(label = paste0(">", ps$query)) +
+    ylim(c(-1, 1)) +
+    xlim(c(0, NA)) +
+    theme(axis.text.y=element_blank(),
+          axis.ticks.y=element_blank(),
+          axis.title.y=element_blank(),
+          legend.position="none",
+          panel.background=element_blank(),
+          panel.border=element_blank(),
+          panel.grid.major=element_blank(),
+          panel.grid.minor=element_blank(),
+          plot.background=element_rect(fill = "white",
+                                       colour = "white"))
+  
+  return(ppPlot)
+}
+
+# --- PREPARAÇÃO DE DADOS COM LÓGICA DE INVERSÃO ---
+
+# Motifs lengths (hardcoded)
+mA <- 11
+mB <- 14
+mC <- 7
+
+# Cores dos motivos: A, v1, B, v2, C
+pp.col.canonical <- c("#440154", "gray60", "#3b528b", "gray60", "#fde725")
+```
+### Putative RdRp Iddentified
+
+```{r dusk_matter_analysis, echo=FALSE,  warning=FALSE, fig.width=10, fig.height=4, out.width="50%"}
+fev <- read.table(file = params$duskmatter_file, header = T, sep = "\t")
+
+
+# 1. Mapeamento de Colunas Fixas
+fev$query <- fev$Label
+fev$qlen <- nchar(fev$aaseq)
+
+# 2. Lógica Condicional para Ordem (ABC vs CAB)
+# Inicializa colunas para armazenar a ordem e as coordenadas
+fev$order_labels <- list(NA)
+fev$order_colors <- list(NA)
+fev$order_starts <- list(NA)
+fev$order_ends <- list(NA)
+
+# Função para calcular as coordenadas e comprimentos baseados na ordem
+for (i in 1:nrow(fev)) {
+  ps <- fev[i, ]
+  
+  # 2a. Definir os pontos de início dos motivos centrais
+  if (ps$pssm_ABC == "ABC") {
+    # Ordem Canônica: A -> B -> C
+    pA <- ps$posA
+    pB <- ps$posB
+    pC <- ps$posC
+    
+    # Calcular os comprimentos das regiões variáveis
+    v1_len <- pB - (pA + mA)
+    v2_len <- pC - (pB + mB)
+    
+    # Sequência de Motivos na Ordem de Plotagem
+    labels <- c("A", "v1", "B", "v2", "C")
+    colors <- pp.col.canonical
+    
+    # Coordenadas (baseadas em A -> B -> C)
+    starts <- c(pA, pA + mA + 1, pB, pB + mB + 1, pC)
+    ends <- c(pA + mA, pB, pB + mB, pC, pC + mC - 1) # Assumindo C tem comprimento mC
+    
+  } else if (ps$pssm_ABC == "CAB") {
+    # Ordem Invertida: C -> A -> B
+    pC <- ps$posC
+    pA <- ps$posA
+    pB <- ps$posB
+    
+    # Calcular os comprimentos das regiões variáveis na ordem C -> A -> B
+    # v1: distância entre C e A
+    v1_len <- pA - (pC + mC) # Pos Início A - Pos Fim C
+    # v2: distância entre A e B
+    v2_len <- pB - (pA + mA) # Pos Início B - Pos Fim A
+    
+    # Sequência de Motivos na Ordem de Plotagem (C -> v1 -> A -> v2 -> B)
+    # Ajustamos as cores para corresponder à nova ordem dos motivos
+    labels <- c("C", "v1", "A", "v2", "B")
+    colors <- c(pp.col.canonical[5], pp.col.canonical[2], pp.col.canonical[1], pp.col.canonical[4], pp.col.canonical[3])
+    
+    # Coordenadas (baseadas em C -> A -> B)
+    starts <- c(pC, pC + mC + 1, pA, pA + mA + 1, pB)
+    ends <- c(pC + mC, pA, pA + mA, pB, pB + mB) # Assumindo B tem comprimento mB
+    
+  } else {
+    # Caso não suportado ou erro
+    next 
+  }
+  
+  # 2b. Mapear o início e o fim do Palmprint total
+  # O Palmprint total deve ir do menor 'pos' ao maior 'pos' + comprimento do motivo.
+  all_starts <- c(pA, pB, pC)
+  all_ends <- c(pA + mA, pB + mB, pC + mC)
+  
+  ps$pp_start <- min(all_starts)
+  ps$pp_end <- max(all_ends)
+  
+  # 2c. Armazenar as coordenadas e comprimentos ajustados
+  # As colunas v1_length e v2_length devem agora ser positivas ou zero
+  ps$v1_length <- v1_len
+  ps$v2_length <- v2_len
+  
+  # Atualizar o data frame fev
+  fev[i, ]$pp_start <- ps$pp_start
+  fev[i, ]$pp_end <- ps$pp_end
+  fev[i, ]$v1_length <- ps$v1_length
+  fev[i, ]$v2_length <- ps$v2_length
+  
+  # Armazenar os vetores de plotagem (labels, starts, ends, colors) como listas
+  fev[i, ]$order_labels <- list(labels)
+  fev[i, ]$order_colors <- list(colors)
+  fev[i, ]$order_starts <- list(starts)
+  fev[i, ]$order_ends <- list(ends)
+}
+
+
+# --- EXECUÇÃO DO PLOT ---
+
+# O loop vai plotar o diagrama de gene para cada linha.
+# Agora, o diagrama usará as coordenadas e a ordem de cores corretas.
+for (i in 1:nrow(fev)) {
+  # Passa a linha como um data frame de 1 linha (drop = FALSE)
+  pp.plot <- PlotPP(fev[i, , drop = FALSE])
+  
+  output_filename <- file.path(OUTPUT_DIR_ABS,paste0(params$sample_name,"_",fev$query[i],"RdRp_Motifs.png"))
+  
+  ggsave(
+  filename = output_filename,
+  plot = pp.plot,
+  width = 8,
+  height = 6,
+  dpi = 300
+)
+  
+  # Exibe o gráfico
+  print(pp.plot)
+}
+```
+
+
+## Considerations
+To ensure the high confidence and biological relevance of the identified VDM contigs, a dual-strategy validation approach must be further implemented to characterize their origin and potential function.
+
+#### 1. RNA Virosphere Characterization (Serratus)
+
+Validation within the **Serratus Webpage** (serratus.io/palmid) to comprehensively screen contig sequences against its vast database of RNA viral sequences. This step is critical for **robustly confirming the viral provenance** of the VDM contigs, specifically by identifying conserved viral protein signatures within the global RNA virosphere.
+
+* **Tool:** Serratus (Serratus.io/palmid)
+* **Purpose:** Confirmation of **viral origin** within the RNA virosphere.
+
+#### 2. Host Protein Model Filtering (Phyre2)
+
+To mitigate the risk of **false positives** arising from misidentified **Host Protein Models**, subsequent analysis employed the **Phyre2** server. Phyre2 was used to perform **homology modeling and remote structural homology detection** on the translations of the VDM contigs. Any contigs showing high confidence structural similarity (e.g., >90% confidence score) to known cellular/host proteins must be **disconsered**.
+
+* **Tool:** Phyre2 (sbg.bio.ic.ac.uk/phyre2/)
+* **Purpose:** Exclusion of **Host Proteins**.
+
+
+### Pipeline
+
+```{r incluir-logos-DiscoVir, echo=FALSE, fig.show='hold', out.width='50%', out.height='10%'}
+
+# Use the pipeline_logo_path variable defined in the logo-setup chunk
+if (length(pipeline_logo_path) > 0 && pipeline_logo_path != "") {
+    knitr::include_graphics(pipeline_logo_path) }
+```
+
+### Institutions
+
+```{r incluir-logos-horizontal, echo=FALSE, fig.show='hold', out.width='20%', out.height='20%'}
+# Este chunk insere as 4 imagens e controla o tamanho e o layout.
+# 'echo=FALSE' esconde o código R no relatório final.
+# 'fig.show='hold'' é crucial para tentar manter todas as imagens na mesma linha.
+# 'out.width='25%'' define que cada imagem terá 25% da largura da página.
+# 'fig.align='center'' centraliza o grupo de imagens.
+ # Access the list of paths passed via the parameter
+# Use the institution_logo_paths variable defined in the logo-setup chunk
+if (length(institution_logo_paths) > 0) {
+    # knitr::include_graphics automatically handles a vector of paths
+    knitr::include_graphics(institution_logo_paths)
+}
+
+```

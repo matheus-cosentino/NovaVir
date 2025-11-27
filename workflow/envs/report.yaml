@@ -1,0 +1,19 @@
+name: report
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - r-base
+  - r-rmarkdown
+  - r-knitr
+  - r-tidyverse
+  - r-ape
+  - r-viridis
+  - r-scales
+  - r-stringr
+  - r-readr
+  - r-tidyr
+  - r-dplyr
+  - pandoc
+  - libxml2

@@ -10,7 +10,7 @@ sra_file: "sra_accessions.txt"
 # --- Workflow Options ---
 options:
   diversity_reads: false
-  generate_report: false
+  #generate_report: false
   download_only: false
   palm_annot: true
 
@@ -22,7 +22,7 @@ envs:
   taxonkit: "workflow/envs/taxonkit.yaml"
   download: "workflow/envs/download.yaml"
   scripts: "workflow/envs/scripts.yaml"
-  pandoc: "workflow/envs/pandoc.yaml"
+  report: "workflow/envs/report.yaml"
   palm_annot: "workflow/envs/palm_annot.yaml"
 
 db:
@@ -32,10 +32,9 @@ db:
   taxonmap: "resources/database/prot.accession2taxid.gz"
   palm_annot_dir: "resources/palm_annot"
 
-report:
-  logo: "resources/report/DiscoVir.png"
-  title: "DiscoVir Workflow Report"
-  author: "Cosentino MAC/ UFRJ & IRD"
+logo_dirs: "resources/logo/"
+#  title: "DiscoVir Workflow Report"
+#  author: "Cosentino MAC/ UFRJ & IRD"
 
 # Add a new section for rule-specific parameters
 params:

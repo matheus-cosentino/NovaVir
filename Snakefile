@@ -67,7 +67,7 @@ SPADES = workflow.source_path(config["envs"]["spades"])
 DIAMOND = workflow.source_path(config["envs"]["diamond"])
 TAXONKIT = workflow.source_path(config["envs"]["taxonkit"])
 SCRIPTS = workflow.source_path(config["envs"]["scripts"])
-PANDOC = workflow.source_path(config["envs"]["pandoc"])
+REPORT = workflow.source_path(config["envs"]["report"])
 PALM = workflow.source_path(config["envs"]["palm_annot"])
 
 
@@ -77,7 +77,7 @@ include: "workflow/rules/fastp.smk"
 include: "workflow/rules/spades.smk"
 include: "workflow/rules/diamond.smk"
 include: "workflow/rules/lineage.smk"
-#include: "workflow/rules/reporting.smk"
+include: "workflow/rules/reporting.smk"
 include: "workflow/rules/duskmatter.smk"
 
 # --- 4.5 Resolve Ambiguity (REQUIRED) ---
@@ -125,7 +125,9 @@ def get_final_targets(wildcards):
         # Alvo opcional de palm_annot (RdRp) (Applies to all modes)
         if options.get("palm_annot", True):
             final_files.append(
-                f"{config['output_dir']}/{sample}/duskmatter/{sample}_RdRp.tsv"
+                #f"{config['output_dir']}/{sample}/duskmatter/{sample}_RdRp.tsv"
+                f"{config['output_dir']}/{sample}/report/{sample}_Report_Diversity.html"
+                #f"{config['output_dir']}{{sample}}/report/{{sample}}_Report_Diversity.html
             )
             
     return final_files
