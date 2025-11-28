@@ -17,7 +17,6 @@ checkpoint determine_sra_layout:
     shell:
         """
         # The '-s' test in shell checks if a file exists AND has a size greater than zero.
-        # This is the perfect way to distinguish a real R2 file from an empty placeholder.
         if [ -s {input.r2} ]; then
             echo "PE" > {output}
         else
