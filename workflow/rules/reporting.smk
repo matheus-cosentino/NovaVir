@@ -41,7 +41,6 @@ checkpoint report_summarize:
             --input workflow/rules/scripts/Report_Model.Rmd
         ) 2>&1 > {log}
         
-        # CRITICAL FIX: Explicitly touch all output files to confirm completion
         touch {output.html}
         touch {output.contig_summary_tsv}
         touch {output.kingdom_tsv}

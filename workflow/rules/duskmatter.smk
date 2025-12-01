@@ -24,7 +24,7 @@ rule find_orfs:
   input: 
     fasta=f"{config['output_dir']}/{{sample}}/duskmatter/{{sample}}_contigs_nohit.fasta"
   output:
-    orfs=f"{config['output_dir']}/{{sample}}/duskmatter/{{sample}}_ORFs.fasta.tmp"
+    orfs=temp(f"{config['output_dir']}/{{sample}}/duskmatter/{{sample}}_ORFs.fasta.tmp")
   log:
     f"{config['output_dir']}/{{sample}}/logs/{{sample}}_orfs.log"
   conda:

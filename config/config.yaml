@@ -1,31 +1,74 @@
-# cluster params
-jobs: 15
+# Main output directory
+output_dir: "results"
 
-#snakemake params
-executor: slurm
-restart-times: 2
-latency-wait: 300
-keep-going: True
-rerun-incomplete: True
-use-conda: True
-show-failed-logs: True
+# Add path to SRA accessions of interest
+sra_file: "sra_accessions.txt"
+data_dir: "data"
 
-#default rules
-default-resources:
-  slurm_account: transvihmi
-  slurm_partition: short
-  tmpdir: /scratch
-  threads: 2
-  mem_mb: 8000
-  constraint: infiniband
+#Modules of Analysis
+modules: 
+  overview: true
+  exploratory: false
+  discovery: false
 
-# Specific resources for some rules
-set-resources:
+source:
+  reads: true
+  contigs: true
+
+# Envs with tools necessary to use
+envs:
+  fastp: "workflow/envs/fastp.yaml"
+  spades: "workflow/envs/spades.yaml"
+  diamond:  "workflow/envs/diamond.yaml"
+  taxonkit: "workflow/envs/taxonkit.yaml"
+  download: "workflow/envs/download.yaml"
+  scripts: "workflow/envs/scripts.yaml"
+  report: "workflow/envs/report.yaml"
+  palm_annot: "workflow/envs/palm_annot.yaml"
+
+db:
+  diamond: "resources/database/NCBI_2025_07_22.dmnd"
+  taxonnodes: "resources/database/nodes.dmp"
+  taxonnames: "resources/database/names.dmp"
+  taxonmap: "resources/database/prot.accession2taxid.gz"
+  palm_annot_dir: "resources/palm_annot"
+
+logo_dirs: "resources/logo/"
+
+params:
+  fastp:
+    length_required: 15
+    qualified_quality_phred: 30
+  
   spades:
-    mem_mb: 60000
-    threads: 12
-    slurm_partition: normal
-  diamond_blastx_contigs:
-    mem_mb: 60000
-    threads: 12
-    slurm_partition: normal
+    extra: "--rnaviral"
+
+  diamond:
+    outfmt: 6
+    max_target_seqs: 1
+    evalue: 0.00001
+
+  summary:
+    rank: "family"
+  
+  palm_annot: 
+    seqtype: "aa" 
+    minscore: 50
+    minpssmscore: 10
+
+
+report:
+  stat:
+    extention:
+      - 'txt'
+      - 'tsv'
+      - 'json'
+  graph:
+    type:
+      - 'dag'
+      - 'rulegraph'
+      - 'filegraph'
+    extention:
+      - 'png'
+      - 'svg'
+      - 'pdf'

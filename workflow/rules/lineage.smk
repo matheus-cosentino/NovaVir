@@ -8,7 +8,7 @@ rule map_accession_to_taxid:
         hit_file=f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_contigs_hits.tsv",
         taxid_map="resources/database/prot.accession2taxid.gz"
     output:
-        f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_contigs_hits_with_taxid.tmp"
+        temp(f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_contigs_hits_with_taxid.tmp")
     shadow: "minimal" 
     log:
         f"{config['output_dir']}/{{sample}}/logs/{{sample}}_contigs_map_taxid.log"
@@ -45,32 +45,27 @@ rule map_accession_to_taxid:
 
 rule split_hits_by_taxid:
     """
-    Splits the input file into two: one with valid taxids and one with "NOT_FOUND".
+    Filters the input file to keep only hits with valid TaxIDs.
     """
     input:
         f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_contigs_hits_with_taxid.tmp"
     output:
-        valid_hits=f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_contigs_valid_hits.temp",
-        no_lineage=f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_contigs_hits_no_lineage.temp"
+        valid_hits=temp(f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_contigs_valid_hits.temp")
     params:
         header="qseqid\tsseqid\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore\ttaxid"
     shell:
         """
-        # Create output files with headers
+        # 1. Create the output file with the header
         echo -e "{params.header}" > {output.valid_hits}
-        echo -e "{params.header}" > {output.no_lineage}
         
-        # Split data (skip header from input)
+        # 2. Filter data: Skip header (NR==1) AND only print if last column is NOT "NOT_FOUND"
         awk -F'\\t' '
-        NR==1 {{ next }}  # Skip input header
-        {{
-            if ($NF == "NOT_FOUND") {{
-                print $0 >> "{output.no_lineage}"
-            }} else {{
-                print $0 >> "{output.valid_hits}"
-            }}
+        NR==1 {{ next }} 
+        $NF != "NOT_FOUND" {{
+            print $0 >> "{output.valid_hits}"
         }}' {input}
         """
+
 
 rule append_lineage:
     input:

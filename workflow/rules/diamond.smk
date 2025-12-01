@@ -28,6 +28,7 @@ rule diamond_blastx_contigs:
             --outfmt {params.outfmt} \
             --max-target-seqs {params.max_target_seqs} \
             --evalue {params.evalue} \
+            --log \
             &> {log}
         """
 
