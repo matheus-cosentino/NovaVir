@@ -64,15 +64,31 @@ run_with_spinner() {
 }
 
 check_connection(){
-if ping -c 1 -W 5 google.com > /dev/null 2>&1 || \
+ if ping -c 1 -W 5 google.com > /dev/null 2>&1 || \
    ping -c 1 -W 5 cloudflare.com > /dev/null 2>&1
-then
+ then
     network=0
-else
+ else
     network=1
-fi    
+ fi    
 }
 
 check_diamond_db(){
-#### function that receives the directory of local database to recognize the workflown and generates all the acc files to diamond format
+}
+
+check_kraken_db(){
+}
+
+
+download_kraken_db(){
+}
+
+download_blast_db(){
+}
+
+build_diamond_db(){
+}
+
+check_conda(){
+
 }
