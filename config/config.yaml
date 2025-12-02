@@ -1,7 +1,8 @@
 ###################################################################################
-# Snakefile
-#MSc. Matheus Cosentino 
+#                                Snakefile                                        #
+#                         MSc. Matheus Cosentino                                  # 
 ###################################################################################
+#                                                                                 #
 # oooooooooo.    o8o                               oooooo     oooo  o8o           #
 # `888'   `Y8b   `"'                                `888.     .8'   `"'           #
 #  888      888 oooo   .oooo.o  .ooooo.   .ooooo.    `888.   .8'   oooo  oooo d8b #
@@ -9,29 +10,30 @@
 #  888      888  888  `"Y88b.  888       888   888     `888.8'      888   888     #
 #  888     d88'  888  o.  )88b 888   .o8 888   888      `888'       888   888     #
 # o888bood8P'   o888o 8""888P' `Y8bod8P' `Y8bod8P'       `8'       o888o d888b    #
-
+#                                                                                 #
 ###################################################################################
-# version: 12.2025
+#                              version: 12.2025                                   #
 ###################################################################################
-
-# Main output directory
+                                                                               
+### Main output directory
 output_dir: "results"
 
-# Add path to sequences of interest
-sample_list: "accessions.txt"
+###Add path to directory of files of interest
 data_dir: "data"
 
-### Modules of Analysis to be implemented
+### File with sample names of interest to be wildcards of sample
+sample_list: "accessions.txt"
+
+### Modules of Analysis to be requested
 modules: 
-  keep_download: false  #Perform only data download from SRA (default: false)
-  quality: true  # Perform reads quality controls (default: false)
+  keep_download: false  #Remove data download from SRA (default: false)
   assembly: true # Perform de novo assembly for reads (default: false)
   kraken2: false #Perform taxonomic assignment for Kraken2 (default: false)
   diamond: false #Perform taxonomic assignment for Diamond against nr5 for Reads(default: false)
   duskmatter: false #Perform palm annot identification (default: false)
   reads: false #Perform reads taxonomic identification (default: false)
 
-###
+### De novo tools to be requested
 tools:
   denovo: 'spades' # Select your favorite de novo assembly (default: 'spades')
   # options: 
@@ -39,63 +41,64 @@ tools:
   ##- 'megahit'    # faster, more error proner
   ##- 'flye'       #indicated for nanopore sequencing long reads
 
-# Envs with tools necessary to use
+### Envs paths to be installed
 envs:
   fastp: "workflow/envs/fastp.yaml"
   denovo: "workflow/envs/denovo.yaml"
   diamond:  "workflow/envs/diamond.yaml"
+  kraken2:  "workflow/envs/kraken2.yaml"
   taxonkit: "workflow/envs/taxonkit.yaml"
   download: "workflow/envs/download.yaml"
   scripts: "workflow/envs/scripts.yaml"
   report: "workflow/envs/report.yaml"
   palm_annot: "workflow/envs/palm_annot.yaml"
+  kraken2: "workflow/envs/kraken2.yaml"
 
-# databases and resources for the workflow
+### databases and resources for the workflow
 resources:
-  diamond: "resources/database/NCBI_2025_07_22.dmnd"
-  taxonnodes: "resources/database/nodes.dmp"
-  taxonnames: "resources/database/names.dmp"
-  taxonmap: "resources/database/prot.accession2taxid.gz"
+  diamond: "resources/ncbi/NCBI_2025_07_22.dmnd"
+  kraken2: "resources/kraken2/database"
+  taxonnodes: "resources/taxonomy/nodes.dmp"
+  taxonnames: "resources/taxonomy/names.dmp"
+  taxonmap: "resources/taxonomy/prot.accession2taxid.gz"
   palm_annot_dir: "resources/palm_annot"
-  kraken2_db: "resources/kraken2"
   logo_dirs: "resources/logo/"
 
-params:
-  fastp:
-    length_required: 15
-    qualified_quality_phred: 30
+
+### Parameters for each tool used within the dataset ###
+# QC
+fastp:
+  length_required: 15
+  qualified_quality_phred: 30
   
-  spades:
-    algorithm : "--rnaviral" #low resources and correction of RNA artifacts assembly
-    #algorithm: "--coronaspades" #indicate for genomic de novo assembly of CoV genomes by HMM guides
-    #algorithm: "--meta" #high resources and identification of low assembly
+# De Novo Assembly for Illumina reads
+spades:
+  algorithm : "--rnaviral" #low resources and correction of RNA artifacts assembly
+  #algorithm: "--coronaspades" #indicate for genomic de novo assembly of CoV genomes by HMM guides
+  #algorithm: "--meta" #high resources and identification of low coverage/presence virus
 
-  diamond:
-    outfmt: 6
-    max_target_seqs: 1
-    evalue: 0.00001
+#De novo for long reads assembly data
+flye: 
+  #type: "pacbio-raw" #PacBio regular CLR reads (<20% error)
+  #type: "pacbio-corr" #PacBio reads that were corrected with other methods (<3% error)
+  #type: "pacbio-hifi" #PacBio HiFi reads (<1% error)
+  #type: "nano-raw" #ONT regular reads, pre-Guppy5 (<20% error)
+  type: "nano-corr" #ONT reads that were corrected with other methods (<3% error)
+  #type: "nano-hq" #ONT high-quality reads: Guppy5+ SUP or Q20 (<5% error)
 
-  summary:
-    rank: "family"
-  
-  palm_annot: 
-    seqtype: "aa" 
-    minscore: 50
-    minpssmscore: 10
+# Taxonomy by local alignment
+diamond:
+  outfmt: 6
+  max_target_seqs: 1
+  evalue: 0.00001
+  sensitivity: "--very-sensitive"
 
+# Taxonomy by k-mer iddentification
+kraken2:
+  confidence: 0.0 #   confidence score threshold (default: 0.0); must be in [0,1]
 
-report:
-  stat:
-    extention:
-      - 'txt'
-      - 'tsv'
-      - 'json'
-  graph:
-    type:
-      - 'dag'
-      - 'rulegraph'
-      - 'filegraph'
-    extention:
-      - 'png'
-      - 'svg'
-      - 'pdf'
+#  Dusk Matter Search
+palm_annot: 
+  seqtype: "aa" 
+  minscore: 50
+  minpssmscore: 10

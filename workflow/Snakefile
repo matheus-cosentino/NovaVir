@@ -1,7 +1,8 @@
 ###################################################################################
-# Snakefile
-#MSc. Matheus Cosentino 
+#                                Snakefile                                        #
+#                         MSc. Matheus Cosentino                                  # 
 ###################################################################################
+#                                                                                 #
 # oooooooooo.    o8o                               oooooo     oooo  o8o           #
 # `888'   `Y8b   `"'                                `888.     .8'   `"'           #
 #  888      888 oooo   .oooo.o  .ooooo.   .ooooo.    `888.   .8'   oooo  oooo d8b #
@@ -9,9 +10,9 @@
 #  888      888  888  `"Y88b.  888       888   888     `888.8'      888   888     #
 #  888     d88'  888  o.  )88b 888   .o8 888   888      `888'       888   888     #
 # o888bood8P'   o888o 8""888P' `Y8bod8P' `Y8bod8P'       `8'       o888o d888b    #
-
+#                                                                                 #
 ###################################################################################
-# version: 12.2025
+#                              version: 12.2025                                   #
 ###################################################################################
                                                                                
  
@@ -27,42 +28,74 @@ import os
 from glob import glob
 from scripts.functions import get_final_outputs
 from scripts.functions import cleanup_downloaded_fastqs
+from scripts.functions import filter_nohits
 from scripts.functions import identify_data_type
+from scripts.functions import get_input_r1
+from scripts.functions import get_input_r2
+
 
 ###########################################################
 # --- 3. Define workflown directory and local infos  --- #
 ##########################################################
 DATA = config["data_dir"]
 SAMPLE = config["sample_list"]
+OUT_DIR = config["output_dir"]
 SAMPLE_META = identify_data_type(DATA, SAMPLE_META)
 
-###############################################
-# --- 4. Define Global Environment Paths --- #
+############################################
+# --- 4. Export functions to be used.  --- #
+###########################################
+import scripts.functions as functions
+functions.DATA = DATA
+functions.SAMPLE = SAMPLE
+functions.OUT_DIR = OUT_DIR
+functions.SAMPLE_META = SAMPLE_META
+functions.MAPPER = config["tools"]["denovo"] 
+functions.MODULES = config["modules"]
+get_contigs_path = functions.get_contigs_path
+filter_nohits = functions.filter_nohits
+
 ##############################################
+# --- 5. Define Conda Environment Paths --- #
+#############################################
 
 DOWNLOAD = workflow.source_path(config["envs"]["download"])
 FASTP = workflow.source_path(config["envs"]["fastp"])
 DENOVO = workflow.source_path(config["envs"]["denovo"])
 DIAMOND = workflow.source_path(config["envs"]["diamond"])
+KRAKEN2= workflow.source_path(config["envs"]["kraken2"])
 TAXONKIT = workflow.source_path(config["envs"]["taxonkit"])
 SCRIPTS = workflow.source_path(config["envs"]["scripts"])
 REPORT = workflow.source_path(config["envs"]["report"])
 PALM = workflow.source_path(config["envs"]["palm_annot"])
 
+#################################
+# --- 6. Define Parameters --- #
+################################
+
+FASTP_PAR = config['fastp']
+SPADES = config['spades']
+FLYE = config['flye']
+DIAMOND_PAR = config['diamond']
+KRAKEN2_PAR = config['kraken2']
+PALM_ANNOT = config['palm_annot']
+
+
 #######################################
-# --- 5. Load the Workflow Rules --- #
+# --- 7. Load the Workflow Rules --- #
 ######################################
 
 include: "workflow/rules/get_data.smk"
 include: "workflow/rules/fastp.smk"
-include: "workflow/rules/spades.smk"
+include: "workflow/rules/denovo.smk"
 include: "workflow/rules/diamond.smk"
+include: "workflow/rules/kraken2.smk"
 include: "workflow/rules/lineage.smk"
 include: "workflow/rules/reporting.smk"
 include: "workflow/rules/duskmatter.smk"
 
 ###############################################################
-# --- 6. Obtain the final target & Download Data cleanup --- #
+# --- 8. Obtain the final target & Download Data cleanup --- #
 ##############################################################
 rule all:
     input: get_final_outputs

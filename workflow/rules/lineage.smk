@@ -5,7 +5,7 @@ rule map_accession_to_taxid:
     Maps protein IDs (Subject ID, column 2 of DIAMOND) to TaxIDs.
     """
     input:
-        hit_file=f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_{{source}}_hits.tsv",
+        hit_file="{out_dir}/{sample}/{tool}/diamond/{sample}_contigs_report.txt",
         taxid_map="resources/database/prot.accession2taxid.gz"
     output:
         temp(f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_{{source}}_hits_with_taxid.tmp")

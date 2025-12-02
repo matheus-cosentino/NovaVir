@@ -1,7 +1,8 @@
 ###################################################################################
-# Snakefile
-#MSc. Matheus Cosentino 
+#                                Snakefile                                        #
+#                         MSc. Matheus Cosentino                                  # 
 ###################################################################################
+#                                                                                 #
 # oooooooooo.    o8o                               oooooo     oooo  o8o           #
 # `888'   `Y8b   `"'                                `888.     .8'   `"'           #
 #  888      888 oooo   .oooo.o  .ooooo.   .ooooo.    `888.   .8'   oooo  oooo d8b #
@@ -9,17 +10,10 @@
 #  888      888  888  `"Y88b.  888       888   888     `888.8'      888   888     #
 #  888     d88'  888  o.  )88b 888   .o8 888   888      `888'       888   888     #
 # o888bood8P'   o888o 8""888P' `Y8bod8P' `Y8bod8P'       `8'       o888o d888b    #
-
+#                                                                                 #
 ###################################################################################
-# version: 12.2025
+#                              version: 12.2025                                   #
 ###################################################################################
-
-# collor palletes
-blue="\033[1;34m"  # blue
-green="\033[1;32m" # green
-red="\033[1;31m"   # red
-ylow="\033[1;33m"   # yellow
-nc="\033[0m"       # no color                                                                               
 
 ###########################################
 # --- 1. Import libraryes to be used --- #
@@ -31,40 +25,96 @@ from Bio import SeqIO
 import sys
 import gzip
 
+# Global Object
+PRE_ASSEMBLED_LABEL = "pre_assembled"
+TOOL_OUTPUT_MAP = {
+    "spades": "contigs.fasta", 
+    "megahit": "final.contigs.fa", 
+    "flye": "assembly.fasta"
+}
+
 ##########################################################
 # --- 2. Function to obtain final outputs per module --- #
 ##########################################################
 ## in process
 def get_final_outputs():
   final_outputs = []
-  if MODULES["quality"]:
-    final_outputs.append(expand(f"{config['output_dir']}/{{sample}}/trimmed/{{sample}}.json",
-     sample = SAMPLE))
+
+  if MODULES["keep_download"]: #if module keep_download is true
+    for sample, meta in SAMPLE_META.items():         
+          if meta['mode'] == 'SRA':
+            final_outputs.extend(meta['files'])
+  
+  # now; if i decide to make more than one assemmblly it works; but be carefull as it uses a LOT OF MEMORY! CAUTION!!!!
+  if MODULES["assembly"]:  #if module assembly is true
+    tools_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
+    for tool_name in tools_list:
+        file_name = TOOL_OUTPUT_MAP.get(tool_name)
+        if not file_name:
+                raise ValueError(f"Output filename not defined for tool: {tool_name}")
+        final_outputs.append(expand("{output_dir}/{sample}/{denovo}/{filename}", sample = SAMPLE, denovo = MAPPER, filename = file_name, out_dir=OUT_DIR))
+
+  if MODULES["duskmatter"]:
+    final_outputs.append()
 
 
   if MODULES["reads"]:
-    final_outputs.append(expand(f"{config['output_dir']}/{{sample}}/trimmed/{{sample}}.json",
-     sample = SAMPLE))
-
-  if MODULES["assembly"]:  
-    final_outputs.append(,
-     sample = SAMPLE, mate = MATE)
-
+    final_outputs.append()
+  
   if MODULES["kraken2"]:
-    final_outputs.append(expand(f"{config['output_dir']}/{{sample}}/kraken2/{{sample}}_{{source}}_hits.tsv",
-     sample = SAMPLE, source = SOURCE))
+        # Ensure mapper is a list
+        assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
+
+        for sample, meta in SAMPLE_META.items():
+            
+            # DECISION: Which wildcards to generate for this sample?
+            
+            if meta['mode'] == 'CONTIGS':
+                # If it's already a contig, we ONLY run the 'pre_assembled' path
+                final_outputs.extend(expand(
+                    "{out_dir}/{sample}/kraken2_{tool}/{sample}_report.txt",
+                    out_dir=OUT_DIR,
+                    sample=sample,
+                    tool=PRE_ASSEMBLED_LABEL  # <--- Forces the wildcard to be "pre_assembled"
+                ))
+            
+            else:
+                # If it's raw data, we run for ALL requested assemblers
+                final_outputs.extend(expand(
+                    "{out_dir}/{sample}/kraken2_{tool}/{sample}_report.txt",
+                    out_dir=OUT_DIR,
+                    sample=sample,
+                    tool=assembler_list       # <--- Uses "spades", "flye", etc.
+                ))
 
   if MODULES["diamond"]:
-    final_outputs.append(expand(f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_{{source}}_hits_with_lineage.tsv",
-     sample = SAMPLE, source = SOURCE))
+        assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
 
-  if MODULES["duskmatter"]:
-    final_outputs.append(expand(f"{config['output_dir']}/{{sample}}/kraken2/{{sample}}_{{source}}_hits.tsv",
-     sample = SAMPLE, source = "contigs"))
+        for sample, meta in SAMPLE_META.items():
+            
+            # DECISION: Which wildcards to generate for this sample?
+            
+            if meta['mode'] == 'CONTIGS':
+                # If it's already a contig, we ONLY run the 'pre_assembled' path
+                final_outputs.extend(expand(
+                    "{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_report.txt",
+                    out_dir=OUT_DIR,
+                    sample=sample,
+                    tool=PRE_ASSEMBLED_LABEL  # <--- Forces the wildcard to be "pre_assembled"
+                ))
+            
+            else:
+                # If it's raw data, we run for ALL requested assemblers
+                final_outputs.extend(expand(
+                    "{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_report.txt",
+                    out_dir=OUT_DIR,
+                    sample=sample,
+                    tool=assembler_list       # <--- Uses "spades", "flye"
+                ))    
     
+
+
   return final_outputs
-
-
 
 #############################################################
 # --- 3. Clean Up SRA Downloads after total processing --- #
@@ -112,7 +162,6 @@ def cleanup_downloaded_fastqs(log):
             
     print(f"{blue}[INFO]{nc} Cleanup complete. {files_removed} files removed.")
     print("---------------------------------------\n")
-
 
 ###########################################################
 # --- 4. Obtain Novel Fasta with no Hits Iddentified --- #
@@ -191,7 +240,6 @@ def filter_nohits():
     print(f"Output written to: {output_file}", file=sys.stderr)
     print("Filtering complete.", file=sys.stderr)
 
-
 ####################################################
 # --- 5. Obtain Metadata to Library Processing --- #
 ####################################################
@@ -258,7 +306,6 @@ def identify_data_type(sample_list, data_dir):
 
     return sample_meta
 
-
 ####################################################################
 # --- 6. Obtain path to Library Reads availablle or downloaded --- #
 ####################################################################
@@ -266,9 +313,7 @@ def identify_data_type(sample_list, data_dir):
 def get_input_r1(wildcards):
     """Returns R1 local or future"""
     meta = SAMPLE_META[wildcards.sample]
-    if meta['mode'] in ['PAIRED', 'SRA']:
-        return meta['files'][0]
-    if meta['mode'] == 'UNPAIRED':
+    if meta['mode'] in ['PAIRED', 'UNPAIRED', 'SRA']:
         return meta['files'][0]
     return []
 
@@ -278,3 +323,34 @@ def get_input_r2(wildcards):
     if meta['mode'] in ['PAIRED', 'SRA']:
         return meta['files'][1]
     return []
+
+########################################################################
+# --- 7. Function to Get Contigs paths according to assembly tool --- #
+########################################################################
+def get_contigs_path(wildcards):
+    """
+    Determines input file based on the wildcard label.
+    """
+    tool_name = wildcards.tools
+    sample = wildcards.sample
+    meta = SAMPLE_META.get(sample)
+    
+    # Safety Check
+    if not meta:
+        raise ValueError(f"Metadata missing for {sample}")
+
+    # PATH A: The wildcard indicates pre-assembled data
+    if tool_name == PRE_ASSEMBLED_LABEL:
+        if meta['mode'] != 'CONTIGS':
+            raise ValueError(f"Sample '{sample}' is marked as {meta['mode']}, but '{PRE_ASSEMBLED_LABEL}' was requested.")
+        # Return the original file path from data/ folder
+        return meta['files'][0]
+
+    # PATH B: The wildcard is a real assembler (spades, flye, etc.)
+    else:
+        filename = TOOL_OUTPUT_MAP.get(tool_name)
+        if not filename:
+            raise ValueError(f"Tool '{tool_name}' not recognized in TOOL_OUTPUT_MAP.")
+            
+        # Return the assembly result path
+        return f"{OUT_DIR}/{sample}/{tool_name}/{filename}"

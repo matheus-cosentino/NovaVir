@@ -1,32 +1,54 @@
-# workflow/rules/duskmatter.smk
+###################################################################################
+#                      workflow/rules/duskmatter.smk                              #
+#                         MSc. Matheus Cosentino                                  # 
+###################################################################################
+#                                                                                 #
+# oooooooooo.    o8o                               oooooo     oooo  o8o           #
+# `888'   `Y8b   `"'                                `888.     .8'   `"'           #
+#  888      888 oooo   .oooo.o  .ooooo.   .ooooo.    `888.   .8'   oooo  oooo d8b #
+#  888      888 `888  d88(  "8 d88' `"Y8 d88' `88b    `888. .8'    `888  `888""8P #
+#  888      888  888  `"Y88b.  888       888   888     `888.8'      888   888     #
+#  888     d88'  888  o.  )88b 888   .o8 888   888      `888'       888   888     #
+# o888bood8P'   o888o 8""888P' `Y8bod8P' `Y8bod8P'       `8'       o888o d888b    #
+#                                                                                 #
+###################################################################################
+#                              version: 12.2025                                   #
+###################################################################################
 
+
+######################################################
+# --- 1. Filter Contig Fasta With no Diamond Hit --- #
+###################################################### 
 rule get_nohit_fasta:
   """
     Get contigs within no hits against the nr Diamond database
   """
   input:
-    fasta=f"{config['output_dir']}/{{sample}}/assembly/{{sample}}/contigs.fasta",
-    diamond=f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_contigs_hits_with_lineage.tsv"
+    fasta = get_contigs_path,
+    diamond = "{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_hits_with_lineage.tsv"
   output:
-    nohits=f"{config['output_dir']}/{{sample}}/duskmatter/{{sample}}_contigs_nohit.fasta"
+    nohits="{out_dir}/{sample}/duskmatter_{tool}/{sample}_contigs_nohit.fasta"
   log:
-    f"{config['output_dir']}/{{sample}}/{{sample}}_nohits.log"
+    "{out_dir}/{sample}/log/duskmatter_{tool}_{sample}_nohits.log"
   conda:
     SCRIPTS
   script:
-    "scripts/filter_nohits.py"
+    "workflow/scripts/filter_nohits.py"
 
 
+#################################################
+# --- 2. Find Orfs for the no Hits Contigs --- #
+################################################ 
 rule find_orfs:
   """
     Extract orfs in distinct genetic codes used by RNA Viruses.
   """
   input: 
-    fasta=f"{config['output_dir']}/{{sample}}/duskmatter/{{sample}}_contigs_nohit.fasta"
+    fasta="{out_dir}/{sample}/duskmatter_{tool}/{sample}_contigs_nohit.fasta"
   output:
-    orfs=temp(f"{config['output_dir']}/{{sample}}/duskmatter/{{sample}}_ORFs.fasta.tmp")
+    orfs=temp("{out_dir}/{sample}/duskmatter_{tool}/{sample}_ORFs.fasta.temp")
   log:
-    f"{config['output_dir']}/{{sample}}/logs/{{sample}}_orfs.log"
+    "{out_dir}/{sample}/log/duskmatter_{tool}_{sample}_orfs.log"
   conda:
     PALM
   shell:
@@ -45,16 +67,19 @@ rule find_orfs:
     rm Orfs_{wildcards.sample}_Table*.fasta
     """
 
+#######################################################
+# --- 3. Remove Redundancy from final Orfs Fasta --- #
+###################################################### 
 rule cd_hit:
   """
   Remove duplicated ORFs using CD-HIT.
   """
   input:
-    fasta=f"{config['output_dir']}/{{sample}}/duskmatter/{{sample}}_ORFs.fasta.tmp"
-  output:
-    orfs=f"{config['output_dir']}/{{sample}}/duskmatter/{{sample}}_ORFs.fasta"
+    fasta="{out_dir}/{sample}/duskmatter_{tool}/{sample}_ORFs.fasta.temp"
+  output:  
+    orfs="{out_dir}/{sample}/duskmatter_{tool}/{sample}_ORFs.fasta"
   log:
-    f"{config['output_dir']}/{{sample}}/logs/{{sample}}_cdhit.log"
+   "{out_dir}/{sample}/log/duskmatter_{tool}_{sample}_cdhit.log"
   conda:
     PALM
   shell:
@@ -67,38 +92,83 @@ rule cd_hit:
     rm -f {output.orfs}.bak
     """
 
+###################################################
+# --- 4. Iddentify putative RdRp within Data --- #
+################################################## 
 rule palm_annot:
   input:
-    fasta = f"{config['output_dir']}/{{sample}}/duskmatter/{{sample}}_ORFs.fasta"
+    fasta = "{out_dir}/{sample}/duskmatter_{tool}/{sample}_ORFs.fasta"
   output:
-    fev=f"{config['output_dir']}/{{sample}}/duskmatter/{{sample}}_RdRp.fev",
-    rdrp = f"{config['output_dir']}/{{sample}}/duskmatter/{{sample}}_RdRp.fasta"
+    fev="{out_dir}/{sample}/duskmatter_{tool}/{sample}_RdRp.fev",
+    rdrp = "{out_dir}/{sample}/duskmatter_{tool}/{sample}_RdRp.fasta"
   params:
-    seqtype = config["params"]["palm_annot"]["seqtype"],
-    minscore = config["params"]["palm_annot"]["minscore"],
-    minpssmscore = config["params"]["palm_annot"]["minpssmscore"],
-    palm_annot_dir = config["db"]["palm_annot_dir"],
-    palm_annot_script = f"{config['db']['palm_annot_dir']}/py/palm_annot.py"
+    seqtype = config["palm_annot"]["seqtype"],
+    minscore = config["palm_annot"]["minscore"],
+    minpssmscore = config["palm_annot"]["minpssmscore"],
+    palm_annot_dir = config["resources"]["palm_annot_dir"]
   conda:
     PALM
   log:
-    f"{config['output_dir']}/{{sample}}/logs/{{sample}}_palmannot.log"
+  "{out_dir}/{sample}/log/duskmatter_{tool}_{sample}_palmannot.log"
   script:
     "scripts/palm_annot_run.py"
   
+##################################
+# --- 5. Convert FEV to TSV --- #
+################################# 
 
-# Regra para converter FEV para TSV 
 rule fev2tsv_single:
   input:
-    fev=f"{config['output_dir']}/{{sample}}/duskmatter/{{sample}}_RdRp.fev"
+    fev="{out_dir}/{sample}/duskmatter_{tool}/{sample}_RdRp.fev"
   output:
-    tsv=f"{config['output_dir']}/{{sample}}/duskmatter/{{sample}}_RdRp.tsv"
+    tsv="{out_dir}/{sample}/duskmatter_{tool}/{sample}_RdRp.tsv"
   params:
-    palm_annot_dir = config["db"]["palm_annot_dir"]
+    palm_annot_dir = config["resources"]["palm_annot_dir"]
   conda:
     PALM
   log:
-    f"{config['output_dir']}/{{sample}}/logs/fev2tsv_{{sample}}.log"
+    "{out_dir}/{sample}/log/duskmatter_{tool}_{sample}_fev2tsv.log"
   script:
     "scripts/fev2tsv_run.py"
 
+##############################################
+# --- 6. Summarize Dusk Matter Findings --- #
+############################################## 
+rule report_summarize:
+  """
+  Executes an R script to generate a primary HTML report and all static summary files of DuskMatter Search.
+  """
+  input:
+    fasta = get_contigs_path,
+    diamond = "{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_hits_with_lineage.tsv",
+    duskmatter="{out_dir}/{sample}/duskmatter_{tool}/{sample}_RdRp.tsv"
+  output:
+    html="{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Report_Diversity.html",
+    contig_summary_tsv="{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_contigs_summary.tsv",
+    kingdom_tsv="{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_contigs_summary_per_Kingdom.tsv",
+    viral_diamond_tsv="{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Viral_Diamond.tsv",
+    viral_summary_tsv="{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_viral_contigs_summary.tsv",
+    kingdom_png="{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_KINGDOM_Classification_Log10.png",
+    viral_png="{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Virus_Classification_Log10.png"
+  params:
+    logo_dirs=config["logo_dirs"],
+    output_dir="{out_dir}/{sample}/duskmatter_report_{tool}/"
+  log:
+    f"{config['output_dir']}/{{sample}}/logs/{{sample}}_report_summarize.log"
+  conda:
+    REPORT
+  shell:
+    """
+    # Execute the R script inside a subshell
+      Rscript workflow/rules/scripts/generate_report.R \
+      --sample_name {wildcards.sample} \
+      --fasta_path {input.fasta} \
+      --diamond_path {input.diamond} \
+      --duskmatter_path {input.duskmatter} \
+      --output_dir {params.output_dir} \
+      --report_name {wildcards.sample}_Report_Diversity.html \
+      --logos {params.logo_dirs} \
+      --input workflow/rules/scripts/Report_Model.Rmd \
+      2>&1 > {log}
+        
+     """

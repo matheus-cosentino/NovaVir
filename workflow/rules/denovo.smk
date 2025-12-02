@@ -1,4 +1,23 @@
-# workflow/rules/spades.smk
+###################################################################################
+#                       workflow/rules/denovo.smk                                 #
+#                         MSc. Matheus Cosentino                                  # 
+###################################################################################
+#                                                                                 #
+# oooooooooo.    o8o                               oooooo     oooo  o8o           #
+# `888'   `Y8b   `"'                                `888.     .8'   `"'           #
+#  888      888 oooo   .oooo.o  .ooooo.   .ooooo.    `888.   .8'   oooo  oooo d8b #
+#  888      888 `888  d88(  "8 d88' `"Y8 d88' `88b    `888. .8'    `888  `888""8P #
+#  888      888  888  `"Y88b.  888       888   888     `888.8'      888   888     #
+#  888     d88'  888  o.  )88b 888   .o8 888   888      `888'       888   888     #
+# o888bood8P'   o888o 8""888P' `Y8bod8P' `Y8bod8P'       `8'       o888o d888b    #
+#                                                                                 #
+###################################################################################
+#                              version: 12.2025                                   #
+###################################################################################
+
+
+
+
 ruleorder: select_final_contigs > spades
 
 import os
@@ -161,3 +180,5 @@ rule select_final_contigs:
         # Create a symbolic link from the mode-specific output to the generic output
         print(f"Linking {os.path.basename(source_file)} to {os.path.basename(output[0])} for {wildcards.sample}...")
         shell(f"ln -sf $(readlink -f {source_file}) {output[0]}")
+
+

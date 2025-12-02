@@ -1,22 +1,33 @@
-# workflow/rules/diamond.smk
+###################################################################################
+#                       workflow/rules/diamond.smk                                #
+#                         MSc. Matheus Cosentino                                  # 
+###################################################################################
+#                                                                                 #
+# oooooooooo.    o8o                               oooooo     oooo  o8o           #
+# `888'   `Y8b   `"'                                `888.     .8'   `"'           #
+#  888      888 oooo   .oooo.o  .ooooo.   .ooooo.    `888.   .8'   oooo  oooo d8b #
+#  888      888 `888  d88(  "8 d88' `"Y8 d88' `88b    `888. .8'    `888  `888""8P #
+#  888      888  888  `"Y88b.  888       888   888     `888.8'      888   888     #
+#  888     d88'  888  o.  )88b 888   .o8 888   888      `888'       888   888     #
+# o888bood8P'   o888o 8""888P' `Y8bod8P' `Y8bod8P'       `8'       o888o d888b    #
+#                                                                                 #
+###################################################################################
+#                              version: 12.2025                                   #
+###################################################################################
 
-# This rule for contigs is correct and unchanged.
-## Add a rule to filter minimum size of contigs to pass to search
 rule diamond_blastx_contigs:
     input:
-        contigs=f"{config['output_dir']}/{{sample}}/assembly/{{sample}}/contigs.fasta"
-
+       contigs = get_contigs_path
     output:
-        hits=f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_contigs_hits.tsv"
-    shadow: "minimal" 
+        hits="{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_report.txt"
     params:
-        db=f"{workflow.basedir}/{config['db']['diamond']}",
-        #db=config["db"]["diamond"],
-        outfmt=config["params"]["diamond"]["outfmt"],
-        max_target_seqs=config["params"]["diamond"]["max_target_seqs"],
-        evalue=config["params"]["diamond"]["evalue"]
+        #db=f"{workflow.basedir}/{config['resources']['diamond']}",
+        db=config["resources"]["diamond"],
+        outfmt=config["diamond"]["outfmt"],
+        max_target_seqs=config["diamond"]["max_target_seqs"],
+        evalue=config["diamond"]["evalue"]
     log:
-        f"{config['output_dir']}/{{sample}}/logs/{{sample}}_contigs.log"
+        "{out_dir}/{sample}/log/diamond_contigs_{tool}_{sample}.log"
     conda:
         DIAMOND
     shell:
@@ -33,7 +44,14 @@ rule diamond_blastx_contigs:
             &> {log}
         """
 
-# In workflow/rules/diamond.smk - ROBUST VERSION
+
+
+
+
+
+
+
+#develop
 rule diamond_blastx_reads:
     input:
         r1=f"{config['output_dir']}/trimmed/{{sample}}_1.fastq.gz",
