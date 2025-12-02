@@ -23,9 +23,9 @@ data_dir: "data"
 
 ### Modules of Analysis to be implemented
 modules: 
-  download: false  #Perform data download from SRA (default: false)
-  quality: true  # Perform reads quality controls (default: true)
-  assembly: true # Perform de novo assembly for reads (default: true)
+  keep_download: false  #Perform only data download from SRA (default: false)
+  quality: true  # Perform reads quality controls (default: false)
+  assembly: true # Perform de novo assembly for reads (default: false)
   kraken2: false #Perform taxonomic assignment for Kraken2 (default: false)
   diamond: false #Perform taxonomic assignment for Diamond against nr5 for Reads(default: false)
   duskmatter: false #Perform palm annot identification (default: false)

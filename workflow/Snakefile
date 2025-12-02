@@ -27,21 +27,14 @@ import os
 from glob import glob
 from scripts.functions import get_final_outputs
 from scripts.functions import cleanup_downloaded_fastqs
-from scripts.functions import define_input
+from scripts.functions import identify_data_type
 
 ###########################################################
 # --- 3. Define workflown directory and local infos  --- #
 ##########################################################
-data = config["data_dir"]
-samples = config["sample_list"]
-
-
-
-
-
-VALID_FASTQ, SAMPLE_WARNINGS = get_valid_fastq(FASTQ_DIR)
-SAMPLE = list(VALID_FASTQ.keys())
-MATE = ["1", "2"]
+DATA = config["data_dir"]
+SAMPLE = config["sample_list"]
+SAMPLE_META = identify_data_type(DATA, SAMPLE_META)
 
 ###############################################
 # --- 4. Define Global Environment Paths --- #
@@ -75,4 +68,8 @@ rule all:
     input: get_final_outputs
 
 onsuccess:
-    cleanup_downloaded_fastqs
+    cleanup_downloaded_fastqs(log)
+    print("Workflow finished successfully!")
+
+onerror:
+    print("Workflow failed. Temporary files were NOT removed to aid debugging.")

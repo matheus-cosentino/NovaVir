@@ -13,16 +13,27 @@
 ###################################################################################
 # version: 12.2025
 ###################################################################################
-                                                                               
+
+# collor palletes
+blue="\033[1;34m"  # blue
+green="\033[1;32m" # green
+red="\033[1;31m"   # red
+ylow="\033[1;33m"   # yellow
+nc="\033[0m"       # no color                                                                               
 
 ###########################################
-# --- 1. Import functions to be used --- #
+# --- 1. Import libraryes to be used --- #
 ##########################################
 import os, re, glob, time, sys, subprocess, platform, yaml
 from snakemake.io import expand
 from collections import defaultdict
+from Bio import SeqIO
+import sys
+import gzip
 
-## Functions
+##########################################################
+# --- 2. Function to obtain final outputs per module --- #
+##########################################################
 ## in process
 def get_final_outputs():
   final_outputs = []
@@ -30,15 +41,23 @@ def get_final_outputs():
     final_outputs.append(expand(f"{config['output_dir']}/{{sample}}/trimmed/{{sample}}.json",
      sample = SAMPLE))
 
+
+  if MODULES["reads"]:
+    final_outputs.append(expand(f"{config['output_dir']}/{{sample}}/trimmed/{{sample}}.json",
+     sample = SAMPLE))
+
   if MODULES["assembly"]:  
     final_outputs.append(,
      sample = SAMPLE, mate = MATE)
+
   if MODULES["kraken2"]:
     final_outputs.append(expand(f"{config['output_dir']}/{{sample}}/kraken2/{{sample}}_{{source}}_hits.tsv",
      sample = SAMPLE, source = SOURCE))
+
   if MODULES["diamond"]:
     final_outputs.append(expand(f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_{{source}}_hits_with_lineage.tsv",
      sample = SAMPLE, source = SOURCE))
+
   if MODULES["duskmatter"]:
     final_outputs.append(expand(f"{config['output_dir']}/{{sample}}/kraken2/{{sample}}_{{source}}_hits.tsv",
      sample = SAMPLE, source = "contigs"))
@@ -47,40 +66,57 @@ def get_final_outputs():
 
 
 
-
-## in process
+#############################################################
+# --- 3. Clean Up SRA Downloads after total processing --- #
+############################################################
+## ready to test
 def cleanup_downloaded_fastqs(log):
-    # Use the global flag to check if *any* SRA download happened
-    download_only = config.get("options", {}).get("download_only", True)
-    
-    if ANY_SRA_DOWNLOADED and not download_only:
-        print("\n--- INITIATING POST-SUCCESS CLEANUP ---")
-        print("Workflow complete. Removing downloaded FASTQ files from 'raw_data/'...")
-        
-        files_removed = 0
-        for sample, mode in SAMPLE_MODES.items():
-            # ONLY clean up if the sample was processed in SRA mode
-            if mode == 'SRA':
-                f1 = os.path.join(RAW_DATA_DIR, f"{sample}_1.fastq.gz")
-                f2 = os.path.join(RAW_DATA_DIR, f"{sample}_2.fastq.gz")
-                
-                if os.path.exists(f1):
-                    os.remove(f1)
-                    print(f"Removed: {f1}")
-                    files_removed += 1
-                if os.path.exists(f2):
-                    os.remove(f2)
-                    print(f"Removed: {f2}")
-                    files_removed += 1
-                
-        print(f"Cleanup complete. {files_removed} files removed.")
-        print("---------------------------------------\n")
-        
-    elif ANY_SRA_DOWNLOADED and download_only:
-        print("\nWorkflow (download_only) complete. *Keeping* SRA downloaded FASTQ files.")
-        
-    else: # If no SRA was involved (only local FASTQ or CONTIGS)
+    """
+    Delete Fastq Data downloaded from SRA after workflown conclusion,
+    unless 'keep_download' is TRUE.
+    """
+    options = config.get("modules", {})
+    download_only = options.get("keep_download", False)
 
+    # Verify if there is any SRA within metadata
+    sra_samples_exist = any(meta['mode'] == 'SRA' for meta in SAMPLE_META.values())
+
+    # 1: Not possible to clean (No SRA)
+    if not sra_samples_exist:
+        return
+
+    # 2: User delanded to keep download
+    if download_only:
+        print(f"\n{blue}[INFO]{nc} Workflow (download_only) complete. *Keeping* SRA downloaded FASTQ files.")
+        return
+
+    # 3: Cleaning Space After Workflow completion
+    print(f"\n{blue}[INFO]{nc} --- INITIATING POST-SUCCESS CLEANUP ---")
+    print("Workflow complete. Removing temporary SRA FASTQ files...")
+    
+    files_removed = 0
+    
+    # Iteration over mmeta global in SAMPLE_META
+    for sample, meta in SAMPLE_META.items():
+        # Clean only SRA flag
+        if meta['mode'] == 'SRA':
+            # The list possesses paths
+            for file_path in meta['files']:
+                if os.path.exists(file_path):
+                    try:
+                        os.remove(file_path)
+                        print(f"Removed: {file_path}")
+                        files_removed += 1
+                    except OSError as e:
+                        print(f"{red}[WARNING]{nc} Could not remove {file_path}: {e}")
+            
+    print(f"{blue}[INFO]{nc} Cleanup complete. {files_removed} files removed.")
+    print("---------------------------------------\n")
+
+
+###########################################################
+# --- 4. Obtain Novel Fasta with no Hits Iddentified --- #
+##########################################################
 ## ready to test
 def filter_nohits():
     # Access snakemake variables
@@ -155,6 +191,10 @@ def filter_nohits():
     print(f"Output written to: {output_file}", file=sys.stderr)
     print("Filtering complete.", file=sys.stderr)
 
+
+####################################################
+# --- 5. Obtain Metadata to Library Processing --- #
+####################################################
 ## ready to test
 def identify_data_type(sample_list, data_dir):
     """
@@ -217,3 +257,24 @@ def identify_data_type(sample_list, data_dir):
             print(f"[WARNING] Input missing for '{sample}'. Marked for SRA Download.")
 
     return sample_meta
+
+
+####################################################################
+# --- 6. Obtain path to Library Reads availablle or downloaded --- #
+####################################################################
+## ready to test
+def get_input_r1(wildcards):
+    """Returns R1 local or future"""
+    meta = SAMPLE_META[wildcards.sample]
+    if meta['mode'] in ['PAIRED', 'SRA']:
+        return meta['files'][0]
+    if meta['mode'] == 'UNPAIRED':
+        return meta['files'][0]
+    return []
+
+def get_input_r2(wildcards):
+    """Returns R2 local or future"""
+    meta = SAMPLE_META[wildcards.sample]
+    if meta['mode'] in ['PAIRED', 'SRA']:
+        return meta['files'][1]
+    return []
