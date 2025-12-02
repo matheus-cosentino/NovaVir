@@ -1,6 +1,7 @@
-# workflow/rule<s/diamond.smk
+# workflow/rules/diamond.smk
 
 # This rule for contigs is correct and unchanged.
+## Add a rule to filter minimum size of contigs to pass to search
 rule diamond_blastx_contigs:
     input:
         contigs=f"{config['output_dir']}/{{sample}}/assembly/{{sample}}/contigs.fasta"
@@ -72,5 +73,6 @@ rule diamond_blastx_reads:
             --outfmt {config[params][diamond][outfmt]} \
             --max-target-seqs {config[params][diamond][max_target_seqs]} \
             --evalue {config[params][diamond][evalue]} \
+            --log \
             &> {log}
         """

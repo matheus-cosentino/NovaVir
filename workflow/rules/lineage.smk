@@ -5,13 +5,13 @@ rule map_accession_to_taxid:
     Maps protein IDs (Subject ID, column 2 of DIAMOND) to TaxIDs.
     """
     input:
-        hit_file=f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_contigs_hits.tsv",
+        hit_file=f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_{{source}}_hits.tsv",
         taxid_map="resources/database/prot.accession2taxid.gz"
     output:
-        temp(f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_contigs_hits_with_taxid.tmp")
+        temp(f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_{{source}}_hits_with_taxid.tmp")
     shadow: "minimal" 
     log:
-        f"{config['output_dir']}/{{sample}}/logs/{{sample}}_contigs_map_taxid.log"
+        f"{config['output_dir']}/{{sample}}/logs/{{sample}}_{{source}}_map_taxid.log"
     shell:
         """
         # Extract unique protein IDs (skip header if present)
@@ -48,9 +48,9 @@ rule split_hits_by_taxid:
     Filters the input file to keep only hits with valid TaxIDs.
     """
     input:
-        f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_contigs_hits_with_taxid.tmp"
+        f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_{{source}}_hits_with_taxid.tmp"
     output:
-        valid_hits=temp(f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_contigs_valid_hits.temp")
+        valid_hits=temp(f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_{{source}}_valid_hits.temp")
     params:
         header="qseqid\tsseqid\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore\ttaxid"
     shell:
@@ -69,16 +69,16 @@ rule split_hits_by_taxid:
 
 rule append_lineage:
     input:
-        valid_hits=f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_contigs_valid_hits.temp",
+        valid_hits=f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_{{source}}_valid_hits.temp",
         nodes="resources/database/nodes.dmp",
         names="resources/database/names.dmp"
     output:
-        f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_contigs_hits_with_lineage.tsv"
+        f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_{{source}}_hits_with_lineage.tsv"
     params:
         base_header="qseqid\tsseqid\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore\tTaxid",
         lineage_header="Lineage\tCelular\tAcelular\tRealm\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies"
     log:
-        f"{config['output_dir']}/{{sample}}/logs/{{sample}}_contigs_get_lineage.log"
+        f"{config['output_dir']}/{{sample}}/logs/{{sample}}_{{source}}_get_lineage.log"
     conda:
         TAXONKIT
     shell:

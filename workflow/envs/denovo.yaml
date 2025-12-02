@@ -1,7 +1,9 @@
-name: spades
+name: denovo
 channels:
   - conda-forge
   - bioconda
   - nodefaults
 dependencies:
  - spades=4.2.0
+ - flye
+ - megahit

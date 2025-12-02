@@ -1,24 +1,48 @@
+###################################################################################
+# Snakefile
+#MSc. Matheus Cosentino 
+###################################################################################
+# oooooooooo.    o8o                               oooooo     oooo  o8o           #
+# `888'   `Y8b   `"'                                `888.     .8'   `"'           #
+#  888      888 oooo   .oooo.o  .ooooo.   .ooooo.    `888.   .8'   oooo  oooo d8b #
+#  888      888 `888  d88(  "8 d88' `"Y8 d88' `88b    `888. .8'    `888  `888""8P #
+#  888      888  888  `"Y88b.  888       888   888     `888.8'      888   888     #
+#  888     d88'  888  o.  )88b 888   .o8 888   888      `888'       888   888     #
+# o888bood8P'   o888o 8""888P' `Y8bod8P' `Y8bod8P'       `8'       o888o d888b    #
+
+###################################################################################
+# version: 12.2025
+###################################################################################
+
 # Main output directory
 output_dir: "results"
 
-# Add path to SRA accessions of interest
-sra_file: "sra_accessions.txt"
+# Add path to sequences of interest
+sample_list: "accessions.txt"
 data_dir: "data"
 
-#Modules of Analysis
+### Modules of Analysis to be implemented
 modules: 
-  overview: true
-  exploratory: false
-  discovery: false
+  download: false  #Perform data download from SRA (default: false)
+  quality: true  # Perform reads quality controls (default: true)
+  assembly: true # Perform de novo assembly for reads (default: true)
+  kraken2: false #Perform taxonomic assignment for Kraken2 (default: false)
+  diamond: false #Perform taxonomic assignment for Diamond against nr5 for Reads(default: false)
+  duskmatter: false #Perform palm annot identification (default: false)
+  reads: false #Perform reads taxonomic identification (default: false)
 
-source:
-  reads: true
-  contigs: true
+###
+tools:
+  denovo: 'spades' # Select your favorite de novo assembly (default: 'spades')
+  # options: 
+  ##- 'spades'.    # more resourcers needed, but algorythis to better deal with RNA seq data (default)
+  ##- 'megahit'    # faster, more error proner
+  ##- 'flye'       #indicated for nanopore sequencing long reads
 
 # Envs with tools necessary to use
 envs:
   fastp: "workflow/envs/fastp.yaml"
-  spades: "workflow/envs/spades.yaml"
+  denovo: "workflow/envs/denovo.yaml"
   diamond:  "workflow/envs/diamond.yaml"
   taxonkit: "workflow/envs/taxonkit.yaml"
   download: "workflow/envs/download.yaml"
@@ -26,14 +50,15 @@ envs:
   report: "workflow/envs/report.yaml"
   palm_annot: "workflow/envs/palm_annot.yaml"
 
-db:
+# databases and resources for the workflow
+resources:
   diamond: "resources/database/NCBI_2025_07_22.dmnd"
   taxonnodes: "resources/database/nodes.dmp"
   taxonnames: "resources/database/names.dmp"
   taxonmap: "resources/database/prot.accession2taxid.gz"
   palm_annot_dir: "resources/palm_annot"
-
-logo_dirs: "resources/logo/"
+  kraken2_db: "resources/kraken2"
+  logo_dirs: "resources/logo/"
 
 params:
   fastp:
@@ -41,7 +66,9 @@ params:
     qualified_quality_phred: 30
   
   spades:
-    extra: "--rnaviral"
+    algorithm : "--rnaviral" #low resources and correction of RNA artifacts assembly
+    #algorithm: "--coronaspades" #indicate for genomic de novo assembly of CoV genomes by HMM guides
+    #algorithm: "--meta" #high resources and identification of low assembly
 
   diamond:
     outfmt: 6

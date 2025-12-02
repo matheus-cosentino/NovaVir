@@ -83,7 +83,7 @@ rule spades:
     log:
         f"{config['output_dir']}/{{sample}}/logs/{{sample}}_spades.log"
     conda:
-        SPADES
+        DENOVO
     shell:
         """
         # Read the layout from the input file

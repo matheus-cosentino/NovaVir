@@ -1,7 +1,7 @@
 ---
-title: "Contigs Diversity Report"
+title: "Discovery Module Report"
 subtitle: "Sample **`r params$sample_name`**"
-author: "DiscoVir v.0.1 MSc. Matheus Cosentino"
+author: "MSc. Matheus Cosentino DiscoVir v.2025.12"
 date: "`r format(Sys.Date(), '%B %d, %Y')`"
 output: 
   html_document:
