@@ -5,5 +5,5 @@ channels:
   - nodefaults
 dependencies:
   - sra-tools=3.2.1
-  - wget
-  - zstd
+  - wget=1.25.0
+  - zstd=1.5.7

@@ -1,3 +1,4 @@
+name: scripts 
 channels:
   - conda-forge
   - bioconda
@@ -5,4 +6,4 @@ channels:
 dependencies:
   - python=3.13
   - pandas=2.3.2
-  - biopython
+  - biopython=1.86

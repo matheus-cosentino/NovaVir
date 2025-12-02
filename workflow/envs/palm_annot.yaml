@@ -5,6 +5,6 @@ channels:
   - nodefaults
 dependencies:
   - hmmer=3.4
-  - emboss
+  - emboss=6.6.0
   - cd-hit=4.8.1
   - python=3.10
