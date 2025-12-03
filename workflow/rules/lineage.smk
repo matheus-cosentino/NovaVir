@@ -1,15 +1,32 @@
-# workflow/rules/lineage.smk
+###################################################################################
+#                       workflow/rules/lineage.smk                                #
+#                         MSc. Matheus Cosentino                                  # 
+###################################################################################
+#                                                                                 #
+# oooooooooo.    o8o                               oooooo     oooo  o8o           #
+# `888'   `Y8b   `"'                                `888.     .8'   `"'           #
+#  888      888 oooo   .oooo.o  .ooooo.   .ooooo.    `888.   .8'   oooo  oooo d8b #
+#  888      888 `888  d88(  "8 d88' `"Y8 d88' `88b    `888. .8'    `888  `888""8P #
+#  888      888  888  `"Y88b.  888       888   888     `888.8'      888   888     #
+#  888     d88'  888  o.  )88b 888   .o8 888   888      `888'       888   888     #
+# o888bood8P'   o888o 8""888P' `Y8bod8P' `Y8bod8P'       `8'       o888o d888b    #
+#                                                                                 #
+###################################################################################
+#                              version: 12.2025                                   #
+###################################################################################
 
 rule map_accession_to_taxid:
     """
     Maps protein IDs (Subject ID, column 2 of DIAMOND) to TaxIDs.
     """
     input:
-        hit_file="{out_dir}/{sample}/{tool}/diamond/{sample}_contigs_report.txt",
-        taxid_map="resources/database/prot.accession2taxid.gz"
+        hit_file="{out_dir}/{sample}/diamond_{source}/{sample}_{source}_report.txt",
     output:
-        temp(f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_{{source}}_hits_with_taxid.tmp")
-    shadow: "minimal" 
+        temp(f"{config['output_dir']}/{{sample}}/diamond_{source}/{sample}_{source}_hits_with_taxid.tmp")
+    shadow: 
+        "minimal" 
+    params:
+        taxid_map="resources/database/prot.accession2taxid.gz"
     log:
         f"{config['output_dir']}/{{sample}}/logs/{{sample}}_{{source}}_map_taxid.log"
     shell:

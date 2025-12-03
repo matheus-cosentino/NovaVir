@@ -1,65 +1,51 @@
-# workflow/rules/get_data.smk
-
-checkpoint determine_sra_layout:
-    """
-    Checks downloaded files to determine if a sample is PE or SE.
-    It works by checking if the R2 file has a size greater than zero.
-    """
-    input:
-        # This checkpoint now depends on the output of download_sra_data
-        r1="raw_data/{sample}_1.fastq.gz",
-        r2="raw_data/{sample}_2.fastq.gz"
-    output:
-        # The output is the same: a file containing either "PE" or "SE"
-        f"{config['output_dir']}/{{sample}}/sra_layout/{{sample}}.layout.txt"
-    log:
-        f"{config['output_dir']}/{{sample}}/logs/{{sample}}_sra_layout.log"
-    shell:
-        """
-        # The '-s' test in shell checks if a file exists AND has a size greater than zero.
-        if [ -s {input.r2} ]; then
-            echo "PE" > {output}
-        else
-            echo "SE" > {output}
-        fi
-        """
-
+###################################################################################
+#                       workflow/rules/get_data.smk                               #
+#                         MSc. Matheus Cosentino                                  # 
+###################################################################################
+#                                                                                 #
+# oooooooooo.    o8o                               oooooo     oooo  o8o           #
+# `888'   `Y8b   `"'                                `888.     .8'   `"'           #
+#  888      888 oooo   .oooo.o  .ooooo.   .ooooo.    `888.   .8'   oooo  oooo d8b #
+#  888      888 `888  d88(  "8 d88' `"Y8 d88' `88b    `888. .8'    `888  `888""8P #
+#  888      888  888  `"Y88b.  888       888   888     `888.8'      888   888     #
+#  888     d88'  888  o.  )88b 888   .o8 888   888      `888'       888   888     #
+# o888bood8P'   o888o 8""888P' `Y8bod8P' `Y8bod8P'       `8'       o888o d888b    #
+#                                                                                 #
+###################################################################################
+#                              version: 12.2025                                   #
+###################################################################################
 
 rule download_sra_data:
     output:
-        r1="raw_data/{sample}_1.fastq.gz",
-        r2="raw_data/{sample}_2.fastq.gz"
+        r1 = os.path.join(config["data_dir"], "{sample}_1.fastq.gz"),
+        r2 = os.path.join(config["data_dir"], "{sample}_2.fastq.gz")
     log:
-        f"{config['output_dir']}/{{sample}}/logs/{{sample}}_download.log"
+        os.path.join(config["output_dir"], "{sample}", "log", "{sample}_download.log")
     conda:
         DOWNLOAD
-    params:
-        # Wrap the string in a lambda function to delay wildcard evaluation.
-        tmpdir=lambda wildcards: f"raw_data/tmp_{wildcards.sample}"
     shadow: 
         "minimal" 
+    params:
+        out_dir = config["data_dir"]
     shell:
         """
-        # Create the temporary directory defined in params
-        mkdir -p {params.tmpdir}
+        # 1. Download data (using current directory via shadow)
+        # --split-3 ensures we get _1 and _2 for PE, or just .fastq for SE
+        fasterq-dump --threads {threads} --split-3 {wildcards.sample} > {log} 2>&1
 
-        # Run fasterq-dump, outputting to the temporary directory
-        fasterq-dump --threads {resources.threads} --split-files -O {params.tmpdir} {wildcards.sample} > {log} 2>&1
-
-        # Gzip the R1 file and move it
-        gzip {params.tmpdir}/{wildcards.sample}_1.fastq
-        mv {params.tmpdir}/{wildcards.sample}_1.fastq.gz {output.r1}
-
-        # Check if the R2 file was created
-        if [ -f {params.tmpdir}/{wildcards.sample}_2.fastq ]; then
-            # Paired-End: Gzip and move the R2 file.
-            gzip {params.tmpdir}/{wildcards.sample}_2.fastq
-            mv {params.tmpdir}/{wildcards.sample}_2.fastq.gz {output.r2}
-        else
-            # Single-End: Create an empty placeholder R2 file.
-            touch {output.r2}
+        # 2. Compression Loop (using pigz for parallel speed)
+        # Check what files were downloaded and compress them
+        if [ -f "{wildcards.sample}_1.fastq" ]; then
+            gzip "{wildcards.sample}_1.fastq"
+            mv "{wildcards.sample}_1.fastq.gz" {output.r1}
         fi
-        
-        # Clean up the temporary directory
-        rm -r {params.tmpdir}
+
+        if [ -f "{wildcards.sample}_2.fastq" ]; then
+            gzip "{wildcards.sample}_2.fastq"
+            mv "{wildcards.sample}_2.fastq.gz" {output.r2}
+        else
+            if [ -f "{wildcards.sample}.fastq" ]; then
+            gzip "{wildcards.sample}.fastq"
+            mv "{wildcards.sample}.fastq.gz" {output.r1}
+        fi  
         """

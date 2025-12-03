@@ -52,7 +52,7 @@ def get_final_outputs():
         file_name = TOOL_OUTPUT_MAP.get(tool_name)
         if not file_name:
                 raise ValueError(f"Output filename not defined for tool: {tool_name}")
-        final_outputs.append(expand("{output_dir}/{sample}/{denovo}/{filename}", sample = SAMPLE, denovo = MAPPER, filename = file_name, out_dir=OUT_DIR))
+        final_outputs.append(expand("{output_dir}/{sample}/{tool}/{filename}", sample = SAMPLE, tool = MAPPER, filename = file_name, out_dir=OUT_DIR))
 
   if MODULES["duskmatter"]:
     final_outputs.append()
@@ -354,3 +354,89 @@ def get_contigs_path(wildcards):
             
         # Return the assembly result path
         return f"{OUT_DIR}/{sample}/{tool_name}/{filename}"
+
+
+#####################################################
+# --- 8. Helper Functions of Get De novo input --- #
+####################################################
+def get_denovo_r1(wildcards):
+    """Get R1 Only for paired-end(Paired/SRA)."""
+    meta = SAMPLE_META.get(wildcards.sample)
+    if meta and meta['mode'] in ['PAIRED', 'SRA']:
+        return os.path.join(OUT_DIR, wildcards.sample, "trimmed", f"{wildcards.sample}_1.fastq.gz")
+    return []
+
+def get_denovo_r2(wildcards):
+    """Get R2 Only for paired-end(Paired/SRA)."""
+    meta = SAMPLE_META.get(wildcards.sample)
+    if meta and meta['mode'] in ['PAIRED', 'SRA']:
+        return os.path.join(OUT_DIR, wildcards.sample, "trimmed", f"{wildcards.sample}_2.fastq.gz")   
+    return []
+
+def get_denovo_unpaired(wildcards):
+    """
+    Get files for the flag -s (single/unpaired).
+    - PAIRED: Return 'orphans' paired reads.
+    - UNPAIRED: Return unpaired reads.
+    """
+    meta = SAMPLE_META.get(wildcards.sample)
+    
+    # Orphans
+    if meta and meta['mode'] in ['PAIRED', 'SRA']:
+        return os.path.join(OUT_DIR, wildcards.sample, "trimmed", f"{wildcards.sample}_orphans.fastq.gz")
+    
+    # Unpaired
+    if meta and meta['mode'] == 'UNPAIRED':
+        return os.path.join(OUT_DIR, wildcards.sample, "trimmed", f"{wildcards.sample}_unp.fastq.gz")
+        
+    return []
+
+def get_flye_input(wildcards):
+    """
+    Specific input function for Flye.
+    1. Checks if the sample is UNPAIRED (Nanopore/PacBio).
+    2. If PAIRED, returns empty list (skips Flye for Illumina samples).
+    """
+    meta = SAMPLE_META.get(wildcards.sample)
+    
+    # Only run Flye if the mode is specifically UNPAIRED (Long Reads)
+    if meta and meta['mode'] == 'UNPAIRED':
+        # Assumes the single-end file was processed by fastp and saved here
+        return os.path.join(OUT_DIR, wildcards.sample, "trimmed", f"{wildcards.sample}_orphans.fastq.gz")
+    
+    # If the sample is PAIRED, Flye cannot use it. Return empty.
+    return []
+
+#####################################################
+# --- 9. Helper Functions of Get De novo params --- #
+####################################################
+def get_spades_params(wildcards, input):
+    """Build args dynamicaly."""
+    cmd = ""
+    
+    # 1. R1 & R2, adds -1 e -2
+    if input.r1 and input.r2:
+        cmd += f"-1 {input.r1} -2 {input.r2} "
+    
+    # 2. "extra/unpaired", adds the -s
+    if input.unpaired:
+        cmd += f"-s {input.unpaired}"
+        
+    return cmd
+
+def get_megahit_params(wildcards, input):
+    """Build args dynamicaly."""
+    cmd = ""
+    
+    # 1. R1 & R2, adds -1 e -2
+    if input.r1 and input.r2:
+        cmd += f"-1 {input.r1} -2 {input.r2} "
+    
+    # 2. "extra/unpaired", adds the -s
+    if input.unpaired:
+        cmd += f"-r {input.unpaired}"
+        
+    return cmd
+
+
+

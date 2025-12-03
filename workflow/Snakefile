@@ -32,6 +32,10 @@ from scripts.functions import filter_nohits
 from scripts.functions import identify_data_type
 from scripts.functions import get_input_r1
 from scripts.functions import get_input_r2
+from scripts.functions import get_denovo_r1
+from scripts.functions import get_denovo_r2
+from scripts.functions import get_denovo_unpaired
+from scripts.functions import get_denovo_params
 
 
 ###########################################################
@@ -50,10 +54,22 @@ functions.DATA = DATA
 functions.SAMPLE = SAMPLE
 functions.OUT_DIR = OUT_DIR
 functions.SAMPLE_META = SAMPLE_META
+
+
 functions.MAPPER = config["tools"]["denovo"] 
 functions.MODULES = config["modules"]
+
+
 get_contigs_path = functions.get_contigs_path
+
+
 filter_nohits = functions.filter_nohits
+
+
+get_denovo_r1 = functions.get_denovo_r1
+get_denovo_r2 = functions.get_denovo_r2
+get_denovo_unpaired = functions.get_denovo_unpaired
+get_spades_params = functions.get_spades_params
 
 ##############################################
 # --- 5. Define Conda Environment Paths --- #
@@ -101,7 +117,7 @@ rule all:
     input: get_final_outputs
 
 onsuccess:
-    cleanup_downloaded_fastqs(log)
+    cleanup_downloaded_fastqs()
     print("Workflow finished successfully!")
 
 onerror:

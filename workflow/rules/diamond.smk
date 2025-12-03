@@ -46,51 +46,35 @@ rule diamond_blastx_contigs:
 
 
 
-
-
-
-
-
-#develop
 rule diamond_blastx_reads:
-    input:
-        r1=f"{config['output_dir']}/trimmed/{{sample}}_1.fastq.gz",
-        r2=f"{config['output_dir']}/trimmed/{{sample}}_2.fastq.gz",
-        orphans=f"{config['output_dir']}/trimmed/{{sample}}_orphans.fastq.gz",
-        layout=f"{config['output_dir']}/sra_layout/{{sample}}.layout.txt"
+   input:
+     r1 = get_denovo_r1,
+     r2 = get_denovo_r2,
+     extra = get_denovo_unpaired
     output:
-        hits=f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_reads_hits.tsv"
-    shadow: 
-        "minimal" 
+        hits="{out_dir}/{sample}/diamond_reads/{sample}_reads_report.txt"
     params:
-        db=f"{workflow.basedir}/{config['db']['diamond']}",
-        outfmt=config["params"]["diamond"]["outfmt"],
-        max_target_seqs=config["params"]["diamond"]["max_target_seqs"],
-        evalue=config["params"]["diamond"]["evalue"]
+        #db=f"{workflow.basedir}/{config['resources']['diamond']}",
+        db=config["resources"]["diamond"],
+        outfmt=config["diamond"]["outfmt"],
+        max_target_seqs=config["diamond"]["max_target_seqs"],
+        evalue=config["diamond"]["evalue"]
     log:
-        f"{config['output_dir']}/{{sample}}/logs/{{sample}}_reads.log"
+        "{out_dir}/{sample}/log/diamond_reads_{sample}.log"
     conda:
         DIAMOND
     shell:
         """
-        # Read the layout from the input file
-        LAYOUT=$(cat {input.layout})
-
-        # Build the query file string based on the layout
-        if [ "$LAYOUT" = "PE" ]; then
-            QUERY_FILES="--query {input.r1} --query {input.r2} --query {input.orphans}"
-        else
-            QUERY_FILES="--query {input.r1}"
-        fi
-
         diamond blastx \
-            $QUERY_FILES \
+            --query {input.r1} {input.r2} {input.extra} \
             --db {params.db} \
             --out {output.hits} \
             --threads {resources.threads} \
-            --outfmt {config[params][diamond][outfmt]} \
-            --max-target-seqs {config[params][diamond][max_target_seqs]} \
-            --evalue {config[params][diamond][evalue]} \
+            --outfmt {params.outfmt} \
+            --max-target-seqs {params.max_target_seqs} \
+            --evalue {params.evalue} \
             --log \
             &> {log}
         """
+
+
