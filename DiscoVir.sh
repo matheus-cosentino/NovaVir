@@ -16,6 +16,7 @@
 #                              version: 12.2025                                   #
 ###################################################################################
 
+
 # --- Color Palettes ---
 blue="\033[1;34m"  
 green="\033[1;32m" 
@@ -23,7 +24,7 @@ red="\033[1;31m"
 ylo="\033[1;33m"   
 nc="\033[0m"       
 
-# Nome do ambiente Conda esperado (baseado no seu arquivo workflow/envs/DiscoVir.yaml)
+# Nome do ambiente Conda (deve bater com workflow/envs/DiscoVir.yaml)
 ENV_NAME="DiscoVir"
 ENV_FILE="workflow/envs/DiscoVir.yaml"
 
@@ -37,8 +38,7 @@ run_with_spinner() {
     ("$@" > /dev/null 2>&1) &
     pid=$!
     disown $pid 2>/dev/null
-    local spinner=("A" "T" "G" "C")
-    local i=0
+    local spinner=("A" "T" "G" "T" "G" "T" "T" "C" "T" "G" "A" "C" "A" "A" "C" "A" "C" "G" "A" "T" "C" "A" "A" "C" "A" "T" "G")    local i=0
     while kill -0 $pid 2>/dev/null; do
         printf "\r\033[K [${green}${spinner[i]}${nc}] Processing...    "
         i=$(( (i+1) % 4 ))
@@ -73,8 +73,9 @@ help(){
    --jobs <INT>         Number of jobs (default: 15)
    --profile <STR>      Snakemake profile (default: profile_slurm)
 
- Database Overrides (If you want to use external DBs instead of 'resources/'):
-   --diamond_db <FILE>  External Diamond database (.dmnd)
+ Database Overrides (Use external DBs):
+   --diamond_db <FILE>  External Diamond database (.dmnd).
+                        (Script auto-detects taxonomy files in the same directory)
    --kraken2 <DIR>      External Kraken2 database directory
  
  Flags:
@@ -94,17 +95,15 @@ version(){
 manage_environment(){
     echo -ne "${blue}[INFO]${nc} Checking Conda environment '${ylo}${ENV_NAME}${nc}'... "
 
-    # Tenta localizar o conda.sh para permitir ativação dentro do script
+    # Tenta carregar o conda para o shell atual
     CONDA_BASE=$(conda info --base)
     source "${CONDA_BASE}/etc/profile.d/conda.sh"
 
-    # Verifica se o ambiente existe
     if conda env list | grep -q "^${ENV_NAME} "; then
         echo -e "${green}Found${nc}"
     else
         echo -e "${red}Not Found${nc}"
-        echo -e "${ylo}[INFO]${nc} Creating environment from ${ENV_FILE}. This may take a while..."
-        
+        echo -e "${ylo}[INFO]${nc} Creating environment... "
         if [[ -f "$workdir/$ENV_FILE" ]]; then
             run_with_spinner conda env create --file "$workdir/$ENV_FILE" --name "$ENV_NAME" --quiet
         else
@@ -113,15 +112,9 @@ manage_environment(){
         fi
     fi
 
-    # Ativa o ambiente
     echo -ne "${blue}[INFO]${nc} Activating environment... "
     conda activate "$ENV_NAME"
-    if [[ $? -eq 0 ]]; then
-        echo -e "${green}Active${nc}"
-    else
-        echo -e "${red}Failed to activate${nc}"
-        exit 1
-    fi
+    if [[ $? -eq 0 ]]; then echo -e "${green}Active${nc}"; else echo -e "${red}Failed${nc}"; exit 1; fi
 }
 
 ###################################
@@ -129,20 +122,44 @@ manage_environment(){
 ###################################
 
 setup_resources(){
-    # Se o usuário passou bancos externos, criamos links em resources/links/
-    # e informamos ao Snakemake para usar esses links.
-    
     LINK_DIR="$workdir/resources/links"
     mkdir -p "$LINK_DIR"
     
-    # 1. Diamond DB Override
+    # 1. Diamond DB & Taxonomy Auto-Detection
     if [[ -n "$diamond_db" ]]; then
         if [[ -f "$diamond_db" ]]; then
             echo -e "${blue}[INFO]${nc} Linking external Diamond DB..."
             ln -sf "$diamond_db" "$LINK_DIR/external_diamond.dmnd"
-            diamond_path="$LINK_DIR/external_diamond.dmnd"
+            
+            # Variável para a chave 'diamond'
+            res_diamond="'$LINK_DIR/external_diamond.dmnd'"
+
+            # AUTO-DETECTION: Procura arquivos de taxonomia na mesma pasta do .dmnd
+            DB_DIR=$(dirname "$diamond_db")
+            
+            # Para chave 'taxonnodes'
+            if [[ -f "$DB_DIR/nodes.dmp" ]]; then
+                echo -e "       > Auto-detected ${green}nodes.dmp${nc}"
+                ln -sf "$DB_DIR/nodes.dmp" "$LINK_DIR/nodes.dmp"
+                res_nodes="'$LINK_DIR/nodes.dmp'"
+            fi
+            
+            # Para chave 'taxonnames'
+            if [[ -f "$DB_DIR/names.dmp" ]]; then
+                echo -e "       > Auto-detected ${green}names.dmp${nc}"
+                ln -sf "$DB_DIR/names.dmp" "$LINK_DIR/names.dmp"
+                res_names="'$LINK_DIR/names.dmp'"
+            fi
+            
+            # Para chave 'taxonmap'
+            if [[ -f "$DB_DIR/prot.accession2taxid.gz" ]]; then
+                echo -e "       > Auto-detected ${green}prot.accession2taxid.gz${nc}"
+                ln -sf "$DB_DIR/prot.accession2taxid.gz" "$LINK_DIR/prot.accession2taxid.gz"
+                res_map="'$LINK_DIR/prot.accession2taxid.gz'"
+            fi
+
         else
-            echo -e "${red}[WARNING]${nc} Provided Diamond DB not found: $diamond_db. Using default."
+            echo -e "${red}[WARNING]${nc} Diamond DB not found: $diamond_db. Using default."
         fi
     fi
 
@@ -150,12 +167,12 @@ setup_resources(){
     if [[ -n "$kraken2" ]]; then
         if [[ -d "$kraken2" ]]; then
              echo -e "${blue}[INFO]${nc} Linking external Kraken2 DB..."
-            # Remove link antigo se existir para evitar aninhamento incorreto
             rm -f "$LINK_DIR/external_kraken2"
             ln -sfn "$kraken2" "$LINK_DIR/external_kraken2"
-            kraken2_path="$LINK_DIR/external_kraken2"
+            # Variável para a chave 'kraken2'
+            res_kraken="'$LINK_DIR/external_kraken2'"
         else
-            echo -e "${red}[WARNING]${nc} Provided Kraken2 DB directory not found: $kraken2. Using default."
+            echo -e "${red}[WARNING]${nc} Kraken2 dir not found: $kraken2. Using default."
         fi
     fi
 }
@@ -166,7 +183,6 @@ setup_resources(){
 
 generate_sample_list(){
     echo -ne "${blue}[INFO]${nc} Generating sample list..."
-    
     sample_list="$output/samples_detected.txt"
     mkdir -p "$output"
     
@@ -218,33 +234,39 @@ input=${input:-"data"}
 profile=${profile:-profile_slurm}
 jobs=${jobs:-15}
 
-# 1. Configura Ambiente (Cria/Ativa)
 manage_environment
-
-# 2. Prepara Recursos (Links externos se necessário)
 setup_resources
-
-# 3. Detecta Amostras
 generate_sample_list
 
 echo -e "${blue}[INFO]${nc} Initializing DiscoVir Workflow..."
 
-# Configuração Base
-config_args="data_dir=$input output_dir=$output sample_list=$sample_list"
+# Configuração Base (Caminhos e Lista de Amostras)
+config_override="data_dir='$input' output_dir='$output' sample_list='$sample_list'"
 
-# Overrides de Recursos (apontando para os links criados)
-if [[ -n "$diamond_path" ]]; then 
-    config_args="$config_args resources={diamond:\"$diamond_path\"}" 
-fi
-if [[ -n "$kraken2_path" ]]; then 
-    config_args="$config_args resources={kraken2:\"$kraken2_path\"}" 
+# Construção do Override de Recursos (Mapeamento exato para o config.yaml)
+# O Snakemake aceita: resources={key1:val1, key2:val2}
+resource_str=""
+
+# Mapeia variáveis do bash para as chaves do config.yaml
+if [[ -n "$res_diamond" ]]; then resource_str="$resource_str diamond:$res_diamond,"; fi
+if [[ -n "$res_kraken" ]];  then resource_str="$resource_str kraken2:$res_kraken,"; fi
+if [[ -n "$res_nodes" ]];   then resource_str="$resource_str taxonnodes:$res_nodes,"; fi
+if [[ -n "$res_names" ]];   then resource_str="$resource_str taxonnames:$res_names,"; fi
+if [[ -n "$res_map" ]];     then resource_str="$resource_str taxonmap:$res_map,"; fi
+
+# Remove a última vírgula
+resource_str=${resource_str%,}
+
+# Se montamos alguma string de recurso, adicionamos ao comando
+if [[ -n "$resource_str" ]]; then
+    config_override="$config_override resources={$resource_str}"
 fi
 
 # Comando Final
 cmd="snakemake --profile $profile \
     --jobs $jobs \
     --use-conda \
-    --config $config_args"
+    --config $config_override"
 
 echo -e "${ylo}Running command:${nc}"
 echo "$cmd"
