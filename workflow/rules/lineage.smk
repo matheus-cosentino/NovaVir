@@ -27,7 +27,7 @@ rule map_accession_to_taxid:
     input:
         hit_file = os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt")
     output:
-        temp(os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "diamond_{source}", "{sample}_{source}_hits_with_taxid.tmp"))
+        temp(os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_hits_with_taxid.tmp"))
     shadow: 
         "minimal" 
     params:
@@ -41,7 +41,7 @@ rule map_accession_to_taxid:
         tail -n +2 {input.hit_file} | cut -f 2 | sort -u > {output}.protein_ids.tmp
         
         # Filter taxid map and create lookup
-        zcat {input.taxid_map} | grep -Fwf {output}.protein_ids.tmp > {output}.filtered_map.tmp
+        zcat {params.taxid_map} | grep -Fwf {output}.protein_ids.tmp > {output}.filtered_map.tmp
         
         # Add taxid to hits
         awk -F'\\t' -v OFS='\\t' '
@@ -78,9 +78,9 @@ rule split_hits_by_taxid:
     Filters the input file to keep only hits with valid TaxIDs.
     """
     input:
-      os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "diamond_{source}", "{sample}_{source}_hits_with_taxid.tmp")
+      os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_hits_with_taxid.tmp")
     output:
-      valid_hits=temp(os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "diamond_{source}", "{sample}_{source}_valid_hits.tmp"))    
+      valid_hits=temp(os.path.join(OUT_DIR, "{sample}", "diamond_{source}",  "{sample}_{source}_valid_hits.tmp"))    
     params:
       header="qseqid\tsseqid\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore\ttaxid"
     log:
@@ -104,9 +104,9 @@ rule split_hits_by_taxid:
 
 rule append_lineage:
     input:
-       valid_hits = os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "diamond_{source}", "{sample}_{source}_valid_hits.tmp")    
+       valid_hits = os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_valid_hits.tmp")    
     output:
-       os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "diamond_{source}", "{sample}_{source}_hits_with_lineage.tsv")
+       os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_hits_with_lineage.tsv")
     params:
         nodes = config["resources"]["taxonnodes"],
         names = config["resources"]["taxonnames"],

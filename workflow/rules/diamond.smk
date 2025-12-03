@@ -16,10 +16,12 @@
 ###################################################################################
 
 rule diamond_blastx_contigs:
+    wildcard_constraints:
+      tool="((?!reads).)*"
     input:
       contigs = get_contigs_path
     output:
-      hits="{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_report.txt"
+      hits="{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_report.txt"
     params:
       #db=f"{workflow.basedir}/{config['resources']['diamond']}",
       db=config["resources"]["diamond"],

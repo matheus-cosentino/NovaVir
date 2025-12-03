@@ -25,15 +25,15 @@ rule get_nohit_fasta:
   """
   input:
     fasta = get_contigs_path,
-    diamond = "{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_hits_with_lineage.tsv"
+    diamond = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_lineage.tsv")  
   output:
-    nohits="{out_dir}/{sample}/duskmatter_{tool}/{sample}_contigs_nohit.fasta"
+    nohits = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_{tool}_nohit.fasta")
   log:
-    "{out_dir}/{sample}/log/duskmatter_{tool}_{sample}_nohits.log"
+    os.path.join(OUT_DIR, "{sample}", "log", "duskmatter_{tool}_{sample}_nohits.log")
   conda:
     SCRIPTS
   script:
-    "workflow/scripts/filter_nohits.py"
+    "scripts/filter_nohits.py"
 
 
 #################################################
@@ -44,11 +44,11 @@ rule find_orfs:
     Extract orfs in distinct genetic codes used by RNA Viruses.
   """
   input: 
-    fasta="{out_dir}/{sample}/duskmatter_{tool}/{sample}_contigs_nohit.fasta"
+    fasta = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_{tool}_nohit.fasta")
   output:
-    orfs=temp("{out_dir}/{sample}/duskmatter_{tool}/{sample}_ORFs.fasta.temp")
+    orfs = temp(os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_ORFs.fasta.temp"))
   log:
-    "{out_dir}/{sample}/log/duskmatter_{tool}_{sample}_orfs.log"
+    os.path.join(OUT_DIR, "{sample}", "log", "duskmatter_{tool}_{sample}_orfs.log")
   conda:
     PALM
   shell:
@@ -75,11 +75,11 @@ rule cd_hit:
   Remove duplicated ORFs using CD-HIT.
   """
   input:
-    fasta="{out_dir}/{sample}/duskmatter_{tool}/{sample}_ORFs.fasta.temp"
+    fasta = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_ORFs.fasta.temp")
   output:  
-    orfs="{out_dir}/{sample}/duskmatter_{tool}/{sample}_ORFs.fasta"
+    orfs = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_ORFs.fasta")
   log:
-   "{out_dir}/{sample}/log/duskmatter_{tool}_{sample}_cdhit.log"
+    os.path.join(OUT_DIR, "{sample}", "log", "duskmatter_{tool}_{sample}_cdhit.log")
   conda:
     PALM
   shell:
@@ -97,10 +97,10 @@ rule cd_hit:
 ################################################## 
 rule palm_annot:
   input:
-    fasta = "{out_dir}/{sample}/duskmatter_{tool}/{sample}_ORFs.fasta"
+    fasta = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_ORFs.fasta")
   output:
-    fev="{out_dir}/{sample}/duskmatter_{tool}/{sample}_RdRp.fev",
-    rdrp = "{out_dir}/{sample}/duskmatter_{tool}/{sample}_RdRp.fasta"
+    fev  = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_RdRp.fev"),
+    rdrp = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_RdRp.fasta")
   params:
     seqtype = config["palm_annot"]["seqtype"],
     minscore = config["palm_annot"]["minscore"],
@@ -109,9 +109,9 @@ rule palm_annot:
   conda:
     PALM
   log:
-  "{out_dir}/{sample}/log/duskmatter_{tool}_{sample}_palmannot.log"
+    os.path.join(OUT_DIR, "{sample}", "log", "duskmatter_{tool}_{sample}_palmannot.log")  
   script:
-    "workflow/scripts/palm_annot_run.py"
+    "scripts/palm_annot_run.py"
   
 ##################################
 # --- 5. Convert FEV to TSV --- #
@@ -119,42 +119,42 @@ rule palm_annot:
 
 rule fev2tsv_single:
   input:
-    fev="{out_dir}/{sample}/duskmatter_{tool}/{sample}_RdRp.fev"
+    fev = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_RdRp.fev")
   output:
-    tsv="{out_dir}/{sample}/duskmatter_{tool}/{sample}_RdRp.tsv"
+    tsv = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_RdRp.tsv")
   params:
     palm_annot_dir = config["resources"]["palm_annot_dir"]
   conda:
     PALM
   log:
-    "{out_dir}/{sample}/log/duskmatter_{tool}_{sample}_fev2tsv.log"
+    os.path.join(OUT_DIR, "{sample}", "log", "duskmatter_{tool}_{sample}_fev2tsv.log")
   script:
-    "workflow/scripts/fev2tsv_run.py"
+    "scripts/fev2tsv_run.py"
 
 ##############################################
 # --- 6. Summarize Dusk Matter Findings --- #
 ############################################## 
 rule report_summarize:
   """
-  Executes an R script to generate a primary HTML report and all static summary files of DuskMatter Search.
+  Executes an R script to generate a primary HTML report.
   """
   input:
     fasta = get_contigs_path,
-    diamond = "{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_hits_with_lineage.tsv",
-    duskmatter="{out_dir}/{sample}/duskmatter_{tool}/{sample}_RdRp.tsv"
+    diamond = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_lineage.tsv"),
+    duskmatter = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_RdRp.tsv")
   output:
-    html="{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Report_Diversity.html",
-    contig_summary_tsv="{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_contigs_summary.tsv",
-    kingdom_tsv="{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_contigs_summary_per_Kingdom.tsv",
-    viral_diamond_tsv="{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Viral_Diamond.tsv",
-    viral_summary_tsv="{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_viral_contigs_summary.tsv",
-    kingdom_png="{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_KINGDOM_Classification_Log10.png",
-    viral_png="{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Virus_Classification_Log10.png"
+    html = os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}", "{sample}_Report_Diversity.html"),
+    contig_summary_tsv = os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}", "{sample}_{tool}_summary.tsv"),
+    kingdom_tsv = os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}", "{sample}_{tool}_summary_per_Kingdom.tsv"),
+    viral_diamond_tsv = os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}", "{sample}_Viral_Diamond.tsv"),
+    viral_summary_tsv = os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}", "{sample}_viral_{tool}_summary.tsv"),
+    kingdom_png = os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}", "{sample}_KINGDOM_Classification_Log10.png"),
+    viral_png = os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}", "{sample}_Virus_Classification_Log10.png")
   params:
-    logo_dirs=config["resources"]["logo_dirs"],
-    output_dir="{out_dir}/{sample}/duskmatter_report_{tool}/"
+    logo_dirs = config["resources"]["logo_dirs"],
+    output_dir = os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}") + "/"
   log:
-    f"{config['output_dir']}/{{sample}}/logs/{{sample}}_report_summarize.log"
+    os.path.join(OUT_DIR, "{sample}", "log", "{sample}_report_summarize_{tool}.log")
   conda:
     REPORT
   shell:

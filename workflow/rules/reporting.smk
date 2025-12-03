@@ -1,5 +1,5 @@
 ###################################################################################
-#                             Slurm Profile                                       #
+#                      workflow/rules/reportin.smk                                #
 #                         MSc. Matheus Cosentino                                  # 
 ###################################################################################
 #                                                                                 #
@@ -15,58 +15,24 @@
 #                              version: 12.2025                                   #
 ###################################################################################
 
+rule snakemake_report:
+    # Aim: generates a workflow report in HTML format
+    # Use: snakemake --report [OPTIONS] [REPORT]
+    message:
+        """
+        Generate a workflow report in HTML format 
+        """
+    conda:
+        SCRIPTS
+    input:
+        final_outputs = get_final_outputs()
+    output:
+        html_report = os.path.join(OUT_DIR, "{sample}", "reporting", "{sample}_reporting.html")
+    log:
+        os.path.join(OUT_DIR, "{sample}", "log", "reporting_{sample}.log")
+    shell:
+        "snakemake "            # Snakemake
+        "--report "              # Create an HTML report with results and statistics
+        " {output.html_report} " # Output report
+        "2> {log}"               # Log redirection
 
-############################
-# --- 1. Slurm Params --- #
-###########################
-
-# cluster params, number of jobs to be ran simullteniously
-jobs: 15
-
-#snakemake params
-executor: slurm
-restart-times: 2
-latency-wait: 300
-keep-going: True
-rerun-incomplete: True
-use-conda: True
-show-failed-logs: True
-
-
-#######################################
-# --- 2. Slurm Default Resources --- #
-######################################
-
-default-resources:
-  slurm_account: transvihmi
-  slurm_partition: short
-  tmpdir: /scratch
-  threads: 2
-  mem_mb: 8000
-  constraint: infiniband
-
-
-#######################################
-# --- 2. Slurm Specific Resources --- #
-######################################
-set-resources:
-  spades:
-    mem_mb: 60000
-    threads: 12
-    slurm_partition: normal
-  megahit:
-    mem_mb: 60000
-    threads: 12
-    slurm_partition: normal
-  flye:
-    mem_mb: 60000
-    threads: 12
-    slurm_partition: normal
-  diamond_blastx_contigs:
-    mem_mb: 60000
-    threads: 12
-    slurm_partition: normal
-  diamond_blastx_reads:
-    mem_mb: 60000
-    threads: 12
-    slurm_partition: normal

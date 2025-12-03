@@ -41,84 +41,84 @@ TOOL_OUTPUT_MAP = {
 def get_final_outputs():
   final_outputs = []
 
-  if MODULES["keep_download"]: #if module keep_download is true
+  # 1. Keep Download
+  if MODULES["keep_download"]: 
     for sample, meta in SAMPLE_META.items():         
           if meta['mode'] == 'SRA':
             final_outputs.extend(meta['files'])
   
-  if MODULES["assembly"]:  #if module assembly is true
+  # 2. Assembly
+  if MODULES["assembly"]:  
     tools_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
     for tool_name in tools_list:
         file_name = TOOL_OUTPUT_MAP.get(tool_name)
         if not file_name:
                 raise ValueError(f"Output filename not defined for tool: {tool_name}")
-        final_outputs.extend(expand("{output_dir}/{sample}/{tool}/{filename}", sample = SAMPLE, tool = MAPPER, filename = file_name, out_dir=OUT_DIR))
+        # Aqui usamos sample=SAMPLE (A lista global)
+        final_outputs.extend(expand("{output_dir}/{sample}/{tool}/{filename}", 
+                                    sample=SAMPLE, tool=tool_name, filename=file_name, output_dir=OUT_DIR))
 
+  # 3. Duskmatter
   if MODULES["duskmatter"]:
-    final_outputs.extend(expand("{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Report_Diversity.html", 
-                    out_dir=OUT_DIR,
-                    sample=sample,
-                    tool=PRE_ASSEMBLED_LABEL))
+    assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
+    
+    for sample, meta in SAMPLE_META.items():
+        if meta['mode'] == 'CONTIGS':
+            final_outputs.extend(expand("{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Report_Diversity.html", 
+                    out_dir=OUT_DIR, sample=sample, tool=PRE_ASSEMBLED_LABEL))
+        else:
+            final_outputs.extend(expand("{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Report_Diversity.html", 
+                    out_dir=OUT_DIR, sample=sample, tool=assembler_list))
 
+  # 4. Reads (CORRIGIDO)
   if MODULES["reads"]:
+    # CORREÇÃO: sample=SAMPLE
     final_outputs.extend(expand(
-                    "{out_dir}/{sample}/diamond_reads/{sample}_hits_with_lineage.tsv",
+                    "{out_dir}/{sample}/diamond_reads/{sample}_reads_hits_with_lineage.tsv",
                     out_dir=OUT_DIR,
-                    sample=sample)),
+                    sample=SAMPLE))
     final_outputs.extend(expand(
                     "{out_dir}/{sample}/kraken2_reads/{sample}_reads_biom.txt",
                     out_dir=OUT_DIR,
-                    sample=sample))
+                    sample=SAMPLE))
   
+  # 5. Kraken2 Contigs
   if MODULES["kraken2"]:
-        # Ensure mapper is a list
         assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
-
         for sample, meta in SAMPLE_META.items():
-            
-            # DECISION: Which wildcards to generate for this sample?
-            
             if meta['mode'] == 'CONTIGS':
-                # If it's already a contig, we ONLY run the 'pre_assembled' path
+                # Aqui usamos sample=sample (singular) pois ESTAMOS dentro de um loop 'for sample...'
                 final_outputs.extend(expand(
                     "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_biom.txt",
                     out_dir=OUT_DIR,
                     sample=sample,
-                    tool=PRE_ASSEMBLED_LABEL  # <--- Forces the wildcard to be "pre_assembled"
+                    tool=PRE_ASSEMBLED_LABEL
                 ))
-            
             else:
-                # If it's raw data, we run for ALL requested assemblers
                 final_outputs.extend(expand(
                     "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_biom.txt",
                     out_dir=OUT_DIR,
                     sample=sample,
-                    tool=assembler_list       # <--- Uses "spades", "flye", etc.
+                    tool=assembler_list
                 ))
 
+  # 6. Diamond Contigs
   if MODULES["diamond"]:
         assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
-
         for sample, meta in SAMPLE_META.items():
-            
-            # DECISION: Which wildcards to generate for this sample?
-            
             if meta['mode'] == 'CONTIGS':
-                # If it's already a contig, we ONLY run the 'pre_assembled' path
                 final_outputs.extend(expand(
-                    "{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_hits_with_lineage.tsv",
+                    "{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_hits_with_lineage.tsv",
                     out_dir=OUT_DIR,
                     sample=sample,
-                    tool=PRE_ASSEMBLED_LABEL  # <--- Forces the wildcard to be "pre_assembled"
+                    tool=PRE_ASSEMBLED_LABEL 
                 ))
-            
             else:
-                # If it's raw data, we run for ALL requested assemblers
                 final_outputs.extend(expand(
-                    "{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_hits_with_lineage.tsv",
+                    "{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_hits_with_lineage.tsv",
                     out_dir=OUT_DIR,
                     sample=sample,
-                    tool=assembler_list       # <--- Uses "spades", "flye"
+                    tool=assembler_list
                 ))    
     
   return final_outputs
@@ -338,7 +338,7 @@ def get_contigs_path(wildcards):
     """
     Determines input file based on the wildcard label.
     """
-    tool_name = wildcards.tools
+    tool_name = wildcards.tool
     sample = wildcards.sample
     meta = SAMPLE_META.get(sample)
     

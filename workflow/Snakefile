@@ -60,7 +60,7 @@ functions.DATA = DATA
 functions.SAMPLE = SAMPLE
 functions.OUT_DIR = OUT_DIR
 functions.SAMPLE_META = SAMPLE_META
-functions.MAPPER = config["tools"]["denovo"] 
+functions.MAPPER = config["tool"]["denovo"] 
 functions.MODULES = config["modules"]
 functions.get_final_outputs = get_final_outputs
 functions.cleanup_downloaded_fastqs = cleanup_downloaded_fastqs
@@ -113,12 +113,14 @@ include: "rules/diamond.smk"
 include: "rules/kraken2.smk"
 include: "rules/lineage.smk"
 include: "rules/duskmatter.smk"
+include: "rules/reporting.smk"
 
 ###############################################################
 # --- 8. Obtain the final target & Download Data cleanup --- #
 ##############################################################
 rule all:
-    input: get_final_outputs
+    input: 
+        expand(os.path.join(OUT_DIR, "{sample}", "reporting", "{sample}_reporting.html"), sample=SAMPLE)
 
 onsuccess:
     cleanup_downloaded_fastqs()
