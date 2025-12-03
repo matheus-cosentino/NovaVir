@@ -23,6 +23,10 @@ red="\033[1;31m"
 ylo="\033[1;33m"   
 nc="\033[0m"       
 
+# Nome do ambiente Conda esperado (baseado no seu arquivo workflow/envs/DiscoVir.yaml)
+ENV_NAME="DiscoVir"
+ENV_FILE="workflow/envs/DiscoVir.yaml"
+
 #####################
 # --- Functions --- #
 #####################
@@ -65,13 +69,13 @@ help(){
    --output <DIR>       Directory where results will be saved
 
  Optional Arguments:
-   --sra <FILE>         Text file containing SRA Accession IDs (one per line) for download.
+   --sra <FILE>         Text file containing SRA Accession IDs for download.
    --jobs <INT>         Number of jobs (default: 15)
    --profile <STR>      Snakemake profile (default: profile_slurm)
 
- Database Overrides:
-   --diamond_db <FILE>  Path to Diamond database (.dmnd)
-   --kraken2 <DIR>      Directory containing Kraken2 database
+ Database Overrides (If you want to use external DBs instead of 'resources/'):
+   --diamond_db <FILE>  External Diamond database (.dmnd)
+   --kraken2 <DIR>      External Kraken2 database directory
  
  Flags:
    -h, --help           Show this help message
@@ -83,17 +87,39 @@ version(){
     echo "DiscoVir v.2025.12"
 }
 
-###############################
-# --- Check Prerequisites --- #
-###############################
+###################################
+# --- Environment Management --- #
+###################################
 
-check_conda(){
-    echo -ne "${blue}[INFO]${nc} Checking Conda availability..."
-    if command -v conda &> /dev/null; then
-        echo -e " ${green}OK${nc}"
+manage_environment(){
+    echo -ne "${blue}[INFO]${nc} Checking Conda environment '${ylo}${ENV_NAME}${nc}'... "
+
+    # Tenta localizar o conda.sh para permitir ativação dentro do script
+    CONDA_BASE=$(conda info --base)
+    source "${CONDA_BASE}/etc/profile.d/conda.sh"
+
+    # Verifica se o ambiente existe
+    if conda env list | grep -q "^${ENV_NAME} "; then
+        echo -e "${green}Found${nc}"
     else
-        echo -e " ${red}FAILED${nc}"
-        echo "Error: Conda is not installed or not in PATH."
+        echo -e "${red}Not Found${nc}"
+        echo -e "${ylo}[INFO]${nc} Creating environment from ${ENV_FILE}. This may take a while..."
+        
+        if [[ -f "$workdir/$ENV_FILE" ]]; then
+            run_with_spinner conda env create --file "$workdir/$ENV_FILE" --name "$ENV_NAME" --quiet
+        else
+            echo -e "${red}[ERROR]${nc} Environment file $workdir/$ENV_FILE not found!"
+            exit 1
+        fi
+    fi
+
+    # Ativa o ambiente
+    echo -ne "${blue}[INFO]${nc} Activating environment... "
+    conda activate "$ENV_NAME"
+    if [[ $? -eq 0 ]]; then
+        echo -e "${green}Active${nc}"
+    else
+        echo -e "${red}Failed to activate${nc}"
         exit 1
     fi
 }
@@ -103,20 +129,34 @@ check_conda(){
 ###################################
 
 setup_resources(){
-    echo -e "${blue}[INFO]${nc} Setting up resources symlinks..."
+    # Se o usuário passou bancos externos, criamos links em resources/links/
+    # e informamos ao Snakemake para usar esses links.
     
-    mkdir -p "$workdir/resources_links"
-
-    # 1. Diamond DB
-    if [[ -n "$diamond_db" && -f "$diamond_db" ]]; then
-        ln -sf "$diamond_db" "$workdir/resources_links/diamond.dmnd"
-        diamond_path="$workdir/resources_links/diamond.dmnd"
+    LINK_DIR="$workdir/resources/links"
+    mkdir -p "$LINK_DIR"
+    
+    # 1. Diamond DB Override
+    if [[ -n "$diamond_db" ]]; then
+        if [[ -f "$diamond_db" ]]; then
+            echo -e "${blue}[INFO]${nc} Linking external Diamond DB..."
+            ln -sf "$diamond_db" "$LINK_DIR/external_diamond.dmnd"
+            diamond_path="$LINK_DIR/external_diamond.dmnd"
+        else
+            echo -e "${red}[WARNING]${nc} Provided Diamond DB not found: $diamond_db. Using default."
+        fi
     fi
 
-    # 2. Kraken2 DB
-    if [[ -n "$kraken2" && -d "$kraken2" ]]; then
-        ln -sfn "$kraken2" "$workdir/resources_links/kraken2_db"
-        kraken2_path="$workdir/resources_links/kraken2_db"
+    # 2. Kraken2 DB Override
+    if [[ -n "$kraken2" ]]; then
+        if [[ -d "$kraken2" ]]; then
+             echo -e "${blue}[INFO]${nc} Linking external Kraken2 DB..."
+            # Remove link antigo se existir para evitar aninhamento incorreto
+            rm -f "$LINK_DIR/external_kraken2"
+            ln -sfn "$kraken2" "$LINK_DIR/external_kraken2"
+            kraken2_path="$LINK_DIR/external_kraken2"
+        else
+            echo -e "${red}[WARNING]${nc} Provided Kraken2 DB directory not found: $kraken2. Using default."
+        fi
     fi
 }
 
@@ -127,11 +167,10 @@ setup_resources(){
 generate_sample_list(){
     echo -ne "${blue}[INFO]${nc} Generating sample list..."
     
-    # Final sample file
     sample_list="$output/samples_detected.txt"
     mkdir -p "$output"
     
-    # 1. Local Files Detection
+    # 1. Local Files
     if [[ -d "$input" ]]; then
         find "$input" -type f \( -name "*.fastq.gz" -o -name "*.fastq" -o -name "*.fasta" -o -name "*.fa" -o -name "*.fas" \) \
         | sed 's|.*/||' \
@@ -143,23 +182,19 @@ generate_sample_list(){
 
     # 2. SRA Injection
     if [[ -n "$sra" && -f "$sra" ]]; then
-        echo -e "\n${ylo}[INFO]${nc} Appending SRA Accessions from $sra..."
+        echo -e "\n${ylo}[INFO]${nc} Appending SRA Accessions..."
         cat "$sra" >> "$sample_list"
-    elif [[ -n "$sra" ]]; then
-        echo -e "\n${red}[WARNING]${nc} SRA file specified but not found: $sra"
     fi
 
-    # 3. Final Validation
     sed -i '/^$/d' "$sample_list"
-    
     count=$(wc -l < "$sample_list")
     
     if [[ "$count" -eq 0 ]]; then
         echo -e " ${red}FAILED${nc}"
-        echo -e "${red}Error: No samples found locally in '$input' and no valid SRA file provided.${nc}"
+        echo -e "${red}Error: No samples found locally and no SRA file provided.${nc}"
         exit 1
     else
-        echo -e " ${green}OK ($count samples queued)${nc}"
+        echo -e " ${green}OK ($count samples)${nc}"
     fi
 }
 
@@ -178,27 +213,26 @@ while [ $# -gt 0 ]; do
    shift
 done
 
-if [[ -z "$output" ]]; then
-    help
-    exit 1
-fi
-
-# Input assumes 'data' if not provided
+if [[ -z "$output" ]]; then help; exit 1; fi
 input=${input:-"data"} 
-
 profile=${profile:-profile_slurm}
 jobs=${jobs:-15}
 
-check_conda
+# 1. Configura Ambiente (Cria/Ativa)
+manage_environment
+
+# 2. Prepara Recursos (Links externos se necessário)
 setup_resources
+
+# 3. Detecta Amostras
 generate_sample_list
 
 echo -e "${blue}[INFO]${nc} Initializing DiscoVir Workflow..."
 
-# Base config override
+# Configuração Base
 config_args="data_dir=$input output_dir=$output sample_list=$sample_list"
 
-# Resource overrides
+# Overrides de Recursos (apontando para os links criados)
 if [[ -n "$diamond_path" ]]; then 
     config_args="$config_args resources={diamond:\"$diamond_path\"}" 
 fi
@@ -206,7 +240,7 @@ if [[ -n "$kraken2_path" ]]; then
     config_args="$config_args resources={kraken2:\"$kraken2_path\"}" 
 fi
 
-# Build command
+# Comando Final
 cmd="snakemake --profile $profile \
     --jobs $jobs \
     --use-conda \
