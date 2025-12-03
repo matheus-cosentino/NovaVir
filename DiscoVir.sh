@@ -262,14 +262,35 @@ if [[ -n "$resource_str" ]]; then
     config_override="$config_override resources={$resource_str}"
 fi
 
-# Comando Final
-cmd="snakemake --profile $profile \
-    --jobs $jobs \
-    --use-conda \
-    --config $config_override"
+# --- Workflow Execution Steps ---
 
-echo -e "${ylo}Running command:${nc}"
-echo "$cmd"
+# 1. Unlock Directory (in case of previous errors)
+echo -e "\n${green}> Snakemake: Unlocking working directory...${nc}"
+snakemake --profile $profile --config $config_override --unlock --quiet
+
+# 2. Create Conda Environments
+echo -e "\n${green}> Snakemake: Creating conda environments (if needed)...${nc}"
+snakemake --profile $profile --config $config_override --use-conda --conda-create-envs-only --quiet
+
+# 3. Dry-Run
+echo -e "\n${green}> Snakemake: Performing a dry-run...${nc}"
+snakemake --profile $profile --jobs $jobs --use-conda --config $config_override --dry-run
 echo "---------------------------------------------------"
 
-eval $cmd
+# 4. Final Execution
+echo -e "\n${green}> Snakemake: Starting main execution...${nc}"
+snakemake --profile $profile \
+    --jobs $jobs \
+    --use-conda \
+    --config $config_override \
+    --keep-going \
+    --rerun-incomplete
+
+###############################################################################
+### DEACTIVATE WORKFLOW-CORE ###
+#################################
+
+# Deactivate workflow-core conda environment.
+echo -e "\n${blue}[INFO]${nc} Deactivating ${ylo}${ENV_NAME}${nc} conda environment."
+conda deactivate
+echo -e "${green}✔ Done.${nc}"
