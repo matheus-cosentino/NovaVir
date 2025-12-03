@@ -18,6 +18,7 @@
 ###########################################
 # --- 1. Import libraryes to be used --- #
 ##########################################
+
 import os, re, glob, time, sys, subprocess, platform, yaml
 from snakemake.io import expand
 from collections import defaultdict
@@ -45,21 +46,29 @@ def get_final_outputs():
           if meta['mode'] == 'SRA':
             final_outputs.extend(meta['files'])
   
-  # now; if i decide to make more than one assemmblly it works; but be carefull as it uses a LOT OF MEMORY! CAUTION!!!!
   if MODULES["assembly"]:  #if module assembly is true
     tools_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
     for tool_name in tools_list:
         file_name = TOOL_OUTPUT_MAP.get(tool_name)
         if not file_name:
                 raise ValueError(f"Output filename not defined for tool: {tool_name}")
-        final_outputs.append(expand("{output_dir}/{sample}/{tool}/{filename}", sample = SAMPLE, tool = MAPPER, filename = file_name, out_dir=OUT_DIR))
+        final_outputs.extend(expand("{output_dir}/{sample}/{tool}/{filename}", sample = SAMPLE, tool = MAPPER, filename = file_name, out_dir=OUT_DIR))
 
   if MODULES["duskmatter"]:
-    final_outputs.append()
-
+    final_outputs.extend(expand("{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Report_Diversity.html", 
+                    out_dir=OUT_DIR,
+                    sample=sample,
+                    tool=PRE_ASSEMBLED_LABEL))
 
   if MODULES["reads"]:
-    final_outputs.append()
+    final_outputs.extend(expand(
+                    "{out_dir}/{sample}/diamond_reads/{sample}_hits_with_lineage.tsv",
+                    out_dir=OUT_DIR,
+                    sample=sample)),
+    final_outputs.extend(expand(
+                    "{out_dir}/{sample}/kraken2_reads/{sample}_reads_biom.txt",
+                    out_dir=OUT_DIR,
+                    sample=sample))
   
   if MODULES["kraken2"]:
         # Ensure mapper is a list
@@ -72,7 +81,7 @@ def get_final_outputs():
             if meta['mode'] == 'CONTIGS':
                 # If it's already a contig, we ONLY run the 'pre_assembled' path
                 final_outputs.extend(expand(
-                    "{out_dir}/{sample}/kraken2_{tool}/{sample}_report.txt",
+                    "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_biom.txt",
                     out_dir=OUT_DIR,
                     sample=sample,
                     tool=PRE_ASSEMBLED_LABEL  # <--- Forces the wildcard to be "pre_assembled"
@@ -81,7 +90,7 @@ def get_final_outputs():
             else:
                 # If it's raw data, we run for ALL requested assemblers
                 final_outputs.extend(expand(
-                    "{out_dir}/{sample}/kraken2_{tool}/{sample}_report.txt",
+                    "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_biom.txt",
                     out_dir=OUT_DIR,
                     sample=sample,
                     tool=assembler_list       # <--- Uses "spades", "flye", etc.
@@ -97,7 +106,7 @@ def get_final_outputs():
             if meta['mode'] == 'CONTIGS':
                 # If it's already a contig, we ONLY run the 'pre_assembled' path
                 final_outputs.extend(expand(
-                    "{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_report.txt",
+                    "{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_hits_with_lineage.tsv",
                     out_dir=OUT_DIR,
                     sample=sample,
                     tool=PRE_ASSEMBLED_LABEL  # <--- Forces the wildcard to be "pre_assembled"
@@ -106,21 +115,19 @@ def get_final_outputs():
             else:
                 # If it's raw data, we run for ALL requested assemblers
                 final_outputs.extend(expand(
-                    "{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_report.txt",
+                    "{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_hits_with_lineage.tsv",
                     out_dir=OUT_DIR,
                     sample=sample,
                     tool=assembler_list       # <--- Uses "spades", "flye"
                 ))    
     
-
-
   return final_outputs
 
 #############################################################
 # --- 3. Clean Up SRA Downloads after total processing --- #
 ############################################################
 ## ready to test
-def cleanup_downloaded_fastqs(log):
+def cleanup_downloaded_fastqs():
     """
     Delete Fastq Data downloaded from SRA after workflown conclusion,
     unless 'keep_download' is TRUE.

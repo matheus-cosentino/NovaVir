@@ -1,4 +1,26 @@
-# cluster params
+###################################################################################
+#                             Slurm Profile                                       #
+#                         MSc. Matheus Cosentino                                  # 
+###################################################################################
+#                                                                                 #
+# oooooooooo.    o8o                               oooooo     oooo  o8o           #
+# `888'   `Y8b   `"'                                `888.     .8'   `"'           #
+#  888      888 oooo   .oooo.o  .ooooo.   .ooooo.    `888.   .8'   oooo  oooo d8b #
+#  888      888 `888  d88(  "8 d88' `"Y8 d88' `88b    `888. .8'    `888  `888""8P #
+#  888      888  888  `"Y88b.  888       888   888     `888.8'      888   888     #
+#  888     d88'  888  o.  )88b 888   .o8 888   888      `888'       888   888     #
+# o888bood8P'   o888o 8""888P' `Y8bod8P' `Y8bod8P'       `8'       o888o d888b    #
+#                                                                                 #
+###################################################################################
+#                              version: 12.2025                                   #
+###################################################################################
+
+
+############################
+# --- 1. Slurm Params --- #
+###########################
+
+# cluster params, number of jobs to be ran simullteniously
 jobs: 15
 
 #snakemake params
@@ -10,7 +32,11 @@ rerun-incomplete: True
 use-conda: True
 show-failed-logs: True
 
-#default rules
+
+#######################################
+# --- 2. Slurm Default Resources --- #
+######################################
+
 default-resources:
   slurm_account: transvihmi
   slurm_partition: short
@@ -19,13 +45,28 @@ default-resources:
   mem_mb: 8000
   constraint: infiniband
 
-# Specific resources for some rules
+
+#######################################
+# --- 2. Slurm Specific Resources --- #
+######################################
 set-resources:
   spades:
     mem_mb: 60000
     threads: 12
     slurm_partition: normal
+  megahit:
+    mem_mb: 60000
+    threads: 12
+    slurm_partition: normal
+  flye:
+    mem_mb: 60000
+    threads: 12
+    slurm_partition: normal
   diamond_blastx_contigs:
+    mem_mb: 60000
+    threads: 12
+    slurm_partition: normal
+  diamond_blastx_reads:
     mem_mb: 60000
     threads: 12
     slurm_partition: normal

@@ -1,5 +1,5 @@
 ###################################################################################
-#                                Snakefile                                        #
+#                               Config file                                       #
 #                         MSc. Matheus Cosentino                                  # 
 ###################################################################################
 #                                                                                 #
@@ -27,32 +27,31 @@ sample_list: "accessions.txt"
 ### Modules of Analysis to be requested
 modules: 
   keep_download: false  #Remove data download from SRA (default: false)
-  assembly: true # Perform de novo assembly for reads (default: false)
+  assembly: false # Perform de novo assembly for reads (default: false)
   kraken2: false #Perform taxonomic assignment for Kraken2 (default: false)
   diamond: false #Perform taxonomic assignment for Diamond against nr5 for Reads(default: false)
   duskmatter: false #Perform palm annot identification (default: false)
-  reads: false #Perform reads taxonomic identification (default: false)
+  reads: true #Perform reads taxonomic identification (default: false)
 
 ### De novo tools to be requested
 tools:
-  denovo: 'spades' # Select your favorite de novo assembly (default: 'spades')
+  denovo: #'spades' # Select your favorite de novo assembly (default: 'spades')
   # options: 
   ##- 'spades'.    # more resourcers needed, but algorythis to better deal with RNA seq data (default)
   ##- 'megahit'    # faster, more error proner
-  ##- 'flye'       #indicated for nanopore sequencing long reads
+  - 'flye'       #indicated for nanopore sequencing long reads
 
 ### Envs paths to be installed
 envs:
-  fastp: "workflow/envs/fastp.yaml"
-  denovo: "workflow/envs/denovo.yaml"
-  diamond:  "workflow/envs/diamond.yaml"
-  kraken2:  "workflow/envs/kraken2.yaml"
-  taxonkit: "workflow/envs/taxonkit.yaml"
-  download: "workflow/envs/download.yaml"
-  scripts: "workflow/envs/scripts.yaml"
-  report: "workflow/envs/report.yaml"
-  palm_annot: "workflow/envs/palm_annot.yaml"
-  kraken2: "workflow/envs/kraken2.yaml"
+  fastp: "envs/fastp.yaml"
+  denovo: "envs/denovo.yaml"
+  diamond: "envs/diamond.yaml"
+  kraken2: "envs/kraken2.yaml"
+  taxonkit: "envs/taxonkit.yaml"
+  download: "envs/download.yaml"
+  scripts: "envs/DiscoVir.yaml"
+  report: "envs/report.yaml"
+  palm_annot: "envs/palm_annot.yaml"
 
 ### databases and resources for the workflow
 resources:

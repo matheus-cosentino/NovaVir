@@ -15,20 +15,26 @@
 #                              version: 12.2025                                   #
 ###################################################################################
 
+
+#################################################
+# --- 1. Map Proteins Id Diamond for Taxid --- #
+################################################ 
+
 rule map_accession_to_taxid:
     """
     Maps protein IDs (Subject ID, column 2 of DIAMOND) to TaxIDs.
     """
     input:
-        hit_file="{out_dir}/{sample}/diamond_{source}/{sample}_{source}_report.txt",
+        hit_file = os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt")
     output:
-        temp(f"{config['output_dir']}/{{sample}}/diamond_{source}/{sample}_{source}_hits_with_taxid.tmp")
+        temp(os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "diamond_{source}", "{sample}_{source}_hits_with_taxid.tmp"))
     shadow: 
         "minimal" 
     params:
-        taxid_map="resources/database/prot.accession2taxid.gz"
+        #taxid_map="resources/database/prot.accession2taxid.gz"
+        taxid_map = config["resources"]["taxonmap"]
     log:
-        f"{config['output_dir']}/{{sample}}/logs/{{sample}}_{{source}}_map_taxid.log"
+        os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_map_taxid.log")
     shell:
         """
         # Extract unique protein IDs (skip header if present)
@@ -60,16 +66,25 @@ rule map_accession_to_taxid:
         rm {output}.protein_ids.tmp {output}.filtered_map.tmp
         """
 
+
+
+
+##################################################
+# --- 2. Split Hits for Taxid and Not Found --- #
+################################################# 
+
 rule split_hits_by_taxid:
     """
     Filters the input file to keep only hits with valid TaxIDs.
     """
     input:
-        f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_{{source}}_hits_with_taxid.tmp"
+      os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "diamond_{source}", "{sample}_{source}_hits_with_taxid.tmp")
     output:
-        valid_hits=temp(f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_{{source}}_valid_hits.temp")
+      valid_hits=temp(os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "diamond_{source}", "{sample}_{source}_valid_hits.tmp"))    
     params:
-        header="qseqid\tsseqid\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore\ttaxid"
+      header="qseqid\tsseqid\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore\ttaxid"
+    log:
+      os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_split_hits.log")
     shell:
         """
         # 1. Create the output file with the header
@@ -83,24 +98,27 @@ rule split_hits_by_taxid:
         }}' {input}
         """
 
+################################################
+# --- 3. Append taxonomic to Diamond file --- #
+############################################### 
 
 rule append_lineage:
     input:
-        valid_hits=f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_{{source}}_valid_hits.temp",
-        nodes="resources/database/nodes.dmp",
-        names="resources/database/names.dmp"
+       valid_hits = os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "diamond_{source}", "{sample}_{source}_valid_hits.tmp")    
     output:
-        f"{config['output_dir']}/{{sample}}/diamond/{{sample}}_{{source}}_hits_with_lineage.tsv"
+       os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "diamond_{source}", "{sample}_{source}_hits_with_lineage.tsv")
     params:
+        nodes = config["resources"]["taxonnodes"],
+        names = config["resources"]["taxonnames"],
         base_header="qseqid\tsseqid\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore\tTaxid",
         lineage_header="Lineage\tCelular\tAcelular\tRealm\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies"
     log:
-        f"{config['output_dir']}/{{sample}}/logs/{{sample}}_{{source}}_get_lineage.log"
+        os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_map_taxid.log")
     conda:
         TAXONKIT
     shell:
         """
-        DB_DIR=$(dirname {input.nodes})
+        DB_DIR=$(dirname {params.nodes})
         
         # Skip header and extract taxids
         tail -n +2 {input.valid_hits} | cut -f 13 > {output}.taxids.tmp

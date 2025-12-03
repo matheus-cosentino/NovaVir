@@ -19,6 +19,10 @@
 #priority of rules
 ruleorder: fastp_paired > fastp_unpaired
 
+############################################
+# --- 1. Filter fastq.gz Paired Files --- #
+########################################### 
+
 #rule to process paired data
 rule fastp_paired:
     input:
@@ -28,18 +32,16 @@ rule fastp_paired:
         # Define all possible output files explicitly and statically.
         r1= os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_1.fastq.gz"),
         r2= os.path.join(OUT_DIR, "{sample}", "trimmed" , "{sample}_2.fastq.gz"),
-        orphans=os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_orphans.fastq.gz")
-        #html=f"{config['output_dir']}/{{sample}}/trimmed/{{sample}}.html",
-        html = os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}.html")
-        #json=f"{config['output_dir']}/{{sample}}/trimmed/{{sample}}.json"
+        orphans=os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_orphans.fastq.gz"),
+        html = os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}.html"),
         json= os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}.json")
     log:
         #f"{config['output_dir']}/{{sample}}/logs/{{sample}}_fastp.log"
         #"{out_dir}/{sample}/log/{sample}_fastp_paired.log"
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_fastp_paired.log")
     params:
-        length_required=config['params']['fastp']['length_required'],
-        quality=config['params']['fastp']['qualified_quality_phred']
+        length_required=config['fastp']['length_required'],
+        quality=config['fastp']['qualified_quality_phred']
     conda:
         FASTP
     shell:
@@ -55,23 +57,22 @@ rule fastp_paired:
         """
 
 #if fail to make the paired reads cleanup, follown immediatelly to the fastp_unpaired rule
-#rule to process unpaired data
+#############################################
+# --- 2. Filter fastq.gz unpaired Files --- #
+#############################################
+
 rule fastp_unpaired:
     input:
         reads = get_input_r1,
     output:
-        #r1=f"{config['output_dir']}/{{sample}}/trimmed/{{sample}}_1.fastq.gz",
         r1= os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_unp.fastq.gz"),
-        #html=f"{config['output_dir']}/{{sample}}/trimmed/{{sample}}.html",
         html= os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}.html"),      
-        #json=f"{config['output_dir']}/{{sample}}/trimmed/{{sample}}.json"
         json= os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}.json")
     log:
-        #f"{config['output_dir']}/{{sample}}/logs/{{sample}}_fastp.log"
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_fastp_unpaired.log")
     params:
-        length_required=config['params']['fastp']['length_required'],
-        quality=config['params']['fastp']['qualified_quality_phred']
+        length_required=config['fastp']['length_required'],
+        quality=config['fastp']['qualified_quality_phred']
     conda:
         FASTP
     shell:

@@ -111,7 +111,7 @@ rule palm_annot:
   log:
   "{out_dir}/{sample}/log/duskmatter_{tool}_{sample}_palmannot.log"
   script:
-    "scripts/palm_annot_run.py"
+    "workflow/scripts/palm_annot_run.py"
   
 ##################################
 # --- 5. Convert FEV to TSV --- #
@@ -129,7 +129,7 @@ rule fev2tsv_single:
   log:
     "{out_dir}/{sample}/log/duskmatter_{tool}_{sample}_fev2tsv.log"
   script:
-    "scripts/fev2tsv_run.py"
+    "workflow/scripts/fev2tsv_run.py"
 
 ##############################################
 # --- 6. Summarize Dusk Matter Findings --- #
@@ -151,7 +151,7 @@ rule report_summarize:
     kingdom_png="{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_KINGDOM_Classification_Log10.png",
     viral_png="{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Virus_Classification_Log10.png"
   params:
-    logo_dirs=config["logo_dirs"],
+    logo_dirs=config["resources"]["logo_dirs"],
     output_dir="{out_dir}/{sample}/duskmatter_report_{tool}/"
   log:
     f"{config['output_dir']}/{{sample}}/logs/{{sample}}_report_summarize.log"
@@ -160,7 +160,7 @@ rule report_summarize:
   shell:
     """
     # Execute the R script inside a subshell
-      Rscript workflow/rules/scripts/generate_report.R \
+      Rscript workflow/scripts/generate_report.R \
       --sample_name {wildcards.sample} \
       --fasta_path {input.fasta} \
       --diamond_path {input.diamond} \
