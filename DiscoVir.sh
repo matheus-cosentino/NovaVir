@@ -18,7 +18,7 @@
 
 
 # --- Color Palettes ---
-blue="\033[1;34m"  
+blu="\033[1;34m"  
 green="\033[1;32m" 
 red="\033[1;31m"   
 ylo="\033[1;33m"   
@@ -39,6 +39,7 @@ run_with_spinner() {
     pid=$!
     disown $pid 2>/dev/null
     local spinner=("A" "T" "G" "T" "G" "T" "T" "C" "T" "G" "A" "C" "A" "A" "C" "A" "C" "G" "A" "T" "C" "A" "A" "C" "A" "T" "G")    local i=0
+    local i=0
     while kill -0 $pid 2>/dev/null; do
         printf "\r\033[K [${green}${spinner[i]}${nc}] Processing...    "
         i=$(( (i+1) % 4 ))
@@ -58,34 +59,38 @@ run_with_spinner() {
 # --- Help --- #
 help(){
  echo -e "
- ${blue}DiscoVir: Viral Metagenomics & 'Dusk Matter' Discovery${nc}
- Author: MSc. Matheus Cosentino | Version: 12.2025 
+  ${green}DiscoVir${nc}: Viral Metagenomics & 'Dusk Matter' Discovery
 
- Usage: 
-   srun DiscoVir.sh --input <DIR> --output <DIR> [OPTIONS]
+ ${green}Author${nc}: MSc. Matheus Cosentino 
+ 
+ ${green}Version${nc}: 12.2025
 
- Required Arguments:
+ ${ylo}
+ Usage: ${nc}
+  bash DiscoVir.sh --input <DIR> --output <DIR> [OPTIONS]
+
+ ${ylo} Required Arguments:${nc}
    --input <DIR>        Directory containing raw reads (.fastq.gz) or contigs (.fasta)
    --output <DIR>       Directory where results will be saved
 
- Optional Arguments:
+ ${ylo} Optional Arguments:${nc}
    --sra <FILE>         Text file containing SRA Accession IDs for download.
    --jobs <INT>         Number of jobs (default: 15)
    --profile <STR>      Snakemake profile (default: profile_slurm)
 
- Database Overrides (Use external DBs):
+ ${ylo} Database Overrides (Use external DBs):${nc}
    --diamond_db <FILE>  External Diamond database (.dmnd).
                         (Script auto-detects taxonomy files in the same directory)
    --kraken2 <DIR>      External Kraken2 database directory
  
- Flags:
+ ${ylo} Flags:${nc}
    -h, --help           Show this help message
    -v, --version        Show version
  "
 }
 
 version(){
-    echo "DiscoVir v.2025.12"
+    echo "DiscoVir v.12.2025"
 }
 
 ###################################
@@ -93,26 +98,36 @@ version(){
 ###################################
 
 manage_environment(){
-    echo -ne "${blue}[INFO]${nc} Checking Conda environment '${ylo}${ENV_NAME}${nc}'... "
+    echo -e "${blue}[INFO]${nc} Checking Conda environment '${ylo}${ENV_NAME}${nc}'..."
 
-    # Tenta carregar o conda para o shell atual
-    CONDA_BASE=$(conda info --base)
-    source "${CONDA_BASE}/etc/profile.d/conda.sh"
+    # Initialize Conda
+    if ! command -v conda &> /dev/null; then
+        echo -e "${ylo}[WARN]${nc} 'conda' command not found. Attempting to initialize..."
+        __conda_setup="$('conda' 'shell.bash' 'hook' 2> /dev/null)"
+        if [ $? -eq 0 ]; then
+            eval "$__conda_setup"
+        else
+            if [ -f "${HOME}/miniconda3/etc/profile.d/conda.sh" ]; then
+                . "${HOME}/miniconda3/etc/profile.d/conda.sh"
+            elif [ -f "${HOME}/anaconda3/etc/profile.d/conda.sh" ]; then
+                . "${HOME}/anaconda3/etc/profile.d/conda.sh"
+            else
+                echo -e "${red}[ERROR]${nc} Could not find conda.sh to initialize. Please run 'conda init' first."
+                exit 1
+            fi
+        fi
+    fi
 
     if conda env list | grep -q "^${ENV_NAME} "; then
         echo -e "${green}Found${nc}"
-    else
-        echo -e "${red}Not Found${nc}"
-        echo -e "${ylo}[INFO]${nc} Creating environment... "
-        if [[ -f "$workdir/$ENV_FILE" ]]; then
-            run_with_spinner conda env create --file "$workdir/$ENV_FILE" --name "$ENV_NAME" --quiet
-        else
-            echo -e "${red}[ERROR]${nc} Environment file $workdir/$ENV_FILE not found!"
-            exit 1
+
+if conda env list | grep -q "^${ENV_NAME} "; then
+        echo -e "${green}Found${nc}"
         fi
     fi
 
     echo -ne "${blue}[INFO]${nc} Activating environment... "
+    echo -e "${blue}[INFO]${nc} Activating environment..."
     conda activate "$ENV_NAME"
     if [[ $? -eq 0 ]]; then echo -e "${green}Active${nc}"; else echo -e "${red}Failed${nc}"; exit 1; fi
 }
@@ -219,6 +234,7 @@ generate_sample_list(){
 ###########################
 
 workdir=$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd)
+set -e -o pipefail
 
 # Parse Arguments
 while [ $# -gt 0 ]; do
@@ -228,6 +244,9 @@ while [ $# -gt 0 ]; do
    fi
    shift
 done
+
+if [[ -n "$help" || -n "$h" ]]; then help; exit 0; fi
+if [[ -n "$version" || -n "$v" ]]; then version; exit 0; fi
 
 if [[ -z "$output" ]]; then help; exit 1; fi
 input=${input:-"data"} 
