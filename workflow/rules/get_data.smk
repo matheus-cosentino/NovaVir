@@ -23,7 +23,7 @@ PAIRED_SRA = [s for s, m in SAMPLE_META.items() if m['mode'] == 'SRA' and len(m[
 SINGLE_SRA = [s for s, m in SAMPLE_META.items() if m['mode'] == 'SRA' and len(m['files']) == 1]
 
 ##############################################
-# --- 1. Download SRA Data of Libraries --- #
+# --- 1. Download SRA Data (PAIRED) --- #
 ############################################# 
 
 rule download_sra_data_paired:
@@ -38,37 +38,30 @@ rule download_sra_data_paired:
         "minimal" 
     params:
         out_dir = config["data_dir"],
-        tmpdir = lambda wildcards:os.path.join(config["data_dir"], tmp_{wildcards.sample})"     
+        # FIX 1: Corrected Syntax with f-string
+        tmpdir = lambda wildcards: os.path.join(config["data_dir"], f"tmp_{wildcards.sample}")
     wildcard_constraints:
         sample = "|".join(PAIRED_SRA) if PAIRED_SRA else "NO_PAIRED_SAMPLES"
-    shadow: 
-        "minimal"
     shell:
-     """
-        echo "Creating temp dir for. download {wildcards.sample}..." > {log}
-        
+        """
+        echo "Creating temp dir for download {wildcards.sample}..." > {log}
         mkdir -p {params.tmpdir}
 
-        echo "Starting PAIRED download for {wildcards.sample}..." > {log}
+        echo "Starting PAIRED download for {wildcards.sample}..." >> {log}
+        fasterq-dump --split-files --threads {threads} -O {params.tmpdir} {wildcards.sample} >> {log} 2>&1
 
-        fasterq-dump --split-files --threads {resources.threads} -O {params.tmpdir} {wildcards.sample} > {log} 2>&1
-
-        echo "Compressing fastq to fastgz in {wildcards.sample}..." > {log}
-        # Compress
-        gzip "{wildcards.sample}_1.fastq"
-        gzip "{wildcards.sample}_2.fastq"
+        echo "Compressing fastq to fastq.gz..." >> {log}
+        # FIX 3: Target files inside params.tmpdir
+        gzip "{params.tmpdir}/{wildcards.sample}_1.fastq"
+        gzip "{params.tmpdir}/{wildcards.sample}_2.fastq"
         
-        echo "Moving {wildcards.sample} to {output.r1} and {output.r2}.." > {log}
-
-        # Move to final output
-        mv "{wildcards.sample}_1.fastq.gz" {output.r1}
-        mv "{wildcards.sample}_2.fastq.gz" {output.r2}
+        echo "Moving files to final destination..." >> {log}
+        mv "{params.tmpdir}/{wildcards.sample}_1.fastq.gz" {output.r1}
+        mv "{params.tmpdir}/{wildcards.sample}_2.fastq.gz" {output.r2}
         
-        echo "Deleting  {params.tmpdir}..." > {log}
+        echo "Cleaning up temp dir..." >> {log}
         rm -rf {params.tmpdir}
-
-    """
-
+        """
 
 ##############################################
 # --- 2. Download SRA Data (SINGLE) --- #
@@ -81,32 +74,35 @@ rule download_sra_single:
         os.path.join(config["output_dir"], "{sample}", "log", "{sample}_download_single.log")
     conda:
         DOWNLOAD
-    # This constraint ensures this rule ONLY runs for samples we identified as Single
     wildcard_constraints:
         sample = "|".join(SINGLE_SRA) if SINGLE_SRA else "NO_SINGLE_SAMPLES"
     shadow: 
         "minimal"
+    # FIX 4: Added missing params section
+    params:
+        out_dir = config["data_dir"],
+        tmpdir = lambda wildcards: os.path.join(config["data_dir"], f"tmp_{wildcards.sample}")
     shell:
-     """
-        echo "Creating temp dir for. download {wildcards.sample}..." > {log}
-        
+        """
+        echo "Creating temp dir for download {wildcards.sample}..." > {log}
         mkdir -p {params.tmpdir}
 
-        echo "Starting SingleEnd download for {wildcards.sample}..." > {log}
+        echo "Starting SingleEnd download for {wildcards.sample}..." >> {log}
+        fasterq-dump --split-files --threads {threads} -O {params.tmpdir} {wildcards.sample} >> {log} 2>&1
 
-        fasterq-dump --split-files --threads {resources.threads} -O {params.tmpdir} {wildcards.sample} > {log} 2>&1
-
-        echo "Compressing fastq to fastgz in {wildcards.sample}..." > {log}
-        # Compress
-
-        mv "{wildcards.sample}.fastq" "{wildcards.sample}_1.fastq"
+        echo "Compressing and renaming..." >> {log}
         
-        echo "Moving {wildcards.sample}.fastq to {output.r1} " > {log}
-
-        # Move to final output
-        mv "{wildcards.sample}_1.fastq.gz" {output.r1}
+        # Logic to handle naming variations (sample.fastq vs sample_1.fastq)
+        # Note: We must compress BEFORE moving to .gz output
         
-        echo "Deleting  {params.tmpdir}..." > {log}
+        if [ -f "{params.tmpdir}/{wildcards.sample}_1.fastq" ]; then
+            gzip "{params.tmpdir}/{wildcards.sample}_1.fastq"
+            mv "{params.tmpdir}/{wildcards.sample}_1.fastq.gz" {output.r1}
+        elif [ -f "{params.tmpdir}/{wildcards.sample}.fastq" ]; then
+            gzip "{params.tmpdir}/{wildcards.sample}.fastq"
+            mv "{params.tmpdir}/{wildcards.sample}.fastq.gz" {output.r1}
+        fi
+
+        echo "Cleaning up temp dir..." >> {log}
         rm -rf {params.tmpdir}
-
         """
