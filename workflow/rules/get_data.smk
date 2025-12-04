@@ -48,7 +48,7 @@ rule download_sra_data_paired:
         mkdir -p {params.tmpdir}
 
         echo "Starting PAIRED download for {wildcards.sample}..." >> {log}
-        fasterq-dump --split-files --threads {threads} -O {params.tmpdir} {wildcards.sample} >> {log} 2>&1
+        fasterq-dump --split-files --threads {resources.threads} -O {params.tmpdir} {wildcards.sample} >> {log} 2>&1
 
         echo "Compressing fastq to fastq.gz..." >> {log}
         # FIX 3: Target files inside params.tmpdir
@@ -88,7 +88,7 @@ rule download_sra_single:
         mkdir -p {params.tmpdir}
 
         echo "Starting SingleEnd download for {wildcards.sample}..." >> {log}
-        fasterq-dump --split-files --threads {threads} -O {params.tmpdir} {wildcards.sample} >> {log} 2>&1
+        fasterq-dump --split-files --threads {resources.threads} -O {params.tmpdir} {wildcards.sample} >> {log} 2>&1
 
         echo "Compressing and renaming..." >> {log}
         
