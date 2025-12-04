@@ -128,6 +128,8 @@ help(){
    --diamond_db <FILE>  External Diamond database (.dmnd).
                         (Script auto-detects taxonomy files in the same directory)
    --kraken2 <DIR>      External Kraken2 database directory
+   --taxdump <DIR>      Directory containing nodes.dmp and names.dmp
+   --taxmap <FILE>      Path to prot.accession2taxid.gz
  
  ${ylo} Flags:${nc}
    -h, --help           Show this help message
@@ -209,54 +211,89 @@ setup_resources(){
     LINK_DIR="$workdir/resources/links"
     mkdir -p "$LINK_DIR"
     
-    # 1. Diamond DB & Taxonomy Auto-Detection
+    # --- 1. Diamond DB & Auto-Detection ---
     if [[ -n "$diamond_db" ]]; then
         if [[ -f "$diamond_db" ]]; then
-            echo -e "${blue}[INFO]${nc} Linking external Diamond DB..."
+            echo -e "${blu}[INFO]${nc} Linking external Diamond DB..."
             ln -sf "$diamond_db" "$LINK_DIR/external_diamond.dmnd"
-            
-            # Variável para a chave 'diamond'
             res_diamond="'$LINK_DIR/external_diamond.dmnd'"
 
-            # AUTO-DETECTION: Procura arquivos de taxonomia na mesma pasta do .dmnd
+            # AUTO-DETECTION (Lower priority)
+            # Only runs if explicit tax flags are NOT provided later
             DB_DIR=$(dirname "$diamond_db")
             
-            # Para chave 'taxonnodes'
             if [[ -f "$DB_DIR/nodes.dmp" ]]; then
-                echo -e "       > Auto-detected ${green}nodes.dmp${nc}"
                 ln -sf "$DB_DIR/nodes.dmp" "$LINK_DIR/nodes.dmp"
                 res_nodes="'$LINK_DIR/nodes.dmp'"
             fi
             
-            # Para chave 'taxonnames'
             if [[ -f "$DB_DIR/names.dmp" ]]; then
-                echo -e "       > Auto-detected ${green}names.dmp${nc}"
                 ln -sf "$DB_DIR/names.dmp" "$LINK_DIR/names.dmp"
                 res_names="'$LINK_DIR/names.dmp'"
             fi
             
-            # Para chave 'taxonmap'
             if [[ -f "$DB_DIR/prot.accession2taxid.gz" ]]; then
-                echo -e "       > Auto-detected ${green}prot.accession2taxid.gz${nc}"
                 ln -sf "$DB_DIR/prot.accession2taxid.gz" "$LINK_DIR/prot.accession2taxid.gz"
                 res_map="'$LINK_DIR/prot.accession2taxid.gz'"
             fi
-
         else
             echo -e "${red}[WARNING]${nc} Diamond DB not found: $diamond_db. Using default."
         fi
     fi
 
-    # 2. Kraken2 DB Override
+    # --- 2. Kraken2 DB Override ---
     if [[ -n "$kraken2" ]]; then
         if [[ -d "$kraken2" ]]; then
-             echo -e "${blue}[INFO]${nc} Linking external Kraken2 DB..."
+             echo -e "${blu}[INFO]${nc} Linking external Kraken2 DB..."
             rm -f "$LINK_DIR/external_kraken2"
             ln -sfn "$kraken2" "$LINK_DIR/external_kraken2"
-            # Variável para a chave 'kraken2'
             res_kraken="'$LINK_DIR/external_kraken2'"
         else
             echo -e "${red}[WARNING]${nc} Kraken2 dir not found: $kraken2. Using default."
+        fi
+    fi
+
+    # --- 3. TaxDump Override (High Priority) ---
+    # This handles nodes.dmp and names.dmp
+    if [[ -n "$taxdump" ]]; then
+        if [[ -d "$taxdump" ]]; then
+            echo -e "${blu}[INFO]${nc} Linking Taxonomy Dump from: ${ylo}$taxdump${nc}"
+            
+            # Link nodes.dmp
+            if [[ -f "$taxdump/nodes.dmp" ]]; then
+                ln -sf "$taxdump/nodes.dmp" "$LINK_DIR/nodes.dmp"
+                res_nodes="'$LINK_DIR/nodes.dmp'"
+                echo -e "       > Linked ${green}nodes.dmp${nc}"
+            else
+                echo -e "${red}[ERROR]${nc} nodes.dmp not found in $taxdump"
+                exit 1
+            fi
+
+            # Link names.dmp
+            if [[ -f "$taxdump/names.dmp" ]]; then
+                ln -sf "$taxdump/names.dmp" "$LINK_DIR/names.dmp"
+                res_names="'$LINK_DIR/names.dmp'"
+                echo -e "       > Linked ${green}names.dmp${nc}"
+            else
+                echo -e "${red}[ERROR]${nc} names.dmp not found in $taxdump"
+                exit 1
+            fi
+        else
+            echo -e "${red}[ERROR]${nc} Taxdump directory not found: $taxdump"
+            exit 1
+        fi
+    fi
+
+    # --- 4. TaxMap Override (High Priority) ---
+    # This handles prot.accession2taxid.gz
+    if [[ -n "$taxmap" ]]; then
+        if [[ -f "$taxmap" ]]; then
+            echo -e "${blu}[INFO]${nc} Linking Accession Map from: ${ylo}$taxmap${nc}"
+            ln -sf "$taxmap" "$LINK_DIR/prot.accession2taxid.gz"
+            res_map="'$LINK_DIR/prot.accession2taxid.gz'"
+        else
+            echo -e "${red}[ERROR]${nc} Accession map file not found: $taxmap"
+            exit 1
         fi
     fi
 }

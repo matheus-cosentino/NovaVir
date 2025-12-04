@@ -64,13 +64,15 @@ DiscoVir is a modular and flexible pipeline. The main modules are:
 ## Configuration
 
 The pipeline is configured using the `config/config.yaml` file. Here you can define input/output paths, select modules to run, and set parameters for each tool.
+Within the config, the major definer of the pipeline is found within `modules`
+-   `modules`: A boolean flag to enable or disable specific modules (`assembly`, `kraken2`, `diamond`, `duskmatter`, `reads`).
+
 
 **Main options:**
 
 -   `input_dir`: Path to the directory containing your input files.
 -   `output_dir`: Path to the directory where results will be saved.
 -   `sra_accessions`: A file containing SRA accession numbers to download.
--   `modules`: A boolean flag to enable or disable specific modules (`assembly`, `kraken2`, `diamond`, `duskmatter`).
 -   `tool`: Select the assembler to use (`spades`, `megahit`, `flye`).
 
 ## Usage
