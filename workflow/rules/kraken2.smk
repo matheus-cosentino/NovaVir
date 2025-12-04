@@ -49,7 +49,7 @@ rule kraken_biom_contig:
     log:
       "{out_dir}/{sample}/log/kraken2_contigs_{tool}_{sample}_biom.log"
     conda:
-        KRAKEN2
+        KRAKEN2_BIOM
     shell:
         """
         kraken-biom \
@@ -96,7 +96,7 @@ rule kraken_biom_reads:
     log:
         "{out_dir}/{sample}/log/kraken2_biom_reads_{sample}.log"
     conda:
-        KRAKEN2
+        KRAKEN2_BIOM
     shell:
         """
         kraken-biom \

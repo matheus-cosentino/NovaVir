@@ -47,6 +47,7 @@ envs:
   denovo: "envs/denovo.yaml"
   diamond: "envs/diamond.yaml"
   kraken2: "envs/kraken2.yaml"
+  kraken2_biom: "envs/kraken2_biom.yaml"
   taxonkit: "envs/taxonkit.yaml"
   download: "envs/download.yaml"
   scripts: "envs/DiscoVir.yaml"
