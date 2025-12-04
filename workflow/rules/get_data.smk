@@ -36,7 +36,7 @@ rule download_sra_data:
         """
         # 1. Download data (using current directory via shadow)
         # --split-3 ensures we get _1 and _2 for PE, or just .fastq for SE
-        fasterq-dump --threads {threads} --split-3 {wildcards.sample} > {log} 2>&1
+        fasterq-dump --threads {threads} --split-files {wildcards.sample} > {log} 2>&1
 
         # 2. Compression Loop (using pigz for parallel speed)
         # Check what files were downloaded and compress them
