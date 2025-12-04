@@ -35,19 +35,64 @@ ENV_FILE="workflow/envs/DiscoVir.yaml"
 # --- Spinner --- #
 run_with_spinner() {
     local pid
+    # Run the command in the background
     ("$@" > /dev/null 2>&1) &
     pid=$!
     disown $pid 2>/dev/null
-    local spinner=("A" "T" "G" "T" "G" "T" "T" "C" "T" "G" "A" "C" "A" "A" "C" "A" "C" "G" "A" "T" "C" "A" "A" "C" "A" "T" "G")    local i=0
-    local i=0
+
+    # Define colors for bases (A=Green, T=Red, C=Blue, G=Yellow)
+    local cA="\033[1;32m" # Green
+    local cT="\033[1;31m" # Red
+    local cC="\033[1;34m" # Blue
+    local cG="\033[1;33m" # Yellow
+    local nc="\033[0m"    # No Color
+
+    # The full DNA sequence to scroll
+    local sequence="GATCACAGGTCTATCACCCTATTAACCACTCACGGGAGCTCTCCATGCATTTGGTATTTTCGTCTGGGGGGTATGCACGCGATAGCATTGCGAGACGCTGGAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTCCTGCCTCATCCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACTTACTAAAGTGTGTTAATTAATTAATGCTTGTAGGACATAATAATAACAATTGAATGTCTGCACAGCCGCTTTCCACACAGACATCATAACAAAAAATTTCCACCAAACCCCCCCTCCCCCGCTTCTGGCCACAGCACTTAAACACATCTCTGCCAAACCCCAAAAACAAAGAACCCTAACACCAGCCTAACCAGATTTCAAATTTTATCTTTTGGCGGTATGCACTTTTAACAGTCACCCCCCAACTAACACATTATTTTCCCCTCCCACTCCCATACTACTAATCTCATCAATACAACCCCCGCCCATCCTACCCAGCACACACACACCGCTGCTAACCCCATACCCCGAACCAACCAAACCCCAAAGACACCCCCCACAGTTTATGTAGCTTACCTCCTCAAAGCAATACACTGAAAATGTTTAGACGGGCTCACATCACCCCATAAACAAATAGGTTTGGTCCTAGCCTTTCTATTAGCTCTTAGTAAGATTACACATGCAAGCATCCCCGTTCCAGTGAGTTCACCCTCTAAATCACCACGATCAAAAGGAACAAGCATCAAGCACGCAGCAATGCAGCTCAAAACGCTTAGCCTAGCCACACCCCCACGGGAAACAGCAGTGATTAACCTTTAGCAATAAACGAAAGTTTAACTAAGCTATACTAACCCCAGGGTTGGTCAATTTCGTGCCAGCCACCGCGGTCACACGATTAACCCAAGTCAATAGAAGCCGGCGTAAAGAGTGTTTTAGATCACCCCCTCCCCAATAAAGCTAAAACTCACCTGAGTTGTAAAAAACTCCAGTTGACACAAAATAAACTACGAAAGTGGCTTTAACATATCTGAACACACAATAGCTAAGACCCAAACTGGGATTAGATACCCCACTATGCTTAGCCCTAAACCTCAACAGTTAAATCAACAAAACTGCTGCCAGAACACTACGAGCCACAGCTTAAAACTCAAAGGACCTGGCGGTGCTTCATATCCCTCTAGAGGAGCCTGTTCTGTAATCGATAAACCCCGATCAACCTCACCACCTCTTGCTCAGCCTATATACCGCCATCTTCAGCAAACCCTGATGAAGGCTACAAAGTAAGCGCAAGTACCCACGTAAAGACGTTAGGTCAAGGTGTAGCCCATGAGGTGGCAAGAAATGGGCTACATTTTCTACCCCAGAAAACTACGATAGCCCTTATGAAACTTAAGGGTCGAAGGTGGATTTAGCAGTAAACTGAGAGTAGAGTGCTTAGTTGAACAGGGCCCTGAAGCGCGTACACACCGCCCGTCACCCTCCTCAAGTATACTTCAAAGGACATTTAACTAAAACCCCTACGCATTTATATAGAGGAGACAAGTCGTAACATGGTAAGTGTACTGGAAAGTGCACTTGGACGAACCAGAGTGTAGCTTAACACAAAGCACCCAACTTACACTTAGGAGATTTCAACTCAACTTGACCGCTCTGAGCTAAACCTAGCCCCAAACCCACTCCACCTTACTACCAGACAACCTTAGCCAAACCATTTACCCAAATAAAGTATAGGCGATAGAAATTGAAACCTGGCGCAATAGATATAGTACCGCAAGGGAAAGATGAAAAATTATAACCAAGCATAATATAGCAAGGACTAACCCCTATACCTTCTGCATAATGAATTAACTAGAAATAACTTTGCAAGGAGAGCCAAAGCTAAGACCCCCGAAACCAGACGAGCTACCTAAGAACAGCTAAAAGAGCACACCCGTCTATGTAGCAAAATAGTGGGAAGATTTATAGGTAGAGGCGACAAACCTACCGAGCCTGGTGATAGCTGGTTGTCCAAGATAGAATCTTAGTTCAACTTTAAATTTGCCCACAGAACCCTCTAAATCCCCTTGTAAATTTAACTGTTAGTCCAAAGAGGAACAGCTCTTTGGACACTAGGAAAAAACCTTGTAGAGAGAGTAAAAAATTTAACACCCATAGTAGGCCTAAAAGCAGCCACCAATTAAGAAAGCGTTCAAGCTCAACACCCACTACCTAAAAAATCCCAAACATATAACTGAACTCCTCACACCCAATTGGACCAATCTATCACCCTATAGAAGAACTAATGTTAGTATAAGTAACATGAAAACATTCTCCTCCGCATAAGCCTGCGTCAGATTAAAACACTGAACTGACAATTAACAGCCCAATATCTACAATCAACCAACAAGTCATTATTACCCTCACTGTCAACCCAACACAGGCATGCTCATAAGGAAAGGTTAAAAAAAGTAAAAGGAACTCGGCAAATCTTACCCCGCCTGTTTACCAAAAACATCACCTCTAGCATCACCAGTATTAGAGGCACCGCCTGCCCAGTGACACATGTTTAACGGCCGCGGTACCCTAACCGTGCAAAGGTAGCATAATCACTTGTTCCTTAAATAGGGACCTGTATGAATGGCTCCACGAGGGTTCAGCTGTCTCTTACTTTTAACCAGTGAAATTGACCTGCCCGTGAAGAGGCGGGCATAACACAGCAAGACGAGAAGACCCTATGGAGCTTTAATTTATTAATGCAAACAGTACCTAACAAACCCACAGGTCCTAAACTACCAAACCTGCATTAAAAATTTCGGTTGGGGCGACCTCGGAGCAGAACCCAACCTCCGAGCAGTACATGCTAAGACTTCACCAGTCAAAGCGAACTACTATACTCAATTGATCCAATAACTTGACCAACGGAACAAGTTACCCTAGGGATAACAGCGCAATCCTATTCTAGAGTCCATATCAACAATAGGGTTTACGACCTCGATGTTGGATCAGGACATCCCGATGGTGCAGCCGCTATTAAAGGTTCGTTTGTTCAACGATTAAAGTCCTACGTGATCTGAGTTCAGACCGGAGTAATCCAGGTCGGTTTCTATCTCTT"
+    local seq_len=${#sequence}
+    
+    # Window size (how many base pairs to show at once)
+    local width=15
+    local pos=0
+
+    # Hide cursor
+    tput civis
+
     while kill -0 $pid 2>/dev/null; do
-        printf "\r\033[K [${green}${spinner[i]}${nc}] Processing...    "
-        i=$(( (i+1) % 4 ))
-        sleep 0.2
+        # Construct the visible window
+        local chunk=""
+        for (( j=0; j<width; j++ )); do
+            # Calculate index with wrapping
+            local idx=$(( (pos + j) % seq_len ))
+            local base="${sequence:$idx:1}"
+            
+            # Colorize the base
+            case "$base" in
+                A) chunk="${chunk}${cA}A${nc}" ;;
+                T) chunk="${chunk}${cT}T${nc}" ;;
+                C) chunk="${chunk}${cC}C${nc}" ;;
+                G) chunk="${chunk}${cG}G${nc}" ;;
+                *) chunk="${chunk}${base}" ;;
+            esac
+        done
+
+        # Print the sliding window
+        printf "\r\033[K [ ${chunk} ] Processing..."
+        
+        # Advance position
+        pos=$(( (pos + 1) % seq_len ))
+        
+        # Speed of animation
+        sleep 0.1
     done
+    
     wait $pid
     local exit_code=$?
+    
+    # Restore cursor
+    tput cnorm
     printf "\r\033[K"
+    
     if [ $exit_code -eq 0 ]; then
         echo -e "${green}✔ Job done!${nc}"
     else
@@ -96,77 +141,6 @@ version(){
 
 ###################################
 # --- Environment Management --- #
-###################################
-
-manage_environment(){
-    echo -e "${blu}[INFO]${nc} Checking Conda environment '${ylo}${ENV_NAME}${nc}'..."
-
-    # 1. Garante que o conda está inicializado nesta sessão do script
-    __conda_setup="$('conda' 'shell.bash' 'hook' 2> /dev/null)"
-    if [ $? -eq 0 ]; then
-        eval "$__conda_setup"
-    else
-        if [ -f "${HOME}/miniconda3/etc/profile.d/conda.sh" ]; then
-            . "${HOME}/miniconda3/etc/profile.d/conda.sh"
-        elif [ -f "${HOME}/anaconda3/etc/profile.d/conda.sh" ]; then
-            . "${HOME}/anaconda3/etc/profile.d/conda.sh"
-        else
-            echo -e "${red}[ERROR]${nc} Could not find conda.sh. Ensure Conda is installed."
-            exit 1
-        fi
-    fi
-
-    # 2. Verifica se o arquivo YAML existe (segurança)
-    # Usa $workdir para garantir o caminho absoluto, se definido, ou relativo
-    if [[ ! -f "$ENV_FILE" ]]; then
-         # Tenta achar baseado no diretório atual se a variavel workdir nao estiver pronta ainda
-         if [[ -f "workflow/envs/DiscoVir.yaml" ]]; then
-            ENV_FILE="workflow/envs/DiscoVir.yaml"
-         else
-            echo -e "${red}[ERROR]${nc} Environment file $ENV_FILE not found!"
-            exit 1
-         fi
-    fi
-
-    # 3. Lógica: Checar existência -> Atualizar -> Ativar
-    if conda env list | grep -q "^${ENV_NAME} "; then
-        echo -e "       > Environment found: ${green}Yes${nc}"
-        
-        echo -e "${blu}[INFO]${nc} Updating environment from ${ylo}$ENV_FILE${nc}..."
-        # O comando 'env update' instala o que falta e atualiza versões
-        conda env update --name "$ENV_NAME" --file "$ENV_FILE" --prune --quiet
-        
-        if [ $? -ne 0 ]; then
-            echo -e "${red}[ERROR]${nc} Failed to update environment."
-            exit 1
-        fi
-        echo -e "${green}✔ Update complete.${nc}"
-        
-    else 
-        echo -e "       > Environment found: ${red}No${nc}"
-        echo -e "${blu}[INFO]${nc} Creating environment from ${ylo}$ENV_FILE${nc}..."
-        conda env create --name "$ENV_NAME" --file "$ENV_FILE"
-        
-        if [ $? -ne 0 ]; then
-            echo -e "${red}[ERROR]${nc} Failed to create environment."
-            exit 1
-        fi
-    fi
-
-    # 4. Ativação Final
-    echo -ne "${blu}[INFO]${nc} Activating environment... "
-    conda activate "$ENV_NAME"
-    
-    if [[ $? -eq 0 ]]; then 
-        echo -e "${green}Active${nc}"
-    else 
-        echo -e "${red}Failed${nc}"
-        exit 1
-    fi
-}
-
-###################################
-# --- Resource Management --- #
 ###################################
 
 manage_environment(){
@@ -228,6 +202,66 @@ manage_environment(){
 }
 
 ###################################
+# --- Resource Management --- #
+###################################
+
+setup_resources(){
+    LINK_DIR="$workdir/resources/links"
+    mkdir -p "$LINK_DIR"
+    
+    # 1. Diamond DB & Taxonomy Auto-Detection
+    if [[ -n "$diamond_db" ]]; then
+        if [[ -f "$diamond_db" ]]; then
+            echo -e "${blue}[INFO]${nc} Linking external Diamond DB..."
+            ln -sf "$diamond_db" "$LINK_DIR/external_diamond.dmnd"
+            
+            # Variável para a chave 'diamond'
+            res_diamond="'$LINK_DIR/external_diamond.dmnd'"
+
+            # AUTO-DETECTION: Procura arquivos de taxonomia na mesma pasta do .dmnd
+            DB_DIR=$(dirname "$diamond_db")
+            
+            # Para chave 'taxonnodes'
+            if [[ -f "$DB_DIR/nodes.dmp" ]]; then
+                echo -e "       > Auto-detected ${green}nodes.dmp${nc}"
+                ln -sf "$DB_DIR/nodes.dmp" "$LINK_DIR/nodes.dmp"
+                res_nodes="'$LINK_DIR/nodes.dmp'"
+            fi
+            
+            # Para chave 'taxonnames'
+            if [[ -f "$DB_DIR/names.dmp" ]]; then
+                echo -e "       > Auto-detected ${green}names.dmp${nc}"
+                ln -sf "$DB_DIR/names.dmp" "$LINK_DIR/names.dmp"
+                res_names="'$LINK_DIR/names.dmp'"
+            fi
+            
+            # Para chave 'taxonmap'
+            if [[ -f "$DB_DIR/prot.accession2taxid.gz" ]]; then
+                echo -e "       > Auto-detected ${green}prot.accession2taxid.gz${nc}"
+                ln -sf "$DB_DIR/prot.accession2taxid.gz" "$LINK_DIR/prot.accession2taxid.gz"
+                res_map="'$LINK_DIR/prot.accession2taxid.gz'"
+            fi
+
+        else
+            echo -e "${red}[WARNING]${nc} Diamond DB not found: $diamond_db. Using default."
+        fi
+    fi
+
+    # 2. Kraken2 DB Override
+    if [[ -n "$kraken2" ]]; then
+        if [[ -d "$kraken2" ]]; then
+             echo -e "${blue}[INFO]${nc} Linking external Kraken2 DB..."
+            rm -f "$LINK_DIR/external_kraken2"
+            ln -sfn "$kraken2" "$LINK_DIR/external_kraken2"
+            # Variável para a chave 'kraken2'
+            res_kraken="'$LINK_DIR/external_kraken2'"
+        else
+            echo -e "${red}[WARNING]${nc} Kraken2 dir not found: $kraken2. Using default."
+        fi
+    fi
+}
+
+###################################
 # --- Sample Generation --- #
 ###################################
 
@@ -236,35 +270,33 @@ generate_sample_list(){
     sample_list="$output/samples_detected.txt"
     mkdir -p "$output"
     
-    # Cria o arquivo vazio para garantir que começamos do zero
-    : > "$sample_list"
-
-    # 1. Arquivos Locais
+    # 1. Arquivos Locais (Sobrescreve/Reseta o arquivo)
     if [[ -d "$input" ]]; then
         find "$input" -type f \( -name "*.fastq.gz" -o -name "*.fastq" -o -name "*.fasta" -o -name "*.fa" -o -name "*.fas" \) \
         | sed 's|.*/||' \
         | sed -E 's/(_1|_2|_R1|_R2|_unp|_orphans)?\.(fastq\.gz|fastq|fasta|fa|fas)$//' \
-        >> "$sample_list"
+        > "$sample_list"
+    else
+        touch "$sample_list"
     fi
 
-    # 2. Injeção de SRA (Blindada contra falta de Newline)
+    # 2. Injeção de SRA (Com tratamento de quebra de linha)
     if [[ -n "$sra" && -f "$sra" ]]; then
         echo -e "\n${ylo}[INFO]${nc} Appending SRA Accessions..."
         
-        # Adiciona uma quebra de linha forçada ANTES de ler o arquivo SRA
-        echo "" >> "$sample_list"
+        # Garante quebra de linha antes de adicionar
+        echo "" >> "$sample_list" 
         
-        # Lê o arquivo SRA e adiciona uma quebra de linha extra DEPOIS
-        # Isso previne que o último ID cole em qualquer outra coisa
+        # Adiciona o conteúdo do SRA
         cat "$sra" >> "$sample_list"
+        
+        # Garante quebra de linha DEPOIS de adicionar (caso o txt do usuário não tenha)
         echo "" >> "$sample_list"
     fi
 
-    # 3. Limpeza Final (O Segredo)
-    # tr -d ' ' -> Remove espaços em branco acidentais
-    # sort -u -> Remove duplicatas
-    # sed '/^$/d' -> Remove linhas vazias geradas pelos "echos" acima
-    sort -u "$sample_list" | tr -d ' ' | sed '/^$/d' > "${sample_list}.tmp" && mv "${sample_list}.tmp" "$sample_list"
+    # 3. Limpeza Final (Remove linhas vazias e duplicatas)
+    # O comando 'sort -u' remove duplicatas e organiza a lista
+    sort -u "$sample_list" | sed '/^$/d' > "${sample_list}.tmp" && mv "${sample_list}.tmp" "$sample_list"
 
     # Validação
     count=$(wc -l < "$sample_list")
@@ -274,9 +306,7 @@ generate_sample_list(){
         echo -e "${red}Error: No samples found locally and no SRA file provided.${nc}"
         exit 1
     else
-        # Mostra quais amostras foram detectadas para você conferir visualmente
-        echo -e " ${green}OK ($count samples)${nc}"
-        echo -e "${blu}[DEBUG]${nc} Samples detected: $(tr '\n' ', ' < "$sample_list")"
+        echo -e " ${green}OK ($count unique samples)${nc}"
     fi
 }
 
