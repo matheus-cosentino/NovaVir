@@ -37,14 +37,14 @@ rule download_sra_data_paired:
     shadow: 
         "minimal" 
     params:
-        out_dir = config["data_dir"]
+        out_dir = config["data_dir"],
         tmpdir = lambda wildcards:os.path.join(config["data_dir"], tmp_{wildcards.sample})"     
     wildcard_constraints:
         sample = "|".join(PAIRED_SRA) if PAIRED_SRA else "NO_PAIRED_SAMPLES"
     shadow: 
         "minimal"
     shell:
-         """
+     """
         echo "Creating temp dir for. download {wildcards.sample}..." > {log}
         
         mkdir -p {params.tmpdir}
@@ -67,7 +67,7 @@ rule download_sra_data_paired:
         echo "Deleting  {params.tmpdir}..." > {log}
         rm -rf {params.tmpdir}
 
-        """
+    """
 
 
 ##############################################
@@ -87,23 +87,6 @@ rule download_sra_single:
     shadow: 
         "minimal"
     shell:
-        """
-        echo "Starting SINGLE download for {wildcards.sample}..." > {log}
-        
-        fasterq-dump --split-files --threads {threads} -O . {wildcards.sample} >> {log} 2>&1
-
-        # fasterq-dump outputs just 'sample.fastq' for single end, OR 'sample_1.fastq' depending on version.
-        # We handle both cases safely:
-        
-        if [ -f "{wildcards.sample}_1.fastq" ]; then
-            gzip "{wildcards.sample}_1.fastq"
-            mv "{wildcards.sample}_1.fastq.gz" {output.r1}
-        elif [ -f "{wildcards.sample}.fastq" ]; then
-            gzip "{wildcards.sample}.fastq"
-            mv "{wildcards.sample}.fastq.gz" {output.r1}
-        fi
-        """
-
      """
         echo "Creating temp dir for. download {wildcards.sample}..." > {log}
         
