@@ -81,8 +81,8 @@ The pipeline is wrapped in a Bash script (`DiscoVir.sh`) that handles Conda envi
 bash DiscoVir.sh --input data/raw --output results_project --jobs 5
 ```
 
+### Arguments
 ```bash
-Arguments
 --input: Directory containing raw reads (.fastq.gz) or contigs (.fasta).
 --output: Directory where results and reports will be saved.
 --sra <FILE>: Text file containing SRA Accession IDs for automated download.
