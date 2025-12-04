@@ -39,7 +39,7 @@ from scripts.functions import get_denovo_unpaired
 from scripts.functions import get_flye_input
 from scripts.functions import get_spades_params
 from scripts.functions import get_megahit_params
-
+from scripts.functions import get_sra_layout
 
 ###########################################################
 # --- 3. Define workflown directory and local infos  --- #
@@ -75,6 +75,7 @@ functions.get_denovo_unpaired = get_denovo_unpaired
 functions.get_flye_input = get_flye_input
 functions.get_spades_params = get_spades_params
 functions.get_megahit_params = get_megahit_params
+functions.get_sra_layout = get_sra_layout
 
 ##############################################
 # --- 5. Define Conda Environment Paths --- #
