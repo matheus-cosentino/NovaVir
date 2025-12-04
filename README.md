@@ -43,7 +43,7 @@ DiscoVir is a modular and flexible pipeline. The main modules are:
     -   **Diamond**: Sensitive protein alignment against the NR database.
     -   **TaxonKit**: For lineage resolution of identified hits.
 -   **"Dusk Matter" Discovery (Palm Annot)**:
-    -   Targeted search for RNA-dependent RNA polymerase (RdRp) motifs using `PalmDB`. This module is crucial for identifying divergent RNA viruses that lack homology in standard databases.
+    -   Targeted search for RNA-dependent RNA polymerase (RdRp) motifs using [palm_annot](https://github.com/rcedgar/palm_annot.git). This module is crucial for identifying divergent RNA viruses that lack homology in standard databases.
 -   **Reporting**:
     -   Generates a final HTML report, within overall information regarding contigs assembled and viruses found within the Diaamond & Dusk Matter modules.
 
