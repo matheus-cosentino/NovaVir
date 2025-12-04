@@ -91,17 +91,9 @@ The pipeline is configured using the `config/config.yaml` file. Here you can def
 
 ## Usage
 
-The pipeline is wrapped in a Bash script (`DiscoVir.sh`) that handles Conda environment creation, resource linking, and job submission.
-
-### Local execution
-
-For small datasets, you can run the pipeline on your local machine:
+The pipeline is wrapped in a Bash script (`DiscoVir.sh`) that handles Conda environment creation, resource linking, and job submission. DiscoVir is optimized for SLURM environments. To run on a cluster, you can specify the number of parallel jobs:
 
 ```bash
-bash DiscoVir.sh --input <DIR> --output <DIR> [OPTIONS]
-HPC & SLURM Integration
-DiscoVir is optimized for SLURM environments. To run on a cluster, you can specify the number of parallel jobs:
-
 bash DiscoVir.sh --input data/raw --output results_project --jobs 50
 Arguments
 --input: Directory containing raw reads (.fastq.gz) or contigs (.fasta).
@@ -110,9 +102,12 @@ Arguments
 --jobs <INT>: Number of parallel jobs (default: 15).
 --kraken2 <DIR>: Path to an external Kraken2 database.
 --diamond_db <FILE>: Path to an external Diamond .dmnd database.
+```
+
 Output
 The output directory will be structured as follows:
 
+```bash
 <output_dir>/
 ├───0_raw_reads/
 ├───1_preprocessed_reads/
@@ -121,13 +116,17 @@ The output directory will be structured as follows:
 ├───4_diamond/
 ├───5_duskmatter/
 └───report/
-0_raw_reads/: Raw input reads (or symlinks to them).
-1_preprocessed_reads/: Quality-controlled reads from fastp.
-2_assembly/: Assembled contigs from SPAdes, Megahit, or Flye.
-3_kraken2/: Taxonomic classification results from Kraken2.
-4_diamond/: Protein alignment results from Diamond.
-5_duskmatter/: RdRp annotation results.
-report/: Final HTML report.
+
+raw_reads/: Raw input reads (or symlinks to them).
+filteres_reads/: Quality-controlled reads from fastp.
+assembly/: Assembled contigs from SPAdes, Megahit, or Flye.
+kraken2/: Taxonomic classification results from Kraken2.
+diamond/: Protein alignment results from Diamond.
+duskmatter/: RdRp annotation results.
+report/: Final HTML report & Suplementary Files
+```
+
+
 Contributing
 Contributions are welcome! If you find a bug or have a suggestion for improvement, please open an issue or submit a pull request.
 
