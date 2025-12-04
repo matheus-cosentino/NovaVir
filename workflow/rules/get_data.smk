@@ -23,7 +23,6 @@
 rule download_sra_data:
     output:
         r1 = os.path.join(config["data_dir"], "{sample}_1.fastq.gz"),
-        r2 = os.path.join(config["data_dir"], "{sample}_2.fastq.gz")
     log:
         os.path.join(config["output_dir"], "{sample}", "log", "{sample}_download.log")
     conda:
@@ -32,13 +31,16 @@ rule download_sra_data:
         "minimal" 
     params:
         out_dir = config["data_dir"]
+        r2 = os.path.join(config["data_dir"], "{sample}_2.fastq.gz")
+    shadow: 
+        "minimal"
     shell:
         """
+        echo "Starting download for {wildcards.sample}..." > {log}
         # 1. Download data (using current directory via shadow)
-        # --split-3 ensures we get _1 and _2 for PE, or just .fastq for SE
-        fasterq-dump --threads {threads} --split-files {wildcards.sample} > {log} 2>&1
+        fasterq-dump --split-files --threads {threads} -O . {wildcards.sample} >> {log} 2>&1
 
-        # 2. Compression Loop (using pigz for parallel speed)
+        # 2. Compression Loop
         # Check what files were downloaded and compress them
         if [ -f "{wildcards.sample}_1.fastq" ]; then
             gzip "{wildcards.sample}_1.fastq"
