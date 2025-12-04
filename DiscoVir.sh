@@ -169,59 +169,61 @@ manage_environment(){
 # --- Resource Management --- #
 ###################################
 
-setup_resources(){
-    LINK_DIR="$workdir/resources/links"
-    mkdir -p "$LINK_DIR"
-    
-    # 1. Diamond DB & Taxonomy Auto-Detection
-    if [[ -n "$diamond_db" ]]; then
-        if [[ -f "$diamond_db" ]]; then
-            echo -e "${blue}[INFO]${nc} Linking external Diamond DB..."
-            ln -sf "$diamond_db" "$LINK_DIR/external_diamond.dmnd"
-            
-            # Variável para a chave 'diamond'
-            res_diamond="'$LINK_DIR/external_diamond.dmnd'"
+manage_environment(){
+    echo -e "${blu}[INFO]${nc} Checking Conda environment '${ylo}${ENV_NAME}${nc}'..."
 
-            # AUTO-DETECTION: Procura arquivos de taxonomia na mesma pasta do .dmnd
-            DB_DIR=$(dirname "$diamond_db")
-            
-            # Para chave 'taxonnodes'
-            if [[ -f "$DB_DIR/nodes.dmp" ]]; then
-                echo -e "       > Auto-detected ${green}nodes.dmp${nc}"
-                ln -sf "$DB_DIR/nodes.dmp" "$LINK_DIR/nodes.dmp"
-                res_nodes="'$LINK_DIR/nodes.dmp'"
-            fi
-            
-            # Para chave 'taxonnames'
-            if [[ -f "$DB_DIR/names.dmp" ]]; then
-                echo -e "       > Auto-detected ${green}names.dmp${nc}"
-                ln -sf "$DB_DIR/names.dmp" "$LINK_DIR/names.dmp"
-                res_names="'$LINK_DIR/names.dmp'"
-            fi
-            
-            # Para chave 'taxonmap'
-            if [[ -f "$DB_DIR/prot.accession2taxid.gz" ]]; then
-                echo -e "       > Auto-detected ${green}prot.accession2taxid.gz${nc}"
-                ln -sf "$DB_DIR/prot.accession2taxid.gz" "$LINK_DIR/prot.accession2taxid.gz"
-                res_map="'$LINK_DIR/prot.accession2taxid.gz'"
-            fi
-
+    # 1. Initialize Conda for this script session
+    __conda_setup="$('conda' 'shell.bash' 'hook' 2> /dev/null)"
+    if [ $? -eq 0 ]; then
+        eval "$__conda_setup"
+    else
+        if [ -f "${HOME}/miniconda3/etc/profile.d/conda.sh" ]; then
+            . "${HOME}/miniconda3/etc/profile.d/conda.sh"
+        elif [ -f "${HOME}/anaconda3/etc/profile.d/conda.sh" ]; then
+            . "${HOME}/anaconda3/etc/profile.d/conda.sh"
         else
-            echo -e "${red}[WARNING]${nc} Diamond DB not found: $diamond_db. Using default."
+            echo -e "${red}[ERROR]${nc} Could not find conda.sh. Ensure Conda is installed."
+            exit 1
         fi
     fi
 
-    # 2. Kraken2 DB Override
-    if [[ -n "$kraken2" ]]; then
-        if [[ -d "$kraken2" ]]; then
-             echo -e "${blue}[INFO]${nc} Linking external Kraken2 DB..."
-            rm -f "$LINK_DIR/external_kraken2"
-            ln -sfn "$kraken2" "$LINK_DIR/external_kraken2"
-            # Variável para a chave 'kraken2'
-            res_kraken="'$LINK_DIR/external_kraken2'"
-        else
-            echo -e "${red}[WARNING]${nc} Kraken2 dir not found: $kraken2. Using default."
-        fi
+    # 2. Verify YAML file exists
+    if [[ ! -f "$ENV_FILE" ]]; then
+         if [[ -f "workflow/envs/DiscoVir.yaml" ]]; then
+            ENV_FILE="workflow/envs/DiscoVir.yaml"
+         else
+            echo -e "${red}[ERROR]${nc} Environment file $ENV_FILE not found!"
+            exit 1
+         fi
+    fi
+
+    # 3. Logic: Check -> Update (with Spinner) -> Activate
+    if conda env list | grep -q "^${ENV_NAME} "; then
+        echo -e "       > Environment found: ${green}Yes${nc}"
+        
+        echo -e "${blu}[INFO]${nc} Updating environment from ${ylo}$ENV_FILE${nc}..."
+        
+        # --- SPINNER APPLIED HERE ---
+        # The spinner function runs the command in the background and handles exit codes
+        run_with_spinner conda env update --name "$ENV_NAME" --file "$ENV_FILE" --prune --quiet
+        
+    else 
+        echo -e "       > Environment found: ${red}No${nc}"
+        echo -e "${blu}[INFO]${nc} Creating environment from ${ylo}$ENV_FILE${nc}..."
+        
+        # --- SPINNER APPLIED HERE TOO (Recommended) ---
+        run_with_spinner conda env create --name "$ENV_NAME" --file "$ENV_FILE" --quiet
+    fi
+
+    # 4. Final Activation
+    echo -ne "${blu}[INFO]${nc} Activating environment... "
+    conda activate "$ENV_NAME"
+    
+    if [[ $? -eq 0 ]]; then 
+        echo -e "${green}Active${nc}"
+    else 
+        echo -e "${red}Failed${nc}"
+        exit 1
     fi
 }
 
