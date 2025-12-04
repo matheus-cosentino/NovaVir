@@ -30,7 +30,7 @@ rule download_sra_data:
     shadow: 
         "minimal" 
     params:
-        out_dir = config["data_dir"]
+        out_dir = config["data_dir"],
         r2 = os.path.join(config["data_dir"], "{sample}_2.fastq.gz")
     shadow: 
         "minimal"
