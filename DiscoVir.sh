@@ -99,38 +99,42 @@ version(){
 ###################################
 
 manage_environment(){
-    echo -e "${blue}[INFO]${nc} Checking Conda environment '${ylo}${ENV_NAME}${nc}'..."
+    echo -e "${blu}[INFO]${nc} Checking Conda environment '${ylo}${ENV_NAME}${nc}'..."
 
-    # Initialize Conda
-    if ! command -v conda &> /dev/null; then
-        echo -e "${ylo}[WARN]${nc} 'conda' command not found. Attempting to initialize..."
-        __conda_setup="$('conda' 'shell.bash' 'hook' 2> /dev/null)"
-        if [ $? -eq 0 ]; then
-            eval "$__conda_setup"
+    # --- FIX: Always initialize conda for this script session ---
+    # We try to locate the conda setup in standard locations and source it.
+    __conda_setup="$('conda' 'shell.bash' 'hook' 2> /dev/null)"
+    if [ $? -eq 0 ]; then
+        eval "$__conda_setup"
+    else
+        if [ -f "${HOME}/miniconda3/etc/profile.d/conda.sh" ]; then
+            . "${HOME}/miniconda3/etc/profile.d/conda.sh"
+        elif [ -f "${HOME}/anaconda3/etc/profile.d/conda.sh" ]; then
+            . "${HOME}/anaconda3/etc/profile.d/conda.sh"
         else
-            if [ -f "${HOME}/miniconda3/etc/profile.d/conda.sh" ]; then
-                . "${HOME}/miniconda3/etc/profile.d/conda.sh"
-            elif [ -f "${HOME}/anaconda3/etc/profile.d/conda.sh" ]; then
-                . "${HOME}/anaconda3/etc/profile.d/conda.sh"
-            else
-                echo -e "${red}[ERROR]${nc} Could not find conda.sh to initialize. Please run 'conda init' first."
-                exit 1
-            fi
+            echo -e "${red}[ERROR]${nc} Could not find conda.sh. Ensure Conda is installed."
+            exit 1
         fi
     fi
 
+    # Check if env exists
     if conda env list | grep -q "^${ENV_NAME} "; then
-        echo -e "${green}Found${nc}"
-
-if conda env list | grep -q "^${ENV_NAME} "; then
-        echo -e "${green}Found${nc}"
-        fi
+        echo -e "       > Environment found: ${green}Yes${nc}"
+    else 
+        echo -e "       > Environment found: ${red}No${nc} (Will attempt to create it via Snakemake)"
     fi
 
-    echo -ne "${blue}[INFO]${nc} Activating environment... "
-    echo -e "${blue}[INFO]${nc} Activating environment..."
+    # Activate
+    echo -ne "${blu}[INFO]${nc} Activating environment... "
     conda activate "$ENV_NAME"
-    if [[ $? -eq 0 ]]; then echo -e "${green}Active${nc}"; else echo -e "${red}Failed${nc}"; exit 1; fi
+    
+    if [[ $? -eq 0 ]]; then 
+        echo -e "${green}Active${nc}"
+    else 
+        echo -e "${red}Failed${nc}"
+        echo -e "${ylo}Tip: If the environment doesn't exist yet, Snakemake will handle it.${nc}"
+        # We don't exit here because Snakemake might create it later
+    fi
 }
 
 ###################################
