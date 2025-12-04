@@ -49,7 +49,7 @@ rule download_sra_data:
 
         if [ -f "{wildcards.sample}_2.fastq" ]; then
             gzip "{wildcards.sample}_2.fastq"
-            mv "{wildcards.sample}_2.fastq.gz" {output.r2}
+            mv "{wildcards.sample}_2.fastq.gz" {params.r2}
         else
             if [ -f "{wildcards.sample}.fastq" ]; then
             gzip "{wildcards.sample}.fastq"
