@@ -38,24 +38,35 @@ rule download_sra_data_paired:
         "minimal" 
     params:
         out_dir = config["data_dir"]
-        #r2 = os.path.join(config["data_dir"], "{sample}_2.fastq.gz")
+        tmpdir = lambda wildcards:os.path.join(config["data_dir"], tmp_{wildcards.sample})"     
     wildcard_constraints:
         sample = "|".join(PAIRED_SRA) if PAIRED_SRA else "NO_PAIRED_SAMPLES"
     shadow: 
         "minimal"
     shell:
          """
-        echo "Starting PAIRED download for {wildcards.sample}..." > {log}
+        echo "Creating temp dir for. download {wildcards.sample}..." > {log}
         
-        fasterq-dump --split-files --threads {threads} -O . {wildcards.sample} >> {log} 2>&1
+        mkdir -p {params.tmpdir}
 
+        echo "Starting PAIRED download for {wildcards.sample}..." > {log}
+
+        fasterq-dump --split-files --threads {resources.threads} -O {params.tmpdir} {wildcards.sample} > {log} 2>&1
+
+        echo "Compressing fastq to fastgz in {wildcards.sample}..." > {log}
         # Compress
         gzip "{wildcards.sample}_1.fastq"
         gzip "{wildcards.sample}_2.fastq"
         
+        echo "Moving {wildcards.sample} to {output.r1} and {output.r2}.." > {log}
+
         # Move to final output
         mv "{wildcards.sample}_1.fastq.gz" {output.r1}
         mv "{wildcards.sample}_2.fastq.gz" {output.r2}
+        
+        echo "Deleting  {params.tmpdir}..." > {log}
+        rm -rf {params.tmpdir}
+
         """
 
 
@@ -91,4 +102,28 @@ rule download_sra_single:
             gzip "{wildcards.sample}.fastq"
             mv "{wildcards.sample}.fastq.gz" {output.r1}
         fi
+        """
+
+     """
+        echo "Creating temp dir for. download {wildcards.sample}..." > {log}
+        
+        mkdir -p {params.tmpdir}
+
+        echo "Starting SingleEnd download for {wildcards.sample}..." > {log}
+
+        fasterq-dump --split-files --threads {resources.threads} -O {params.tmpdir} {wildcards.sample} > {log} 2>&1
+
+        echo "Compressing fastq to fastgz in {wildcards.sample}..." > {log}
+        # Compress
+
+        mv "{wildcards.sample}.fastq" "{wildcards.sample}_1.fastq"
+        
+        echo "Moving {wildcards.sample}.fastq to {output.r1} " > {log}
+
+        # Move to final output
+        mv "{wildcards.sample}_1.fastq.gz" {output.r1}
+        
+        echo "Deleting  {params.tmpdir}..." > {log}
+        rm -rf {params.tmpdir}
+
         """
