@@ -20,10 +20,10 @@
 ##########################################
 
 import os, re, glob, time, sys, subprocess, platform, yaml
+import urllib.request
 from snakemake.io import expand
 from collections import defaultdict
 from Bio import SeqIO
-import sys
 import gzip
 
 # Global Object
@@ -33,6 +33,10 @@ TOOL_OUTPUT_MAP = {
     "megahit": "final.contigs.fa", 
     "flye": "assembly.fasta"
 }
+
+# Global Lists to hold sorted SRA samples (Used by get_data.smk constraints)
+PAIRED_SRA = []
+SINGLE_SRA = []
 
 ##########################################################
 # --- 2. Function to obtain final outputs per module --- #
@@ -45,7 +49,7 @@ def get_final_outputs():
   if MODULES["keep_download"]: 
     for sample, meta in SAMPLE_META.items():         
           if meta['mode'] == 'SRA':
-            final_outputs.extend(meta['files'][0])
+            final_outputs.extend(meta['files'])
   
   # 2. Assembly
   if MODULES["assembly"]:  
@@ -304,12 +308,22 @@ def identify_data_type(sample_list, data_dir):
             
         # 4. None? Download (SRA)
         else:
-            # Warning; Define the place to find file after the download for DAG Build
             future_r1 = os.path.join(data_dir, f"{sample}_1.fastq.gz")
             future_r2 = os.path.join(data_dir, f"{sample}_2.fastq.gz")
             
-            sample_meta[sample] = {'mode': 'SRA', 'files': [future_r1, future_r2]}
-            print(f"[WARNING] Input missing for '{sample}'. Marked for SRA Download.")
+            # API CHECK: Is this Single or Paired?
+            layout = get_sra_layout(sample)
+            
+            if layout == 'SINGLE':
+                print(f"[INFO] {sample} identified as SRA SINGLE END.")
+                # We use SRA mode but only list 1 file. 
+                # This will trigger fastp_unpaired.
+                sample_meta[sample] = {'mode': 'SRA', 'files': [future_r1]}
+                SINGLE_SRA.append(sample)
+            else:
+                print(f"[INFO] {sample} identified as SRA PAIRED END.")
+                sample_meta[sample] = {'mode': 'SRA', 'files': [future_r1, future_r2]}
+                PAIRED_SRA.append(sample)
 
     return sample_meta
 
@@ -445,5 +459,24 @@ def get_megahit_params(wildcards, input):
         
     return cmd
 
+################################
+# --- 10. Check SRA Layout --- #
+################################
+def get_sra_layout(accession):
+    """
+    Queries ENA API to check if an SRA accession is PAIRED or SINGLE.
+    Defaults to PAIRED on failure to be safe, or SINGLE if specified.
+    """
+    url = f"https://www.ebi.ac.uk/ena/portal/api/filereport?accession={accession}&result=read_run&fields=library_layout&format=tsv"
+    try:
+        with urllib.request.urlopen(url) as response:
+            data = response.read().decode('utf-8')
+            # Response format: header\naccession\tLAYOUT
+            if "SINGLE" in data:
+                return "SINGLE"
+            return "PAIRED"
+    except Exception as e:
+        print(f"[WARNING] Could not check layout for {accession}: {e}. Defaulting to PAIRED.")
+        return "PAIRED"
 
 

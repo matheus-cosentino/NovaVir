@@ -20,9 +20,10 @@
 # --- 1. Download SRA Data of Libraries --- #
 ############################################# 
 
-rule download_sra_data:
+rule download_sra_data_paired:
     output:
         r1 = os.path.join(config["data_dir"], "{sample}_1.fastq.gz"),
+        r2 = os.path.join(config["data_dir"], "{sample}_2.fastq.gz")
     log:
         os.path.join(config["output_dir"], "{sample}", "log", "{sample}_download.log")
     conda:
@@ -30,29 +31,58 @@ rule download_sra_data:
     shadow: 
         "minimal" 
     params:
-        out_dir = config["data_dir"],
-        r2 = os.path.join(config["data_dir"], "{sample}_2.fastq.gz")
+        out_dir = config["data_dir"]
+        #r2 = os.path.join(config["data_dir"], "{sample}_2.fastq.gz")
+    wildcard_constraints:
+        sample = "|".join(PAIRED_SRA) if PAIRED_SRA else "NO_PAIRED_SAMPLES"
+    shadow: 
+        "minimal"
+    shell:
+         """
+        echo "Starting PAIRED download for {wildcards.sample}..." > {log}
+        
+        fasterq-dump --split-files --threads {threads} -O . {wildcards.sample} >> {log} 2>&1
+
+        # Compress
+        gzip "{wildcards.sample}_1.fastq"
+        gzip "{wildcards.sample}_2.fastq"
+        
+        # Move to final output
+        mv "{wildcards.sample}_1.fastq.gz" {output.r1}
+        mv "{wildcards.sample}_2.fastq.gz" {output.r2}
+        """
+
+
+##############################################
+# --- 2. Download SRA Data (SINGLE) --- #
+############################################# 
+
+rule download_sra_single:
+    output:
+        r1 = os.path.join(config["data_dir"], "{sample}_1.fastq.gz")
+    log:
+        os.path.join(config["output_dir"], "{sample}", "log", "{sample}_download_single.log")
+    conda:
+        DOWNLOAD
+    # This constraint ensures this rule ONLY runs for samples we identified as Single
+    wildcard_constraints:
+        sample = "|".join(SINGLE_SRA) if SINGLE_SRA else "NO_SINGLE_SAMPLES"
     shadow: 
         "minimal"
     shell:
         """
-        echo "Starting download for {wildcards.sample}..." > {log}
-        # 1. Download data (using current directory via shadow)
+        echo "Starting SINGLE download for {wildcards.sample}..." > {log}
+        
         fasterq-dump --split-files --threads {threads} -O . {wildcards.sample} >> {log} 2>&1
 
-        # 2. Compression Loop
-        # Check what files were downloaded and compress them
+        # fasterq-dump outputs just 'sample.fastq' for single end, OR 'sample_1.fastq' depending on version.
+        # We handle both cases safely:
+        
         if [ -f "{wildcards.sample}_1.fastq" ]; then
             gzip "{wildcards.sample}_1.fastq"
             mv "{wildcards.sample}_1.fastq.gz" {output.r1}
-        fi
-
-        if [ -f "{wildcards.sample}_2.fastq" ]; then
-            gzip "{wildcards.sample}_2.fastq"
-            mv "{wildcards.sample}_2.fastq.gz" {params.r2}
-        else
-            if [ -f "{wildcards.sample}.fastq" ]; then
+        elif [ -f "{wildcards.sample}.fastq" ]; then
             gzip "{wildcards.sample}.fastq"
             mv "{wildcards.sample}.fastq.gz" {output.r1}
-        fi  
+        fi
         """
