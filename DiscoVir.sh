@@ -230,28 +230,39 @@ setup_resources(){
 ###################################
 
 generate_sample_list(){
-    echo -ne "${blue}[INFO]${nc} Generating sample list..."
+    echo -ne "${blu}[INFO]${nc} Generating sample list..."
     sample_list="$output/samples_detected.txt"
     mkdir -p "$output"
     
-    # 1. Local Files
+    # 1. Arquivos Locais (Sobrescreve/Reseta o arquivo)
     if [[ -d "$input" ]]; then
         find "$input" -type f \( -name "*.fastq.gz" -o -name "*.fastq" -o -name "*.fasta" -o -name "*.fa" -o -name "*.fas" \) \
         | sed 's|.*/||' \
         | sed -E 's/(_1|_2|_R1|_R2|_unp|_orphans)?\.(fastq\.gz|fastq|fasta|fa|fas)$//' \
-        | sort | uniq > "$sample_list"
+        > "$sample_list"
     else
         touch "$sample_list"
     fi
 
-    # 2. SRA Injection
+    # 2. Injeção de SRA (Com tratamento de quebra de linha)
     if [[ -n "$sra" && -f "$sra" ]]; then
         echo -e "\n${ylo}[INFO]${nc} Appending SRA Accessions..."
+        
+        # Garante quebra de linha antes de adicionar
+        echo "" >> "$sample_list" 
+        
+        # Adiciona o conteúdo do SRA
         cat "$sra" >> "$sample_list"
+        
+        # Garante quebra de linha DEPOIS de adicionar (caso o txt do usuário não tenha)
         echo "" >> "$sample_list"
     fi
 
-    sed -i '/^$/d' "$sample_list"
+    # 3. Limpeza Final (Remove linhas vazias e duplicatas)
+    # O comando 'sort -u' remove duplicatas e organiza a lista
+    sort -u "$sample_list" | sed '/^$/d' > "${sample_list}.tmp" && mv "${sample_list}.tmp" "$sample_list"
+
+    # Validação
     count=$(wc -l < "$sample_list")
     
     if [[ "$count" -eq 0 ]]; then
@@ -259,7 +270,7 @@ generate_sample_list(){
         echo -e "${red}Error: No samples found locally and no SRA file provided.${nc}"
         exit 1
     else
-        echo -e " ${green}OK ($count samples)${nc}"
+        echo -e " ${green}OK ($count unique samples)${nc}"
     fi
 }
 
