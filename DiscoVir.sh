@@ -273,11 +273,11 @@ config_override="data_dir='$input' output_dir='$output' sample_list='$sample_lis
 resource_str=""
 
 # Mapeia variáveis do bash para as chaves do config.yaml
-if [[ -n "$res_diamond" ]]; then resource_str="$resource_str diamond:$res_diamond,"; fi
-if [[ -n "$res_kraken" ]];  then resource_str="$resource_str kraken2:$res_kraken,"; fi
-if [[ -n "$res_nodes" ]];   then resource_str="$resource_str taxonnodes:$res_nodes,"; fi
-if [[ -n "$res_names" ]];   then resource_str="$resource_str taxonnames:$res_names,"; fi
-if [[ -n "$res_map" ]];     then resource_str="$resource_str taxonmap:$res_map,"; fi
+if [[ -n "$res_diamond" ]]; then resource_str="${resource_str}diamond:$res_diamond,"; fi
+if [[ -n "$res_kraken" ]];  then resource_str="${resource_str}kraken2:$res_kraken,"; fi
+if [[ -n "$res_nodes" ]];   then resource_str="${resource_str}taxonnodes:$res_nodes,"; fi
+if [[ -n "$res_names" ]];   then resource_str="${resource_str}taxonnames:$res_names,"; fi
+if [[ -n "$res_map" ]];     then resource_str="${resource_str}taxonmap:$res_map,"; fi
 
 # Remove a última vírgula
 resource_str=${resource_str%,}
