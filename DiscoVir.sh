@@ -234,33 +234,35 @@ generate_sample_list(){
     sample_list="$output/samples_detected.txt"
     mkdir -p "$output"
     
-    # 1. Arquivos Locais (Sobrescreve/Reseta o arquivo)
+    # Cria o arquivo vazio para garantir que começamos do zero
+    : > "$sample_list"
+
+    # 1. Arquivos Locais
     if [[ -d "$input" ]]; then
         find "$input" -type f \( -name "*.fastq.gz" -o -name "*.fastq" -o -name "*.fasta" -o -name "*.fa" -o -name "*.fas" \) \
         | sed 's|.*/||' \
         | sed -E 's/(_1|_2|_R1|_R2|_unp|_orphans)?\.(fastq\.gz|fastq|fasta|fa|fas)$//' \
-        > "$sample_list"
-    else
-        touch "$sample_list"
+        >> "$sample_list"
     fi
 
-    # 2. Injeção de SRA (Com tratamento de quebra de linha)
+    # 2. Injeção de SRA (Blindada contra falta de Newline)
     if [[ -n "$sra" && -f "$sra" ]]; then
         echo -e "\n${ylo}[INFO]${nc} Appending SRA Accessions..."
         
-        # Garante quebra de linha antes de adicionar
-        echo "" >> "$sample_list" 
+        # Adiciona uma quebra de linha forçada ANTES de ler o arquivo SRA
+        echo "" >> "$sample_list"
         
-        # Adiciona o conteúdo do SRA
+        # Lê o arquivo SRA e adiciona uma quebra de linha extra DEPOIS
+        # Isso previne que o último ID cole em qualquer outra coisa
         cat "$sra" >> "$sample_list"
-        
-        # Garante quebra de linha DEPOIS de adicionar (caso o txt do usuário não tenha)
         echo "" >> "$sample_list"
     fi
 
-    # 3. Limpeza Final (Remove linhas vazias e duplicatas)
-    # O comando 'sort -u' remove duplicatas e organiza a lista
-    sort -u "$sample_list" | sed '/^$/d' > "${sample_list}.tmp" && mv "${sample_list}.tmp" "$sample_list"
+    # 3. Limpeza Final (O Segredo)
+    # tr -d ' ' -> Remove espaços em branco acidentais
+    # sort -u -> Remove duplicatas
+    # sed '/^$/d' -> Remove linhas vazias geradas pelos "echos" acima
+    sort -u "$sample_list" | tr -d ' ' | sed '/^$/d' > "${sample_list}.tmp" && mv "${sample_list}.tmp" "$sample_list"
 
     # Validação
     count=$(wc -l < "$sample_list")
@@ -270,7 +272,9 @@ generate_sample_list(){
         echo -e "${red}Error: No samples found locally and no SRA file provided.${nc}"
         exit 1
     else
-        echo -e " ${green}OK ($count unique samples)${nc}"
+        # Mostra quais amostras foram detectadas para você conferir visualmente
+        echo -e " ${green}OK ($count samples)${nc}"
+        echo -e "${blu}[DEBUG]${nc} Samples detected: $(tr '\n' ', ' < "$sample_list")"
     fi
 }
 
