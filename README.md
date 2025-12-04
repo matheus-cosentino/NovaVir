@@ -8,10 +8,6 @@
   <img src="resources/logo/DiscoVir_Logo.png" width="300" alt="DiscoVir Logo">
 </p>
 
-<p align="center">
-  <strong>Uncovering viral diversity.</strong>
-</p>
-
 ---
 
 ## Table of Contents
@@ -95,12 +91,12 @@ Arguments
 --diamond_db <FILE>: Path to an external Diamond .dmnd database.
 ```
 
-#Contributing
+# Contributing
 Contributions are welcome! If you find a bug or have a suggestion for improvement, please open an issue or submit a pull request.
 
-#License
+# License
 This project is licensed under the GNU General Public License v3.0.
 
-#Author
+# Author
 MSc. Matheus Cosentino
 
