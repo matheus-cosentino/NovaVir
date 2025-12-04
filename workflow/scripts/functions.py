@@ -45,7 +45,7 @@ def get_final_outputs():
   if MODULES["keep_download"]: 
     for sample, meta in SAMPLE_META.items():         
           if meta['mode'] == 'SRA':
-            final_outputs.extend(meta['files'])
+            final_outputs.extend(meta['files'][0])
   
   # 2. Assembly
   if MODULES["assembly"]:  
