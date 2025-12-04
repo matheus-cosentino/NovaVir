@@ -220,6 +220,7 @@ generate_sample_list(){
     if [[ -n "$sra" && -f "$sra" ]]; then
         echo -e "\n${ylo}[INFO]${nc} Appending SRA Accessions..."
         cat "$sra" >> "$sample_list"
+        echo "" >> "$sample_list"
     fi
 
     sed -i '/^$/d' "$sample_list"
