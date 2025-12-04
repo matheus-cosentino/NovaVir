@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <strong>Uncovering viral diversity, evolutionary dynamics, and ecological patterns from paired and unpaired reads data using Snakemake and SLURM.</strong>
+  <strong>Uncovering viral diversity.</strong>
 </p>
 
 ---
@@ -21,7 +21,6 @@
 - [Installation](#installation)
 - [Configuration](#configuration)
 - [Usage](#usage)
-- [Output](#output)
 - [Contributing](#contributing)
 - [License](#license)
 - [Author](#author)
@@ -62,20 +61,9 @@ DiscoVir is a modular and flexible pipeline. The main modules are:
     ```
 
 2.  **Install Conda and Mamba:**
+    The pipeline uses Conda to manage its dependencies. We recommend using [conda](https://forge.ird.fr/transvihmi/nfernandez/install_conda_with_miniforge) for proper conda installation within miniforge.
+    The `DiscoVir.sh` script will automatically create the necessary Conda environments for the pipeline. However, internet acess is necessary:
 
-    The pipeline uses Conda to manage its dependencies. We recommend using [Mamba](https://github.com/mamba-org/mamba) for faster environment creation.
-
-    ```bash
-    conda install -c conda-forge mamba
-    ```
-
-3.  **Create the main Conda environment:**
-
-    The `DiscoVir.sh` script will automatically create the necessary Conda environments for the pipeline. However, you can create the main environment manually:
-
-    ```bash
-    mamba env create -f workflow/envs/DiscoVir.yaml
-    ```
 
 ## Configuration
 
@@ -94,7 +82,10 @@ The pipeline is configured using the `config/config.yaml` file. Here you can def
 The pipeline is wrapped in a Bash script (`DiscoVir.sh`) that handles Conda environment creation, resource linking, and job submission. DiscoVir is optimized for SLURM environments. To run on a cluster, you can specify the number of parallel jobs:
 
 ```bash
-bash DiscoVir.sh --input data/raw --output results_project --jobs 50
+bash DiscoVir.sh --input data/raw --output results_project --jobs 5
+```
+
+```bash
 Arguments
 --input: Directory containing raw reads (.fastq.gz) or contigs (.fasta).
 --output: Directory where results and reports will be saved.
@@ -104,35 +95,12 @@ Arguments
 --diamond_db <FILE>: Path to an external Diamond .dmnd database.
 ```
 
-Output
-The output directory will be structured as follows:
-
-```bash
-<output_dir>/
-├───0_raw_reads/
-├───1_preprocessed_reads/
-├───2_assembly/
-├───3_kraken2/
-├───4_diamond/
-├───5_duskmatter/
-└───report/
-
-raw_reads/: Raw input reads (or symlinks to them).
-filteres_reads/: Quality-controlled reads from fastp.
-assembly/: Assembled contigs from SPAdes, Megahit, or Flye.
-kraken2/: Taxonomic classification results from Kraken2.
-diamond/: Protein alignment results from Diamond.
-duskmatter/: RdRp annotation results.
-report/: Final HTML report & Suplementary Files
-```
-
-
-Contributing
+#Contributing
 Contributions are welcome! If you find a bug or have a suggestion for improvement, please open an issue or submit a pull request.
 
-License
-This project is licensed under the GNU General Public License v3.0. See the LICENSE">LICENSE file for details.
+#License
+This project is licensed under the GNU General Public License v3.0.
 
-Author
+#Author
 MSc. Matheus Cosentino
 
