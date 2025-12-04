@@ -101,8 +101,7 @@ version(){
 manage_environment(){
     echo -e "${blu}[INFO]${nc} Checking Conda environment '${ylo}${ENV_NAME}${nc}'..."
 
-    # --- FIX: Always initialize conda for this script session ---
-    # We try to locate the conda setup in standard locations and source it.
+    # 1. Garante que o conda está inicializado nesta sessão do script
     __conda_setup="$('conda' 'shell.bash' 'hook' 2> /dev/null)"
     if [ $? -eq 0 ]; then
         eval "$__conda_setup"
@@ -117,14 +116,44 @@ manage_environment(){
         fi
     fi
 
-    # Check if env exists
-    if conda env list | grep -q "^${ENV_NAME} "; then
-        echo -e "       > Environment found: ${green}Yes${nc}"
-    else 
-        echo -e "       > Environment found: ${red}No${nc} (Will attempt to create it via Snakemake)"
+    # 2. Verifica se o arquivo YAML existe (segurança)
+    # Usa $workdir para garantir o caminho absoluto, se definido, ou relativo
+    if [[ ! -f "$ENV_FILE" ]]; then
+         # Tenta achar baseado no diretório atual se a variavel workdir nao estiver pronta ainda
+         if [[ -f "workflow/envs/DiscoVir.yaml" ]]; then
+            ENV_FILE="workflow/envs/DiscoVir.yaml"
+         else
+            echo -e "${red}[ERROR]${nc} Environment file $ENV_FILE not found!"
+            exit 1
+         fi
     fi
 
-    # Activate
+    # 3. Lógica: Checar existência -> Atualizar -> Ativar
+    if conda env list | grep -q "^${ENV_NAME} "; then
+        echo -e "       > Environment found: ${green}Yes${nc}"
+        
+        echo -e "${blu}[INFO]${nc} Updating environment from ${ylo}$ENV_FILE${nc}..."
+        # O comando 'env update' instala o que falta e atualiza versões
+        conda env update --name "$ENV_NAME" --file "$ENV_FILE" --prune --quiet
+        
+        if [ $? -ne 0 ]; then
+            echo -e "${red}[ERROR]${nc} Failed to update environment."
+            exit 1
+        fi
+        echo -e "${green}✔ Update complete.${nc}"
+        
+    else 
+        echo -e "       > Environment found: ${red}No${nc}"
+        echo -e "${blu}[INFO]${nc} Creating environment from ${ylo}$ENV_FILE${nc}..."
+        conda env create --name "$ENV_NAME" --file "$ENV_FILE"
+        
+        if [ $? -ne 0 ]; then
+            echo -e "${red}[ERROR]${nc} Failed to create environment."
+            exit 1
+        fi
+    fi
+
+    # 4. Ativação Final
     echo -ne "${blu}[INFO]${nc} Activating environment... "
     conda activate "$ENV_NAME"
     
@@ -132,8 +161,7 @@ manage_environment(){
         echo -e "${green}Active${nc}"
     else 
         echo -e "${red}Failed${nc}"
-        echo -e "${ylo}Tip: If the environment doesn't exist yet, Snakemake will handle it.${nc}"
-        # We don't exit here because Snakemake might create it later
+        exit 1
     fi
 }
 
