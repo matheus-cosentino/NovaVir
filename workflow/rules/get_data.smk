@@ -19,8 +19,8 @@
 # --- HELPERS --- #
 ###################
 
-PAIRED_SRA_LIST = [s for s, m in SAMPLE_META.items() if m['mode'] == 'SRA' and len(m['files']) == 2]
-SINGLE_SRA_LIST = [s for s, m in SAMPLE_META.items() if m['mode'] == 'SRA' and len(m['files']) == 1]
+PAIRED_SRA = [s for s, m in SAMPLE_META.items() if m['mode'] == 'SRA' and len(m['files']) == 2]
+SINGLE_SRA = [s for s, m in SAMPLE_META.items() if m['mode'] == 'SRA' and len(m['files']) == 1]
 
 ##############################################
 # --- 1. Download SRA Data of Libraries --- #
