@@ -59,7 +59,8 @@ run_with_spinner() {
 # --- Help --- #
 help(){
  echo -e "
-  ${green}DiscoVir${nc}: Viral Metagenomics & 'Dusk Matter' Discovery
+ ${green}
+ DiscoVir${nc}: Viral Metagenomics & 'Dusk Matter' Discovery
 
  ${green}Author${nc}: MSc. Matheus Cosentino 
  
