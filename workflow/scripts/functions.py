@@ -95,7 +95,7 @@ def get_final_outputs():
         
         # Append the specific file path
         final_outputs.append(f"{OUT_DIR}/{sample}/kraken2_reads/{sample}_{label}_reads_biom.txt")
-        
+
   # 5. Kraken2 Contigs
   if MODULES["kraken2"]:
         assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
@@ -469,7 +469,7 @@ def get_spades_params(wildcards, input):
         cmd += f"-1 {input.r1} -2 {input.r2} "
     
     # 2. "extra/unpaired", adds the -s
-    if input.unpaired:
+    if input.extra:
         cmd += f"-s {input.unpaired}"
         
     return cmd
@@ -483,7 +483,7 @@ def get_megahit_params(wildcards, input):
         cmd += f"-1 {input.r1} -2 {input.r2} "
     
     # 2. "extra/unpaired", adds the -s
-    if input.unpaired:
+    if input.extra:
         cmd += f"-r {input.unpaired}"
         
     return cmd
