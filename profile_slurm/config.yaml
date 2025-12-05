@@ -38,8 +38,8 @@ show-failed-logs: True
 ######################################
 
 default-resources:
-  slurm_account: transvihmi
-  slurm_partition: short
+#  slurm_account: transvihmi
+#  slurm_partition: short
   tmpdir: /scratch
   threads: 2
   mem_mb: 8000
@@ -53,20 +53,20 @@ set-resources:
   spades:
     mem_mb: 60000
     threads: 12
-    slurm_partition: normal
+  #  slurm_partition: normal
   megahit:
     mem_mb: 60000
     threads: 12
-    slurm_partition: normal
+  #  slurm_partition: normal
   flye:
     mem_mb: 60000
     threads: 12
-    slurm_partition: normal
+  #  slurm_partition: normal
   diamond_blastx_contigs:
     mem_mb: 60000
     threads: 12
-    slurm_partition: normal
+  #  slurm_partition: normal
   diamond_blastx_reads:
     mem_mb: 60000
     threads: 12
-    slurm_partition: normal
+  #  slurm_partition: normal
