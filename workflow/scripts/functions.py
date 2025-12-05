@@ -469,7 +469,7 @@ def get_spades_params(wildcards, input):
         cmd += f"-1 {input.r1} -2 {input.r2} "
     
     # 2. "extra/unpaired", adds the -s
-    if input.extra:
+    if input.unpaired:
         cmd += f"-s {input.unpaired}"
         
     return cmd
@@ -483,7 +483,7 @@ def get_megahit_params(wildcards, input):
         cmd += f"-1 {input.r1} -2 {input.r2} "
     
     # 2. "extra/unpaired", adds the -s
-    if input.extra:
+    if input.unpaired:
         cmd += f"-r {input.unpaired}"
         
     return cmd
