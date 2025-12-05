@@ -90,7 +90,7 @@ rule flye:
     input:
         reads = get_ONP_input
     output:
-        contigs = "{out_dir}/{sample}/flye_ONP/assembly.fasta"
+        contigs = "{out_dir}/{sample}/flye/assembly.fasta"
     log:
         "{out_dir}/{sample}/log/flye_assembly.log"
     params:
@@ -124,7 +124,7 @@ rule raven:
     input:
         reads = get_ONP_input
     output:
-        contigs = "{out_dir}/{sample}/raven_ONP/assembly.fasta"
+        contigs = "{out_dir}/{sample}/raven/assembly.fasta"
     log:
         "{out_dir}/{sample}/log/raven_assembly.log"
     conda:
@@ -143,7 +143,7 @@ rule raven:
 rule medaka_polish:
     input:
         reads = get_ONP_input,
-        draft = "{out_dir}/{sample}/{assembler}_ONP/assembly.fasta"
+        draft = "{out_dir}/{sample}/{assembler}/assembly.fasta"
     output:
         consensus = "{out_dir}/{sample}/medaka_{assembler}/consensus.fasta"
     params:
