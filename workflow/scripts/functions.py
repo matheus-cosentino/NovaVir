@@ -398,14 +398,16 @@ def get_contigs_path(wildcards):
 def get_denovo_r1(wildcards):
     """Get R1 Only for paired-end(Paired/SRA)."""
     meta = SAMPLE_META.get(wildcards.sample)
-    if meta and meta['mode'] in ['PAIRED', 'SRA']:
+    # FIX: Check if len(files) > 1 to ensure it is actually paired
+    if meta and meta['mode'] in ['PAIRED', 'SRA'] and len(meta['files']) > 1:
         return os.path.join(OUT_DIR, wildcards.sample, "trimmed", f"{wildcards.sample}_1.fastq.gz")
     return []
 
 def get_denovo_r2(wildcards):
     """Get R2 Only for paired-end(Paired/SRA)."""
     meta = SAMPLE_META.get(wildcards.sample)
-    if meta and meta['mode'] in ['PAIRED', 'SRA']:
+    # FIX: Check if len(files) > 1 to ensure it is actually paired
+    if meta and meta['mode'] in ['PAIRED', 'SRA'] and len(meta['files']) > 1:
         return os.path.join(OUT_DIR, wildcards.sample, "trimmed", f"{wildcards.sample}_2.fastq.gz")   
     return []
 
@@ -413,16 +415,20 @@ def get_denovo_unpaired(wildcards):
     """
     Get files for the flag -s (single/unpaired).
     - PAIRED: Return 'orphans' paired reads.
-    - UNPAIRED: Return unpaired reads.
+    - UNPAIRED or SRA-SINGLE: Return 'unp' main reads.
     """
     meta = SAMPLE_META.get(wildcards.sample)
     
-    # Orphans
-    if meta and meta['mode'] in ['PAIRED', 'SRA']:
+    # 1. True Paired (SRA or Local) -> Return Orphans
+    if meta and meta['mode'] in ['PAIRED', 'SRA'] and len(meta['files']) > 1:
         return os.path.join(OUT_DIR, wildcards.sample, "trimmed", f"{wildcards.sample}_orphans.fastq.gz")
     
-    # Unpaired
-    if meta and meta['mode'] == 'UNPAIRED':
+    # 2. True Single (SRA or Local) -> Return Unpaired Main Reads
+    # We check if mode is UNPAIRED OR if mode is SRA with only 1 file
+    is_sra_single = (meta['mode'] == 'SRA' and len(meta['files']) == 1)
+    
+    if meta and (meta['mode'] == 'UNPAIRED' or is_sra_single):
+        # This forces Snakemake to use fastp_unpaired because it needs the '_unp' file
         return os.path.join(OUT_DIR, wildcards.sample, "trimmed", f"{wildcards.sample}_unp.fastq.gz")
         
     return []
@@ -435,12 +441,12 @@ def get_flye_input(wildcards):
     """
     meta = SAMPLE_META.get(wildcards.sample)
     
-    # Only run Flye if the mode is specifically UNPAIRED (Long Reads)
-    if meta and meta['mode'] == 'UNPAIRED':
-        # Assumes the single-end file was processed by fastp and saved here
-        return os.path.join(OUT_DIR, wildcards.sample, "trimmed", f"{wildcards.sample}_orphans.fastq.gz")
+    is_sra_single = (meta['mode'] == 'SRA' and len(meta['files']) == 1)
+
+    if meta and (meta['mode'] == 'UNPAIRED' or is_sra_single):
+        # For single end, we use the fastp 'unp' output
+        return os.path.join(OUT_DIR, wildcards.sample, "trimmed", f"{wildcards.sample}_unp.fastq.gz")
     
-    # If the sample is PAIRED, Flye cannot use it. Return empty.
     return []
 
 #####################################################
