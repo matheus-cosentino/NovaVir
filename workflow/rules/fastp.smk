@@ -76,7 +76,7 @@ rule fastp_unpaired:
     shell:
         """
         fastp \
-            --in1 {input.reads} --out1 {output.reads} \
+            --in1 {input.reads} --out1 {output.r1} \
             --html {output.html} \
             --json {output.json} \
             --thread {threads} \
