@@ -110,7 +110,7 @@ rule kraken2_reads_unpaired:
       --report {output.report} \
       --output {output.out} \
       --threads {resources.threads} \
-      {input.r1} {input.r2} {input.extra} \
+      {input.r1} \
       > {log} 2>&1
       """
 
