@@ -31,7 +31,7 @@ modules:
   kraken2: true #Perform taxonomic assignment for Kraken2 (default: false)
   diamond: false #Perform taxonomic assignment for Diamond against nr5 for Reads(default: false)
   duskmatter: false #Perform palm annot identification (default: false)
-  reads_kraken2: false #Perform reads taxonomic identification (default: false)
+  reads_kraken2: true #Perform reads taxonomic identification (default: false)
   reads_diamond: false #Perform reads taxonomic identification (default: false)
 
 
