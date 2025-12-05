@@ -83,11 +83,19 @@ def get_final_outputs():
                     sample=SAMPLE))
 
   if MODULES["reads_kraken2"]:
-    final_outputs.extend(expand(
-                    "{out_dir}/{sample}/kraken2_reads/{sample}_reads_biom.txt",
-                    out_dir=OUT_DIR,
-                    sample=SAMPLE))
-  
+    # Iterate through samples to determine if they are paired or unpaired
+    for sample in SAMPLE:
+        meta = SAMPLE_META.get(sample)
+        
+        # Check if Paired (SRA with 2 files OR Local Paired)
+        is_paired = (meta['mode'] == 'PAIRED') or (meta['mode'] == 'SRA' and len(meta['files']) == 2)
+        
+        # Define the label used in kraken2.smk
+        label = "paired" if is_paired else "unpaired"
+        
+        # Append the specific file path
+        final_outputs.append(f"{OUT_DIR}/{sample}/kraken2_reads/{sample}_{label}_reads_biom.txt")
+        
   # 5. Kraken2 Contigs
   if MODULES["kraken2"]:
         assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
