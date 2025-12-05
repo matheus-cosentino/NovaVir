@@ -71,6 +71,7 @@ resources:
 
 
 ### Parameters for each tool used within the dataset ###
+
 # QC
 fastp:
   length_required: 15
@@ -123,67 +124,3 @@ medaka_model: "r941_min_sup_g507"
 # - r941_prom_sup_g507
 # - r941_prom_hac_g507
 # - r941_prom_fast_g507
-# Outros R9
-# - r941_e81_sup_g514
-# - r941_e81_hac_g514
-# - r941_e81_fast_g514
-# - r941_sup_plant_g610
-
-# === R10.4.1 (Padrão Novo - Kit V14) ===
-
-# --- Velocidade 400bps (Padrão atual) ---
-# Super Accuracy (SUP) - Versões Recentes (v4+)
-# - r1041_e82_400bps_sup_v5.2.0
-# - r1041_e82_400bps_sup_v5.0.0
-# - r1041_e82_400bps_sup_v4.3.0  (RECOMENDADO para R10 Recente)
-# - r1041_e82_400bps_sup_v4.2.0
-# - r1041_e82_400bps_sup_v4.1.0
-# - r1041_e82_400bps_sup_v4.0.0
-# - r1041_e82_400bps_sup_g615
-
-# High Accuracy (HAC) - Versões Recentes
-# - r1041_e82_400bps_hac_v5.2.0
-# - r1041_e82_400bps_hac_v5.0.0
-# - r1041_e82_400bps_hac_v4.3.0
-# - r1041_e82_400bps_hac_v4.2.0
-# - r1041_e82_400bps_hac_v4.1.0
-# - r1041_e82_400bps_hac_v4.0.0
-# - r1041_e82_400bps_hac_g632
-# - r1041_e82_400bps_hac_g615
-
-# Fast & Especializados
-# - r1041_e82_400bps_fast_g632
-# - r1041_e82_400bps_fast_g615
-# - r1041_e82_400bps_bacterial_methylation
-
-# Modelos Experimentais / Específicos (LSTM / Dwells)
-# - r1041_e82_400bps_sup_v5.2.0_rl_lstm384_dwells
-# - r1041_e82_400bps_sup_v5.2.0_rl_lstm384_no_dwells
-# - r1041_e82_400bps_sup_v5.0.0_rl_lstm384_dwells
-# - r1041_e82_400bps_sup_v5.0.0_rl_lstm384_no_dwells
-# - r1041_e82_400bps_hac_v5.2.0_rl_lstm384_dwells
-# - r1041_e82_400bps_hac_v5.2.0_rl_lstm384_no_dwells
-# - r1041_e82_400bps_hac_v5.0.0_rl_lstm384_dwells
-# - r1041_e82_400bps_hac_v5.0.0_rl_lstm384_no_dwells
-
-# --- Velocidade 260bps (Modo Lento) ---
-# SUP
-# - r1041_e82_260bps_sup_v4.1.0
-# - r1041_e82_260bps_sup_v4.0.0
-# - r1041_e82_260bps_sup_g632
-# HAC
-# - r1041_e82_260bps_hac_v4.1.0
-# - r1041_e82_260bps_hac_v4.0.0
-# - r1041_e82_260bps_hac_g632
-# Outros
-# - r1041_e82_260bps_fast_g632
-# - r1041_e82_260bps_joint_apk_ulk_v5.0.0
-
-# === MODELOS ANTIGOS (R10.3 / R10.4 e81) ===
-# - r104_e81_sup_g610
-# - r104_e81_sup_g5015
-# - r104_e81_hac_g5015
-# - r104_e81_fast_g5015
-# - r103_sup_g507
-# - r103_hac_g507
-# - r103_fast_g507

@@ -420,8 +420,7 @@ snakemake --profile $profile \
     --jobs $jobs \
     --use-conda \
     --config $config_override \
-    --keep-going \
-    --rerun-incomplete
+    --keep-going 
 
 ###############################################################################
 ### DEACTIVATE WORKFLOW-CORE ###
