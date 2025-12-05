@@ -43,7 +43,7 @@ default-resources:
   tmpdir: /scratch
   threads: 2
   mem_mb: 8000
-  constraint: infiniband
+  #constraint: infiniband
 
 
 #######################################
