@@ -39,8 +39,8 @@ modules:
 tool:
   denovo: #'spades' # Select your favorite de novo assembly (default: 'spades')
   # options: 
-  ##- 'spades'.    # more resourcers needed, but algorythis to better deal with RNA seq data (default)
-  - 'megahit'    # faster, more error proner
+  ##'spades'.    # more resourcers needed, but algorythis to better deal with RNA seq data (default)
+  'megahit'    # faster, more error proner
   ##'flye'       #indicated for nanopore sequencing long reads
 
 ### Envs paths to be installed
