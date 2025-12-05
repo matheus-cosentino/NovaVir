@@ -460,33 +460,40 @@ def get_flye_input(wildcards):
 #####################################################
 # --- 9. Helper Functions of Get De novo params --- #
 ####################################################
+#####################################################
+# --- 9. Helper Functions of Get De novo params --- #
+####################################################
 def get_spades_params(wildcards, input):
-    """Build args dynamicaly."""
+    """Build args dynamically."""
     cmd = ""
     
-    # 1. R1 & R2, adds -1 e -2
-    if input.r1 and input.r2:
+    # 1. R1 & R2 (For Paired End)
+    # Check if attributes exist and are not empty
+    if hasattr(input, 'r1') and hasattr(input, 'r2') and input.r1 and input.r2:
         cmd += f"-1 {input.r1} -2 {input.r2} "
     
-    # 2. "extra/unpaired", adds the -s
-    if input.extra:
-        cmd += f"-s {input.unpaired}"
+    # 2. Extra/Unpaired (For Single End or Orphans)
+    # FIX: Use 'input.extra' because that is the name defined in the rule
+    if hasattr(input, 'extra') and input.extra:
+        cmd += f"-s {input.extra}"
         
     return cmd
 
 def get_megahit_params(wildcards, input):
-    """Build args dynamicaly."""
+    """Build args dynamically."""
     cmd = ""
     
-    # 1. R1 & R2, adds -1 e -2
-    if input.r1 and input.r2:
+    # 1. R1 & R2
+    if hasattr(input, 'r1') and hasattr(input, 'r2') and input.r1 and input.r2:
         cmd += f"-1 {input.r1} -2 {input.r2} "
     
-    # 2. "extra/unpaired", adds the -s
-    if input.extra:
-        cmd += f"-r {input.unpaired}"
+    # 2. Extra/Unpaired
+    # FIX: Use 'input.extra' here as well
+    if hasattr(input, 'extra') and input.extra:
+        cmd += f"-r {input.extra}"
         
     return cmd
+
 
 ################################
 # --- 10. Check SRA Layout --- #
