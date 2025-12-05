@@ -11,3 +11,4 @@ dependencies:
   - python=3.13
   - pandas=2.3.2
   - biopython=1.86
+  - conda>=24.7.1
