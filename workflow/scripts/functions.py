@@ -342,7 +342,7 @@ def identify_data_type(sample_list, data_dir):
 def get_input_r1(wildcards):
     """Returns R1 local or future"""
     meta = SAMPLE_META[wildcards.sample]
-    if meta['mode'] in ['PAIRED', 'UNPAIRED', 'SRA']:
+    if meta['mode'] in ['PAIRED', 'SRA']:
         return meta['files'][0]
     return []
 
@@ -351,6 +351,13 @@ def get_input_r2(wildcards):
     meta = SAMPLE_META[wildcards.sample]
     if meta['mode'] in ['PAIRED', 'SRA']:
         return meta['files'][1]
+    return []
+
+def get_input_unp(wildcards):
+    """Returns R1 local or future for unpaired data"""
+    meta = SAMPLE_META[wildcards.sample]
+    if meta['mode'] in ['UNPAIRED', 'SRA']:
+        return meta['files'][0]
     return []
 
 ########################################################################

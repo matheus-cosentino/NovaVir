@@ -16,8 +16,6 @@
 ###################################################################################
 
 
-#priority of rules
-ruleorder: fastp_paired > fastp_unpaired
 
 ############################################
 # --- 1. Filter fastq.gz Paired Files --- #
@@ -63,7 +61,7 @@ rule fastp_paired:
 
 rule fastp_unpaired:
     input:
-        reads = get_input_r1,
+        reads = get_input_unp,
     output:
         r1= os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_unp.fastq.gz"),
         html= os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}.html"),      

@@ -32,6 +32,7 @@ from scripts.functions import filter_nohits
 from scripts.functions import identify_data_type
 from scripts.functions import get_input_r1
 from scripts.functions import get_input_r2
+from scripts.functions import get_input_unp
 from scripts.functions import get_contigs_path
 from scripts.functions import get_denovo_r1
 from scripts.functions import get_denovo_r2
@@ -68,6 +69,7 @@ functions.filter_nohits = filter_nohits
 functions.identify_data_type = identify_data_type
 functions.get_input_r1 = get_input_r1
 functions.get_input_r2 = get_input_r2
+functions.get_input_unp = get_input_unp
 functions.get_contigs_path = get_contigs_path
 functions.get_denovo_r1 = get_denovo_r1
 functions.get_denovo_r2 = get_denovo_r2
