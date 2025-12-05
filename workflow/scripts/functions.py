@@ -75,12 +75,14 @@ def get_final_outputs():
                     out_dir=OUT_DIR, sample=sample, tool=assembler_list))
 
   # 4. Reads (CORRIGIDO)
-  if MODULES["reads"]:
+  if MODULES["reads_diamond"]:
     # CORREÇÃO: sample=SAMPLE
     final_outputs.extend(expand(
                     "{out_dir}/{sample}/diamond_reads/{sample}_reads_hits_with_lineage.tsv",
                     out_dir=OUT_DIR,
                     sample=SAMPLE))
+
+  if MODULES["reads_kraken2"]:
     final_outputs.extend(expand(
                     "{out_dir}/{sample}/kraken2_reads/{sample}_reads_biom.txt",
                     out_dir=OUT_DIR,
@@ -286,7 +288,9 @@ def identify_data_type(sample_list, data_dir):
         p_2  = os.path.join(data_dir, f"{sample}_2.fastq.gz")
         
         # C. Unpaired FastQ
-        p_unpaired = os.path.join(data_dir, f"{sample}.fastq.gz")
+        p_unpR1 = os.path.join(data_dir, f"{sample}_R1.fastq.gz")
+        p_unp1  = os.path.join(data_dir, f"{sample}_1.fastq.gz")
+        p_unp  = os.path.join(data_dir, f"{sample}.fastq.gz")
 
         # 1. Contig?
         if os.path.exists(path_fasta):
