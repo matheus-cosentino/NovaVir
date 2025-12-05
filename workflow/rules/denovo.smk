@@ -70,7 +70,7 @@ rule megahit:
         """
         rm -rf {params.outdir}
 
-        megahit.py \
+        megahit \
           {params.input_args} \
           -o {params.outdir} \
           > {log} 2>&1
