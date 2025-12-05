@@ -308,11 +308,11 @@ def identify_data_type(sample_list, data_dir):
             
         # 3. Unpaired?
         elif os.path.exists(p_unpR1):
-            sample_meta[sample] = {'mode': 'UNPAIRED', 'files': [p_unpaired]}
+            sample_meta[sample] = {'mode': 'UNPAIRED', 'files': [p_unpR1]}
         elif os.path.exists(p_unp1):
-            sample_meta[sample] = {'mode': 'UNPAIRED', 'files': [p_unpaired]}
+            sample_meta[sample] = {'mode': 'UNPAIRED', 'files': [p_unp1]}
         elif os.path.exists(p_unp):
-            sample_meta[sample] = {'mode': 'UNPAIRED', 'files': [p_unpaired]}
+            sample_meta[sample] = {'mode': 'UNPAIRED', 'files': [p_unp]}
             
         # 4. None? Download (SRA)
         else:
