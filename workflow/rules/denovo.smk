@@ -105,8 +105,7 @@ rule flye:
 
         # Run commands 
 
-        flye \
-         --{params.extra} {input.reads} \
+        flye --{params.extra} {input.reads} \
          --out-dir {params.outdir} \
          --threads {resources.threads} \
          --meta \
