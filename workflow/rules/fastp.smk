@@ -31,8 +31,8 @@ rule fastp_paired:
         r1= os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_1.fastq.gz"),
         r2= os.path.join(OUT_DIR, "{sample}", "trimmed" , "{sample}_2.fastq.gz"),
         orphans=os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_orphans.fastq.gz"),
-        html = os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}.html"),
-        json= os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}.json")
+        html = os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_paired.html"),
+        json= os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_paired.json")
     log:
         #f"{config['output_dir']}/{{sample}}/logs/{{sample}}_fastp.log"
         #"{out_dir}/{sample}/log/{sample}_fastp_paired.log"
@@ -64,8 +64,8 @@ rule fastp_unpaired:
         reads = get_input_unp,
     output:
         r1= os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_unp.fastq.gz"),
-        html= os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}.html"),      
-        json= os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}.json")
+        html= os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_unp.html"),      
+        json= os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_unp.json")
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_fastp_unpaired.log")
     params:
