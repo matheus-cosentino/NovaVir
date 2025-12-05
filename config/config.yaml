@@ -40,8 +40,11 @@ tool:
   denovo: #'spades' # Select your favorite de novo assembly (default: 'spades')
   # options: 
    # - 'spades'    # more resourcers needed, but algorythis to better deal with RNA seq data of Illumina short reads(default)
-    - 'megahit'    # indicated for nanopore sequencing long reads and llumina short reads. Faster, but more error proner
+   # - 'megahit'    # indicated for llumina short reads. Faster, but more error proner
    # - 'flye'       #indicated for nanopore sequencing long reads (>1000 bp per reads)
+    - 'raven'      #indicated for nanopore sequencing. Faster, but more error proner
+   # - 'medaka_flye' # correction to flye aassembly
+    - 'medaka_raven'  #correction to raven aassembly
 
 ### Envs paths to be installed
 envs:
@@ -104,3 +107,81 @@ palm_annot:
   seqtype: "aa" 
   minscore: 50
   minpssmscore: 10
+
+# Medaka correction
+# --> DEFINE O MODELO ATIVO AQUI:
+medaka_model: "r941_min_sup_g507" 
+
+# === R9.4.1 (Padrão Antigo / "Legacy") ===
+# MinION / GridION
+# - r941_min_sup_g507   (RECOMENDADO para R9)
+# - r941_min_hac_g507
+# - r941_min_fast_g507
+# PromethION
+# - r941_prom_sup_g507
+# - r941_prom_hac_g507
+# - r941_prom_fast_g507
+# Outros R9
+# - r941_e81_sup_g514
+# - r941_e81_hac_g514
+# - r941_e81_fast_g514
+# - r941_sup_plant_g610
+
+# === R10.4.1 (Padrão Novo - Kit V14) ===
+
+# --- Velocidade 400bps (Padrão atual) ---
+# Super Accuracy (SUP) - Versões Recentes (v4+)
+# - r1041_e82_400bps_sup_v5.2.0
+# - r1041_e82_400bps_sup_v5.0.0
+# - r1041_e82_400bps_sup_v4.3.0  (RECOMENDADO para R10 Recente)
+# - r1041_e82_400bps_sup_v4.2.0
+# - r1041_e82_400bps_sup_v4.1.0
+# - r1041_e82_400bps_sup_v4.0.0
+# - r1041_e82_400bps_sup_g615
+
+# High Accuracy (HAC) - Versões Recentes
+# - r1041_e82_400bps_hac_v5.2.0
+# - r1041_e82_400bps_hac_v5.0.0
+# - r1041_e82_400bps_hac_v4.3.0
+# - r1041_e82_400bps_hac_v4.2.0
+# - r1041_e82_400bps_hac_v4.1.0
+# - r1041_e82_400bps_hac_v4.0.0
+# - r1041_e82_400bps_hac_g632
+# - r1041_e82_400bps_hac_g615
+
+# Fast & Especializados
+# - r1041_e82_400bps_fast_g632
+# - r1041_e82_400bps_fast_g615
+# - r1041_e82_400bps_bacterial_methylation
+
+# Modelos Experimentais / Específicos (LSTM / Dwells)
+# - r1041_e82_400bps_sup_v5.2.0_rl_lstm384_dwells
+# - r1041_e82_400bps_sup_v5.2.0_rl_lstm384_no_dwells
+# - r1041_e82_400bps_sup_v5.0.0_rl_lstm384_dwells
+# - r1041_e82_400bps_sup_v5.0.0_rl_lstm384_no_dwells
+# - r1041_e82_400bps_hac_v5.2.0_rl_lstm384_dwells
+# - r1041_e82_400bps_hac_v5.2.0_rl_lstm384_no_dwells
+# - r1041_e82_400bps_hac_v5.0.0_rl_lstm384_dwells
+# - r1041_e82_400bps_hac_v5.0.0_rl_lstm384_no_dwells
+
+# --- Velocidade 260bps (Modo Lento) ---
+# SUP
+# - r1041_e82_260bps_sup_v4.1.0
+# - r1041_e82_260bps_sup_v4.0.0
+# - r1041_e82_260bps_sup_g632
+# HAC
+# - r1041_e82_260bps_hac_v4.1.0
+# - r1041_e82_260bps_hac_v4.0.0
+# - r1041_e82_260bps_hac_g632
+# Outros
+# - r1041_e82_260bps_fast_g632
+# - r1041_e82_260bps_joint_apk_ulk_v5.0.0
+
+# === MODELOS ANTIGOS (R10.3 / R10.4 e81) ===
+# - r104_e81_sup_g610
+# - r104_e81_sup_g5015
+# - r104_e81_hac_g5015
+# - r104_e81_fast_g5015
+# - r103_sup_g507
+# - r103_hac_g507
+# - r103_fast_g507

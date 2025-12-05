@@ -88,9 +88,9 @@ rule flye:
     Do not use Illumina reads here.
     """
     input:
-        reads = get_flye_input
+        reads = get_ONP_input
     output:
-        contigs = "{out_dir}/{sample}/flye/assembly.fasta"
+        contigs = "{out_dir}/{sample}/flye_ONP/assembly.fasta"
     log:
         "{out_dir}/{sample}/log/flye_assembly.log"
     params:
@@ -110,4 +110,54 @@ rule flye:
          --threads {resources.threads} \
          --meta \
          > {log} 2>&1
+        """
+
+#############################
+# --- 4. Raven Assembly --- #
+############################
+
+rule raven:  
+    """
+    WARNING: Flye is designed for Long Reads (Nanopore/PacBio).
+    Do not use Illumina reads here.
+    """
+    input:
+        reads = get_ONP_input
+    output:
+        contigs = "{out_dir}/{sample}/raven_ONP/assembly.fasta"
+    log:
+        "{out_dir}/{sample}/log/raven_assembly.log"
+    conda:
+        DENOVO
+    shell:
+        """
+        # Run commands 
+        raven --threads {resources.threads} {input.reads} > {output.contigs} 2> {log}
+        """
+
+###############################
+# --- 5. Medaka Correcton --- #
+###############################
+
+
+rule medaka_polish:
+    input:
+        reads = get_ONP_input,
+        draft = "{out_dir}/{sample}/{assembler}_ONP/assembly.fasta"
+    output:
+        consensus = "{out_dir}/{sample}/medaka_{assembler}/consensus.fasta"
+    params:
+        # Defina o modelo aqui ou no config.yaml
+        model = config["medaka_model"],
+        outdir = "{out_dir}/{sample}/medaka_{assembler}"
+    log:
+        "{out_dir}/{sample}/log/medaka_{assembler}.log"
+    shell:
+        """
+        medaka_consensus -i {input.reads} \
+                         -d {input.draft} \
+                         -o {params.outdir} \
+                         -t {resources.threads} \
+                         -m {params.model}
+        
         """

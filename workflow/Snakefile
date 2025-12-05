@@ -37,7 +37,7 @@ from scripts.functions import get_contigs_path
 from scripts.functions import get_denovo_r1
 from scripts.functions import get_denovo_r2
 from scripts.functions import get_denovo_unpaired
-from scripts.functions import get_flye_input
+from scripts.functions import get_ONP_input
 from scripts.functions import get_spades_params
 from scripts.functions import get_megahit_params
 from scripts.functions import get_sra_layout
@@ -74,7 +74,7 @@ functions.get_contigs_path = get_contigs_path
 functions.get_denovo_r1 = get_denovo_r1
 functions.get_denovo_r2 = get_denovo_r2
 functions.get_denovo_unpaired = get_denovo_unpaired
-functions.get_flye_input = get_flye_input
+functions.get_ONP_input = get_ONP_input
 functions.get_spades_params = get_spades_params
 functions.get_megahit_params = get_megahit_params
 functions.get_sra_layout = get_sra_layout

@@ -31,7 +31,10 @@ PRE_ASSEMBLED_LABEL = "pre_assembled"
 TOOL_OUTPUT_MAP = {
     "spades": "contigs.fasta", 
     "megahit": "final.contigs.fa", 
-    "flye": "assembly.fasta"
+    "flye": "assembly.fasta",
+    "raven": "assembly.fasta",       # Adicionar Raven (se for usar sem medaka)
+    "medaka_flye": "consensus.fasta", # NOVO: Medaka vindo do Flye
+    "medaka_raven": "consensus.fasta" # NOVO: Medaka vindo do Raven
 }
 
 # Global Lists to hold sorted SRA samples (Used by get_data.smk constraints)
@@ -441,7 +444,7 @@ def get_denovo_unpaired(wildcards):
         
     return []
 
-def get_flye_input(wildcards):
+def get_ONP_input(wildcards):
     """
     Specific input function for Flye.
     1. Checks if the sample is UNPAIRED (Nanopore/PacBio).
@@ -457,9 +460,6 @@ def get_flye_input(wildcards):
     
     return []
 
-#####################################################
-# --- 9. Helper Functions of Get De novo params --- #
-####################################################
 #####################################################
 # --- 9. Helper Functions of Get De novo params --- #
 ####################################################
