@@ -86,10 +86,12 @@ resources:
 
 # QC
 fastp:
-  length_required: 15
+  length_required: 
+    #- 15 #illlumina adapters expected
+    - 100
   qualified_quality_phred: 
-    - 30 #illumina paired end
-    #- 10 #long read
+    #- 30 #illumina paired end
+    - 10 #long read
   
 # De Novo Assembly for Illumina reads
 spades:
