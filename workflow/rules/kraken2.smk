@@ -48,14 +48,19 @@ rule kraken_biom_contig:
       biom= "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_biom.txt",
     log:
       "{out_dir}/{sample}/log/kraken2_contigs_{tool}_{sample}_biom.log"
+    params:
+      maximun=config["kraken_biom"]["max"],
+      minimum=config["kraken_biom"]["min"],
+      out_format=config["kraken_biom"]["format"]
     conda:
         KRAKEN2_BIOM
     shell:
         """
         kraken-biom \
         {input.report}
-        --min F \
-        --fmt tsv \
+        --max {params.maximun} \
+        --min {params.minimum} \
+        --fmt {params.out_format} \
         -o {output.biom} \
         > {log} 2>&1
         """
@@ -119,6 +124,10 @@ rule kraken_biom_reads:
       report= "{out_dir}/{sample}/kraken2_reads/{sample}_{paired}_reads_report.txt"
     output:
       biom= "{out_dir}/{sample}/kraken2_reads/{sample}_{paired}_reads_biom.txt",
+    params:
+      maximun=config["kraken_biom"]["max"],
+      minimum=config["kraken_biom"]["min"],
+      out_format=config["kraken_biom"]["format"]
     log:
         "{out_dir}/{sample}/log/kraken2_biom_{paired}_reads_{sample}.log"
     conda:
@@ -127,8 +136,9 @@ rule kraken_biom_reads:
         """
         kraken-biom \
         {input.report}
-        --min F \
-        --fmt tsv \
+        --max {params.maximun} \
+        --min {params.minimum} \
+        --fmt {params.out_format} \
         -o {output.biom} \
         > {log} 2>&1
         """

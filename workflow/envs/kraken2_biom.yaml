@@ -1,4 +1,4 @@
-name: kraken2
+name: kraken_biom
 channels:
   - bioconda
   - conda-forge

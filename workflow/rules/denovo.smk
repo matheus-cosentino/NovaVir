@@ -34,6 +34,8 @@ rule spades:
         extra = config["spades"]["algorithm"]
     conda:
         DENOVO
+    shadow:
+        "minimal"
     shell:
         """
         
@@ -68,13 +70,12 @@ rule megahit:
         DENOVO
     shell:
         """
-        rm -rf {params.outdir}
-
         megahit \
           {params.input_args} \
           -o {params.outdir} \
+          -t {resources.threads} \
           > {log} 2>&1
-      
+             
         """
 
 

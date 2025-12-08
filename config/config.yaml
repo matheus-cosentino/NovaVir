@@ -105,6 +105,30 @@ diamond:
 kraken2:
   confidence: 0.0 #   confidence score threshold (default: 0.0); must be in [0,1]
 
+kraken_biom:
+  format:
+    - "tsv"
+    #- "hdf5"
+    #- "json"
+  max:
+    - "D"
+    #- "P"
+    #- "C"
+    #- "O"
+    #- "F"
+    #- "G"
+    #- "S"
+    #- "SS"
+  min: 
+    #- "D"
+    #- "P"
+    #- "C"
+    #- "O"
+    - "F"
+    #- "G"
+    #- "S"
+    #- "SS"
+
 #  Dusk Matter Search
 palm_annot: 
   seqtype: "aa" 
