@@ -53,7 +53,7 @@ set-resources:
   spades:
     mem_mb: 60000
     threads: 12
-  #  slurm_partition: normal
+  # slurm_partition: normal
   megahit:
     mem_mb: 60000
     threads: 12
@@ -67,6 +67,18 @@ set-resources:
     threads: 12
   #  slurm_partition: normal
   diamond_blastx_reads:
+    mem_mb: 60000
+    threads: 12
+  #  slurm_partition: normal
+  kraken2_reads_contigs:
+    mem_mb: 60000
+    threads: 12
+  #  slurm_partition: normal
+  kraken2_reads_unpaired:
+    mem_mb: 60000
+    threads: 12
+  #  slurm_partition: normal
+  kraken2_reads_paired:
     mem_mb: 60000
     threads: 12
   #  slurm_partition: normal

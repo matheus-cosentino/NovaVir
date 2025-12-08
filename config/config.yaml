@@ -88,7 +88,7 @@ resources:
 fastp:
   length_required: 
     #- 15 #illlumina adapters expected
-    - 100
+    - 500 #nanopore conservative size for low reads
   qualified_quality_phred: 
     #- 30 #illumina paired end
     - 10 #long read
