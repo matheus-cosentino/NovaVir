@@ -20,7 +20,7 @@ rule kraken2_contigs:
       contigs= get_contigs_path
     output:
       report= "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_report.txt",
-      out="{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_output.txt"
+      #out="{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_output.txt"
     params:
       #db=f"{workflow.basedir}/{config["resources"]["kraken2"]}",
       db=config["resources"]["kraken2"],        
@@ -35,7 +35,6 @@ rule kraken2_contigs:
       --db {params.db} \
       --confidence {params.confidence} \
       --report {output.report} \
-      --output {output.out} \
       --threads {resources.threads} \
       {input.contigs} \
       > {log} 2>&1
@@ -72,7 +71,7 @@ rule kraken2_reads_paired:
      extra = os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_orphans.fastq.gz")
     output:
       report= "{out_dir}/{sample}/kraken2_reads/{sample}_paired_reads_report.txt",
-      out="{out_dir}/{sample}/kraken2_reads/{sample}_paired_reads_output.txt"
+      #out="{out_dir}/{sample}/kraken2_reads/{sample}_paired_reads_output.txt"
     params:
       #db=f"{workflow.basedir}/{config["resources"]["kraken2"]}",
       db=config["resources"]["kraken2"],        
@@ -87,7 +86,6 @@ rule kraken2_reads_paired:
       --db {params.db} \
       --confidence {params.confidence} \
       --report {output.report} \
-      --output {output.out} \
       --threads {resources.threads} \
       {input.r1} {input.r2} {input.extra} \
       > {log} 2>&1
