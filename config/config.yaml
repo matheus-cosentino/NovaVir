@@ -37,14 +37,14 @@ modules:
 
 ### De novo tools to be requested
 tool:
-  denovo: 'spades' # Select your favorite de novo assembly (default: 'spades')
+  denovo: #select your favorite de novo tools
   # options: 
    # - 'spades'    # more resourcers needed, but algorythis to better deal with RNA seq data of Illumina short reads(default)
    # - 'megahit'    # indicated for llumina short reads. Faster, but more error proner
-   # - 'flye'       #indicated for nanopore sequencing long reads (>1000 bp per reads)
-   # - 'raven'      #indicated for nanopore sequencing. Faster, but more error proner
-   # - 'medaka_flye' # correction to flye aassembly
-   # - 'medaka_raven'  #correction to raven aassembly
+    - 'flye'       #indicated for nanopore sequencing long reads (>1000 bp per reads)
+    - 'raven'      #indicated for nanopore sequencing. Faster, but more error proner
+    - 'medaka_flye' # correction to flye aassembly
+    - 'medaka_raven'  #correction to raven aassembly
 
 ### Envs paths to be installed
 envs:
