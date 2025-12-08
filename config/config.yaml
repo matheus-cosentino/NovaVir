@@ -27,8 +27,8 @@ sample_list: "accessions.txt"
 ### Modules of Analysis to be requested
 modules: 
   keep_download: true  #Remove data download from SRA (default: false)
-  assembly: true # Perform de novo assembly for reads (default: false)
-  kraken2: true #Perform taxonomic assignment for Kraken2 (default: false)
+  assembly: false # Perform de novo assembly for reads (default: false)
+  kraken2: false #Perform taxonomic assignment for Kraken2 (default: false)
   diamond: false #Perform taxonomic assignment for Diamond against nr5 for Reads(default: false)
   duskmatter: false #Perform palm annot identification (default: false)
   reads_kraken2: true #Perform reads taxonomic identification (default: false)

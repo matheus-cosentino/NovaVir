@@ -97,8 +97,8 @@ rule kraken2_reads_unpaired:
     input:   
       r1= os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_unp.fastq.gz")
     output:
-      report= "{out_dir}/{sample}/kraken2_reads/{sample}_unpaired_reads_report.txt",
-      out="{out_dir}/{sample}/kraken2_reads/{sample}_unpared_reads_output.txt"
+      report= "{out_dir}/{sample}/kraken2_reads/{sample}_unpaired_reads_report.txt"
+      #out="{out_dir}/{sample}/kraken2_reads/{sample}_unpared_reads_output.txt"
     params:
       #db=f"{workflow.basedir}/{config["resources"]["kraken2"]}",
       db=config["resources"]["kraken2"],        
