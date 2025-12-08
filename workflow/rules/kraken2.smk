@@ -113,7 +113,6 @@ rule kraken2_reads_unpaired:
       --db {params.db} \
       --confidence {params.confidence} \
       --report {output.report} \
-      --output {output.out} \
       --memory-mapping \
       --threads {resources.threads} \
       {input.r1} \
