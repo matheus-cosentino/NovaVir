@@ -43,6 +43,10 @@ from scripts.functions import get_spades_params
 from scripts.functions import get_megahit_params
 from scripts.functions import get_sra_layout
 
+
+from scripts.functions import get_diamond_db_input
+from scripts.functions import get_diamond_db_name
+
 ###########################################################
 # --- 3. Define workflown directory and local infos  --- #
 ##########################################################

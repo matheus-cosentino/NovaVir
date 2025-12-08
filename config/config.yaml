@@ -63,7 +63,7 @@ envs:
 resources:
   diamond: 
    #diamond workflow used for the database
-   - "resources/diamond/database.dmnd" 
+   - "resources/diamond/" 
    #kraken2 folder with all the files
   kraken2: 
    - "resources/kraken2/" 

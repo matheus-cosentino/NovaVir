@@ -183,21 +183,22 @@ setup_resources(){
     RES_DIR="$workdir/resources"
 
     # --- 1. Diamond DB ---
-    # O config.yaml deve apontar para: "resources/diamond/database.dmnd"
+    # Verifica se existe um DB externo definido
     if [[ -n "$diamond_db" ]]; then
-        if [[ -f "$diamond_db" ]]; then
-            echo -e "${blu}[INFO]${nc} Linking external Diamond DB to resources/diamond/..."
+        # Verifica se o arquivo ou prefixo existe (glob simples)
+        if ls ${diamond_db}* 1> /dev/null 2>&1; then
+            echo -e "${blu}[INFO]${nc} Linking external Diamond DB files to resources/diamond/..."
             
-            # Cria a pasta se não existir
             mkdir -p "$RES_DIR/diamond"
             
-            # Remove link ou arquivo antigo para evitar conflito
-            rm -f "$RES_DIR/diamond/database.dmnd"
+            # Limpa links antigos
+            rm -f "$RES_DIR/diamond/"*
             
-            # Cria o link simbólico com um nome padronizado "database.dmnd"
-            ln -sf "$diamond_db" "$RES_DIR/diamond/database.dmnd"
+            # Linka TODOS os arquivos que começam com o prefixo fornecido
+            # Ex: se user passar /path/to/nr, vai linkar nr.00.acc, nr.00.phr, etc.
+            ln -sf ${diamond_db}* "$RES_DIR/diamond/"
         else
-            echo -e "${red}[ERROR]${nc} Diamond DB file not found: $diamond_db"
+            echo -e "${red}[ERROR]${nc} Diamond DB files not found for prefix: $diamond_db"
             exit 1
         fi
     fi

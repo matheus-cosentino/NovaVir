@@ -24,7 +24,7 @@ rule diamond_blastx_contigs:
       hits="{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_report.txt"
     params:
       #db=f"{workflow.basedir}/{config['resources']['diamond']}",
-      db=config["resources"]["diamond"],
+      db=get_diamond_db_name,
       outfmt=config["diamond"]["outfmt"],
       max_target_seqs=config["diamond"]["max_target_seqs"],
       evalue=config["diamond"]["evalue"]

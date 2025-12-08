@@ -516,3 +516,57 @@ def get_sra_layout(accession):
         return "PAIRED"
 
 
+##########################################
+# --- 11. Diamond Database Detection --- #
+##########################################
+
+def get_diamond_db_input(wildcards):
+    """
+    Retorna a lista de arquivos do banco de dados Diamond.
+    Lida tanto com arquivo único (.dmnd) quanto com banco BLAST particionado (nr.*).
+    """
+    # Caminho base definido no config ou resources
+    # Nota: Assumindo que o DiscoVir.sh linkou tudo em resources/diamond/
+    db_dir = "resources/diamond"
+    
+    # Tenta achar um .dmnd clássico
+    dmnd_file = glob.glob(os.path.join(db_dir, "*.dmnd"))
+    if dmnd_file:
+        return dmnd_file
+        
+    # Se não, procura por arquivos de índice do BLAST (ex: .acc, .phr, .psq)
+    # Pegamos tudo que estiver na pasta para garantir que o Snakemake monitore
+    blast_files = glob.glob(os.path.join(db_dir, "*"))
+    
+    if not blast_files:
+        raise ValueError(f"Nenhum banco de dados Diamond encontrado em {db_dir}")
+        
+    return blast_files
+
+def get_diamond_db_name(wildcards):
+    """
+    Retorna o NOME BASE para o comando do Diamond (-d).
+    """
+    db_dir = "resources/diamond"
+    
+    # Caso 1: Arquivo .dmnd único
+    dmnd_files = glob.glob(os.path.join(db_dir, "*.dmnd"))
+    if dmnd_files:
+        return os.path.basename(dmnd_files[0]) # Ex: database.dmnd
+        
+    # Caso 2: Banco BLAST particionado
+    # Procura arquivos comuns do índice para deduzir o prefixo (ex: nr.00.acc -> nr)
+    acc_files = glob.glob(os.path.join(db_dir, "*.acc"))
+    if acc_files:
+        filename = os.path.basename(acc_files[0])
+        # Remove sufixos .número.acc para pegar o prefixo limpo (ex: nr.78.acc -> nr)
+        # Ajuste a regex conforme o padrão exato dos seus arquivos
+        prefix = re.sub(r'\.\d+\.acc$', '', filename) 
+        # Fallback simples se não tiver número
+        if prefix == filename:
+            prefix = os.path.splitext(filename)[0]
+        return prefix
+        
+    # Fallback genérico: pega o nome do primeiro arquivo sem extensão
+    first_file = os.path.basename(glob.glob(os.path.join(db_dir, "*"))[0])
+    return first_file.split('.')[0]
