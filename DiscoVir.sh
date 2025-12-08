@@ -105,6 +105,15 @@ help(){
    --kraken2 <DIR>      External Kraken2 database directory (Must contain hash.k2d, opts.k2d, taxo.k2d)
    --taxdump <DIR>      Directory containing nodes.dmp and names.dmp
    --taxmap <FILE>      Path to prot.accession2taxid.gz
+
+ ${ylo}Module Toggles (Enable/Disable Analysis):${nc}
+   --assembly           Enable De Novo Assembly (Default: False)
+   --kraken2            Enable Kraken2 Taxonomy (Default: False)
+   --diamond            Enable Diamond Taxonomy (Default: False)
+   --duskmatter         Enable Palm Annot / Dusk Matter (Default: False)
+   --remove-download    Do NOT keep downloaded SRA files (Default: Keep)
+   --skip-reads-kraken  Skip Reads Kraken2 ID (Default: Run)
+   --skip-reads-diamond Skip Reads Diamond ID (Default: Run)
  
  ${ylo}Flags:${nc}
    -h, --help           Show this help message
@@ -164,10 +173,6 @@ manage_environment(){
         exit 1
     fi
 }
-
-###################################
-# --- Resource Management --- #
-###################################
 
 ###################################
 # --- Resource Management --- #
@@ -306,6 +311,15 @@ input="data"
 jobs=15
 profile="profile_slurm"
 
+# --- Module Defaults (must match config.yaml structure) ---
+# We use Python-style boolean strings ("True"/"False")
+mod_keep_download="True"
+mod_assembly="False"
+mod_kraken2="False"
+mod_diamond="False"
+mod_duskmatter="False"
+mod_reads_kraken2="True"
+mod_reads_diamond="True"
 
 # --- Argument Parsing --- #
 while [[ $# -gt 0 ]]; do
@@ -315,10 +329,25 @@ while [[ $# -gt 0 ]]; do
         --sra) sra="$2"; shift 2 ;;
         --jobs) jobs="$2"; shift 2 ;;
         --profile) profile="$2"; shift 2 ;;
+        
+        ## Database Overrides
         --diamond_db) diamond_db="$2"; shift 2 ;;
         --kraken2) kraken2="$2"; shift 2 ;;
         --taxdump) taxdump="$2"; shift 2 ;;
         --taxmap) taxmap="$2"; shift 2 ;;
+
+        # --- Module Toggles (Flags) ---
+        --assembly) mod_assembly="True"; shift ;;
+        --kraken2) mod_kraken2="True"; shift ;;
+        --diamond) mod_diamond="True"; shift ;;
+        --duskmatter) mod_duskmatter="True"; shift ;;
+        
+        # --- Negative Flags (Disable defaults) ---
+        --remove-download) mod_keep_download="False"; shift ;;
+        --skip-reads-kraken) mod_reads_kraken2="False"; shift ;;
+        --skip-reads-diamond) mod_reads_diamond="False"; shift ;;
+
+        # --- Others Flafs --- #
         -h|--help) help; exit 0 ;;
         -v|--version) version; exit 0 ;;
         *) echo -e "${red}[ERROR]${nc} Unknown argument: $1"; help; exit 1 ;;
@@ -337,8 +366,10 @@ generate_sample_list
 
 echo -e "${blu}[INFO]${nc} Initializing DiscoVir Workflow..."
 
-# Configuração APENAS para inputs de dados, sem sobrescrever resources
-config_override="data_dir='$input' output_dir='$output' sample_list='$sample_list'"
+# Config APENAS para inputs de dados, sem sobrescrever resources
+modules_config="{'keep_download':${mod_keep_download},'assembly':${mod_assembly},'kraken2':${mod_kraken2},'diamond':${mod_diamond},'duskmatter':${mod_duskmatter},'reads_kraken2':${mod_reads_kraken2},'reads_diamond':${mod_reads_diamond}}"
+config_override="data_dir='$input' output_dir='$output' sample_list='$sample_list' modules=$modules_config"
+
 # --- Workflow Execution Steps ---
 
 echo -e "\n${green}> Snakemake: Unlocking working directory...${nc}"
