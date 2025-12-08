@@ -25,6 +25,7 @@ configfile: "config/config.yaml"
 # --- 2. Import functions to be used --- #
 ##########################################
 import os
+import ast 
 from glob import glob
 from scripts.functions import get_final_outputs
 from scripts.functions import cleanup_downloaded_fastqs
@@ -57,6 +58,14 @@ SAMPLE_META = identify_data_type(SAMPLE, DATA)
 # --- 4. Export functions to be used.  --- #
 ###########################################
 import scripts.functions as functions
+
+if isinstance(config["modules"], str):
+    try:
+        config["modules"] = ast.literal_eval(config["modules"])
+    except (ValueError, SyntaxError):
+        print("[ERROR] Could not parse 'modules' configuration string.")
+        raise
+
 functions.DATA = DATA
 functions.SAMPLE = SAMPLE
 functions.OUT_DIR = OUT_DIR
