@@ -70,7 +70,7 @@ set-resources:
     mem_mb: 60000
     threads: 12
   #  slurm_partition: normal
-  kraken2_reads_contigs:
+  kraken2_contigs:
     mem_mb: 60000
     threads: 12
   #  slurm_partition: normal

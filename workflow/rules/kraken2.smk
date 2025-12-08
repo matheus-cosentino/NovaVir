@@ -36,6 +36,7 @@ rule kraken2_contigs:
       --confidence {params.confidence} \
       --report {output.report} \
       --threads {resources.threads} \
+      --memory-mapping \
       {input.contigs} \
       > {log} 2>&1
       """
@@ -86,6 +87,7 @@ rule kraken2_reads_paired:
       --db {params.db} \
       --confidence {params.confidence} \
       --report {output.report} \
+      --memory-mapping \
       --threads {resources.threads} \
       {input.r1} {input.r2} {input.extra} \
       > {log} 2>&1
@@ -112,6 +114,7 @@ rule kraken2_reads_unpaired:
       --confidence {params.confidence} \
       --report {output.report} \
       --output {output.out} \
+      --memory-mapping \
       --threads {resources.threads} \
       {input.r1} \
       > {log} 2>&1
