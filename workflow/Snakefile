@@ -87,7 +87,7 @@ functions.get_ONP_input = get_ONP_input
 functions.get_spades_params = get_spades_params
 functions.get_megahit_params = get_megahit_params
 functions.get_sra_layout = get_sra_layout
-
+ 
 ##############################################
 # --- 5. Define Conda Environment Paths --- #
 #############################################
