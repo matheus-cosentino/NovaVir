@@ -4,5 +4,4 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
-  - kraken-biom=1.2.0
-  - python=3.10
+  - kraken-biom
