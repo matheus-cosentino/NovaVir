@@ -37,7 +37,7 @@ run_with_spinner() {
     ("$@" > /dev/null 2>&1) &
     pid=$!
     disown $pid 2>/dev/null
-    local sequence="GATCACAGGTCTATCACCCTATTAACCACTCACGGGAGCTCTCCATGCATTTGGTATTTTCGTCTGGGGGGTATGCACGCGATAGCATTGCGAGACGCTGGAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTCCTGCCTCATCCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACTTACTAAAGTGTGTTAATTAATTAATGCTTGTAGGACATAATAATAACAATTGAATGTCTGCACAGCCGCTTTCCACACAGACATCATAACAAAAAATTTCCACCAAACCCCCCCTCCCCCGCTTCTGGCCACAGCACTTAAACACATCTCTGCCAAACCCCAAAAACAAAGAACCCTAACACCAGCCTAACCAGATTTCAAATTTTATCTTTTGGCGGTATGCACTTTTAACAGTCACCCCCCAACTAACACATTATTTTCCCCTCCCACTCCCATACTACTAATCTCATCAATACAACCCCCGCCCATCCTACCCAGCACACACACACCGCTGCTAACCCCATACCCCGAACCAACCAAACCCCAAAGACACCCCCCACAGTTTATGTAGCTTACCTCCTCAAAGCAATACACTGAAAATGTTTAGACGGGCTCACATCACCCCATAAACAAATAGGTTTGGTCCTAGCCTTTCTATTAGCTCTTAGTAAGATTACACATGCAAGCATCCCCGTTCCAGTGAGTTCACCCTCTAAATCACCACGATCAAAAGGAACAAGCATCAAGCACGCAGCAATGCAGCTCAAAACGCTTAGCCTAGCCACACCCCCACGGGAAACAGCAGTGATTAACCTTTAGCAATAAACGAAAGTTTAACTAAGCTATACTAACCCCAGGGTTGGTCAATTTCGTGCCAGCCACCGCGGTCACACGATTAACCCAAGTCAATAGAAGCCGGCGTAAAGAGTGTTTTAGATCACCCCCTCCCCAATAAAGCTAAAACTCACCTGAGTTGTAAAAAACTCCAGTTGACACAAAATAAACTACGAAAGTGGCTTTAACATATCTGAACACACAATAGCTAAGACCCAAACTGGGATTAGATACCCCACTATGCTTAGCCCTAAACCTCAACAGTTAAATCAACAAAACTGCTGCCAGAACACTACGAGCCACAGCTTAAAACTCAAAGGACCTGGCGGTGCTTCATATCCCTCTAGAGGAGCCTGTTCTGTAATCGATAAACCCCGATCAACCTCACCACCTCTTGCTCAGCCTATATACCGCCATCTTCAGCAAACCCTGATGAAGGCTACAAAGTAAGCGCAAGTACCCACGTAAAGACGTTAGGTCAAGGTGTAGCCCATGAGGTGGCAAGAAATGGGCTACATTTTCTACCCCAGAAAACTACGATAGCCCTTATGAAACTTAAGGGTCGAAGGTGGATTTAGCAGTAAACTGAGAGTAGAGTGCTTAGTTGAACAGGGCCCTGAAGCGCGTACACACCGCCCGTCACCCTCCTCAAGTATACTTCAAAGGACATTTAACTAAAACCCCTACGCATTTATATAGAGGAGACAAGTCGTAACATGGTAAGTGTACTGGAAAGTGCACTTGGACGAACCAGAGTGTAGCTTAACACAAAGCACCCAACTTACACTTAGGAGATTTCAACTCAACTTGACCGCTCTGAGCTAAACCTAGCCCCAAACCCACTCCACCTTACTACCAGACAACCTTAGCCAAACCATTTACCCAAATAAAGTATAGGCGATAGAAATTGAAACCTGGCGCAATAGATATAGTACCGCAAGGGAAAGATGAAAAATTATAACCAAGCATAATATAGCAAGGACTAACCCCTATACCTTCTGCATAATGAATTAACTAGAAATAACTTTGCAAGGAGAGCCAAAGCTAAGACCCCCGAAACCAGACGAGCTACCTAAGAACAGCTAAAAGAGCACACCCGTCTATGTAGCAAAATAGTGGGAAGATTTATAGGTAGAGGCGACAAACCTACCGAGCCTGGTGATAGCTGGTTGTCCAAGATAGAATCTTAGTTCAACTTTAAATTTGCCCACAGAACCCTCTAAATCCCCTTGTAAATTTAACTGTTAGTCCAAAGAGGAACAGCTCTTTGGACACTAGGAAAAAACCTTGTAGAGAGAGTAAAAAATTTAACACCCATAGTAGGCCTAAAAGCAGCCACCAATTAAGAAAGCGTTCAAGCTCAACACCCACTACCTAAAAAATCCCAAACATATAACTGAACTCCTCACACCCAATTGGACCAATCTATCACCCTATAGAAGAACTAATGTTAGTATAAGTAACATGAAAACATTCTCCTCCGCATAAGCCTGCGTCAGATTAAAACACTGAACTGACAATTAACAGCCCAATATCTACAATCAACCAACAAGTCATTATTACCCTCACTGTCAACCCAACACAGGCATGCTCATAAGGAAAGGTTAAAAAAAGTAAAAGGAACTCGGCAAATCTTACCCCGCCTGTTTACCAAAAACATCACCTCTAGCATCACCAGTATTAGAGGCACCGCCTGCCCAGTGACACATGTTTAACGGCCGCGGTACCCTAACCGTGCAAAGGTAGCATAATCACTTGTTCCTTAAATAGGGACCTGTATGAATGGCTCCACGAGGGTTCAGCTGTCTCTTACTTTTAACCAGTGAAATTGACCTGCCCGTGAAGAGGCGGGCATAACACAGCAAGACGAGAAGACCCTATGGAGCTTTAATTTATTAATGCAAACAGTACCTAACAAACCCACAGGTCCTAAACTACCAAACCTGCATTAAAAATTTCGGTTGGGGCGACCTCGGAGCAGAACCCAACCTCCGAGCAGTACATGCTAAGACTTCACCAGTCAAAGCGAACTACTATACTCAATTGATCCAATAACTTGACCAACGGAACAAGTTACCCTAGGGATAACAGCGCAATCCTATTCTAGAGTCCATATCAACAATAGGGTTTACGACCTCGATGTTGGATCAGGACATCCCGATGGTGCAGCCGCTATTAAAGGTTCGTTTGTTCAACGATTAAAGTCCTACGTGATCTGAGTTCAGACCGGAGTAATCCAGGTCGGTTTCTATCTCTT"
+    local sequence="GGACTATCCTAAGTGTGACCGTGCTTTGCCGAGCATGATTAGGATGATTTCTGCCATGATACTTGGCTCTAAGCACACAACTTGCTGCACAAATAGTGATAGGTATTACAGATTGTGCAATGAGTTGGCACAAGTGCTCACTGAAGTTGTTTATTCCAATGGTGGTTTTTATTTTAAACCAGGAGGTACAACTTCAGGTGATGCAACTACAGCATATGCCAATTCTGTTTTCAACATATTCCAGGCTGTCAGTGCTAACATTAACCGTTTGCTCACTGTTGACAGTTATGCTATTCATAATGATTCTGTCAAGAGTTTGCAGAGGCAGTTGTATGACAATTGCTACCGTGCCACTTCTGTA"
     local seq_len=${#sequence}
     local width=15
     local pos=0
@@ -169,75 +169,75 @@ manage_environment(){
 # --- Resource Management --- #
 ###################################
 
+###################################
+# --- Resource Management --- #
+###################################
+
 setup_resources(){
-    LINK_DIR="$workdir/resources/links"
-    mkdir -p "$LINK_DIR"
-    
+    # Diretório base de recursos do workflow
+    RES_DIR="$workdir/resources"
+
     # --- 1. Diamond DB ---
+    # O config.yaml deve apontar para: "resources/diamond/database.dmnd"
     if [[ -n "$diamond_db" ]]; then
         if [[ -f "$diamond_db" ]]; then
-            echo -e "${blu}[INFO]${nc} Linking external Diamond DB..."
-            ln -sf "$diamond_db" "$LINK_DIR/external_diamond.dmnd"
-            res_diamond="'$LINK_DIR/external_diamond.dmnd'"
-
-            DB_DIR=$(dirname "$diamond_db")
-            if [[ -f "$DB_DIR/nodes.dmp" ]]; then
-                ln -sf "$DB_DIR/nodes.dmp" "$LINK_DIR/nodes.dmp"
-                res_nodes="'$LINK_DIR/nodes.dmp'"
-            fi
-            if [[ -f "$DB_DIR/names.dmp" ]]; then
-                ln -sf "$DB_DIR/names.dmp" "$LINK_DIR/names.dmp"
-                res_names="'$LINK_DIR/names.dmp'"
-            fi
-            if [[ -f "$DB_DIR/prot.accession2taxid.gz" ]]; then
-                ln -sf "$DB_DIR/prot.accession2taxid.gz" "$LINK_DIR/prot.accession2taxid.gz"
-                res_map="'$LINK_DIR/prot.accession2taxid.gz'"
-            fi
+            echo -e "${blu}[INFO]${nc} Linking external Diamond DB to resources/diamond/..."
+            
+            # Cria a pasta se não existir
+            mkdir -p "$RES_DIR/diamond"
+            
+            # Remove link ou arquivo antigo para evitar conflito
+            rm -f "$RES_DIR/diamond/database.dmnd"
+            
+            # Cria o link simbólico com um nome padronizado "database.dmnd"
+            ln -sf "$diamond_db" "$RES_DIR/diamond/database.dmnd"
         else
             echo -e "${red}[ERROR]${nc} Diamond DB file not found: $diamond_db"
             exit 1
         fi
     fi
 
-    # --- 2. Kraken2 DB Override (STRICT MODE) ---
+    # --- 2. Kraken2 DB ---
+    # O config.yaml deve apontar para: "resources/kraken2/"
     if [[ -n "$kraken2" ]]; then
-        # Remove trailing slashes for safety in linking
+        # Remove a barra final se houver
         kraken2=${kraken2%/}
 
         if [[ -d "$kraken2" ]]; then
-             echo -e "${blu}[INFO]${nc} Linking external Kraken2 DB from: ${green}$kraken2${nc}"
-            # Force remove old link and create new one
-            rm -f "$LINK_DIR/external_kraken2"
-            ln -sfn "$kraken2" "$LINK_DIR/external_kraken2"
+            echo -e "${blu}[INFO]${nc} Linking external Kraken2 DB to resources/kraken2/..."
             
-            # Set the resource path for Snakemake to the LINK, not original path
-            res_kraken="'$LINK_DIR/external_kraken2'"
+            # Remove o diretório ou link 'kraken2' existente dentro de resources
+            # Atenção: Isso substitui a pasta local pelo link para a externa
+            rm -rf "$RES_DIR/kraken2"
+            
+            # Cria o link simbólico do diretório inteiro
+            ln -sfn "$kraken2" "$RES_DIR/kraken2"
         else
-            # FAIL FAST: Do not revert to default if user supplied a path
-            echo -e "${red}[ERROR]${nc} The provided Kraken2 directory does not exist or is not accessible:"
-            echo -e "         Input: ${ylo}$kraken2${nc}"
-            echo -e "         Please check the path (typos?) and permissions."
+            echo -e "${red}[ERROR]${nc} Kraken2 directory not found: $kraken2"
             exit 1
         fi
     fi
 
-    # --- 3. TaxDump Override ---
+    # --- 3. Taxonomy (Nodes & Names & Map) ---
+    # O config.yaml deve apontar para: "resources/taxonomy/..."
+    if [[ -n "$taxdump" ]] || [[ -n "$taxmap" ]]; then
+        mkdir -p "$RES_DIR/taxonomy"
+    fi
+
     if [[ -n "$taxdump" ]]; then
         if [[ -d "$taxdump" ]]; then
-            echo -e "${blu}[INFO]${nc} Linking Taxonomy Dump from: ${ylo}$taxdump${nc}"
+            echo -e "${blu}[INFO]${nc} Linking Taxonomy Dump to resources/taxonomy/..."
+            
             if [[ -f "$taxdump/nodes.dmp" ]]; then
-                ln -sf "$taxdump/nodes.dmp" "$LINK_DIR/nodes.dmp"
-                res_nodes="'$LINK_DIR/nodes.dmp'"
-            else
-                echo -e "${red}[ERROR]${nc} nodes.dmp not found in $taxdump"
-                exit 1
+                ln -sf "$taxdump/nodes.dmp" "$RES_DIR/taxonomy/nodes.dmp"
+            else 
+                echo -e "${ylo}[WARN]${nc} nodes.dmp not found in $taxdump"
             fi
+            
             if [[ -f "$taxdump/names.dmp" ]]; then
-                ln -sf "$taxdump/names.dmp" "$LINK_DIR/names.dmp"
-                res_names="'$LINK_DIR/names.dmp'"
+                ln -sf "$taxdump/names.dmp" "$RES_DIR/taxonomy/names.dmp"
             else
-                echo -e "${red}[ERROR]${nc} names.dmp not found in $taxdump"
-                exit 1
+                 echo -e "${ylo}[WARN]${nc} names.dmp not found in $taxdump"
             fi
         else
             echo -e "${red}[ERROR]${nc} Taxdump directory not found: $taxdump"
@@ -245,18 +245,17 @@ setup_resources(){
         fi
     fi
 
-    # --- 4. TaxMap Override ---
     if [[ -n "$taxmap" ]]; then
         if [[ -f "$taxmap" ]]; then
-            echo -e "${blu}[INFO]${nc} Linking Accession Map from: ${ylo}$taxmap${nc}"
-            ln -sf "$taxmap" "$LINK_DIR/prot.accession2taxid.gz"
-            res_map="'$LINK_DIR/prot.accession2taxid.gz'"
+            echo -e "${blu}[INFO]${nc} Linking Accession Map to resources/taxonomy/..."
+            ln -sf "$taxmap" "$RES_DIR/taxonomy/prot.accession2taxid.gz"
         else
-            echo -e "${red}[ERROR]${nc} Accession map file not found: $taxmap"
-            exit 1
+             echo -e "${red}[ERROR]${nc} Taxmap file not found: $taxmap"
+             exit 1
         fi
     fi
 }
+
 
 ###################################
 # --- Sample Generation --- #
@@ -307,58 +306,22 @@ input="data"
 jobs=15
 profile="profile_slurm"
 
-# --- Improved Argument Parsing (Strict) ---
+
+# --- Argument Parsing --- #
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --input)
-            input="$2"
-            shift 2
-            ;;
-        --output)
-            output="$2"
-            shift 2
-            ;;
-        --sra)
-            sra="$2"
-            shift 2
-            ;;
-        --jobs)
-            jobs="$2"
-            shift 2
-            ;;
-        --profile)
-            profile="$2"
-            shift 2
-            ;;
-        --diamond_db)
-            diamond_db="$2"
-            shift 2
-            ;;
-        --kraken2)
-            kraken2="$2"
-            shift 2
-            ;;
-        --taxdump)
-            taxdump="$2"
-            shift 2
-            ;;
-        --taxmap)
-            taxmap="$2"
-            shift 2
-            ;;
-        -h|--help)
-            help
-            exit 0
-            ;;
-        -v|--version)
-            version
-            exit 0
-            ;;
-        *)
-            echo -e "${red}[ERROR]${nc} Unknown argument: $1"
-            help
-            exit 1
-            ;;
+        --input) input="$2"; shift 2 ;;
+        --output) output="$2"; shift 2 ;;
+        --sra) sra="$2"; shift 2 ;;
+        --jobs) jobs="$2"; shift 2 ;;
+        --profile) profile="$2"; shift 2 ;;
+        --diamond_db) diamond_db="$2"; shift 2 ;;
+        --kraken2) kraken2="$2"; shift 2 ;;
+        --taxdump) taxdump="$2"; shift 2 ;;
+        --taxmap) taxmap="$2"; shift 2 ;;
+        -h|--help) help; exit 0 ;;
+        -v|--version) version; exit 0 ;;
+        *) echo -e "${red}[ERROR]${nc} Unknown argument: $1"; help; exit 1 ;;
     esac
 done
 
@@ -374,21 +337,8 @@ generate_sample_list
 
 echo -e "${blu}[INFO]${nc} Initializing DiscoVir Workflow..."
 
+# Configuração APENAS para inputs de dados, sem sobrescrever resources
 config_override="data_dir='$input' output_dir='$output' sample_list='$sample_list'"
-
-# Override Resources in Snakemake Config
-resource_str=""
-if [[ -n "$res_diamond" ]]; then resource_str="${resource_str}diamond:$res_diamond,"; fi
-if [[ -n "$res_kraken" ]];  then resource_str="${resource_str}kraken2:$res_kraken,"; fi
-if [[ -n "$res_nodes" ]];   then resource_str="${resource_str}taxonnodes:$res_nodes,"; fi
-if [[ -n "$res_names" ]];   then resource_str="${resource_str}taxonnames:$res_names,"; fi
-if [[ -n "$res_map" ]];     then resource_str="${resource_str}taxonmap:$res_map,"; fi
-resource_str=${resource_str%,}
-
-if [[ -n "$resource_str" ]]; then
-    config_override="$config_override resources={$resource_str}"
-fi
-
 # --- Workflow Execution Steps ---
 
 echo -e "\n${green}> Snakemake: Unlocking working directory...${nc}"

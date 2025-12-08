@@ -61,13 +61,25 @@ envs:
 
 ### databases and resources for the workflow
 resources:
-  diamond: "resources/ncbi/NCBI_2025_07_22.dmnd"
-  kraken2: "resources/kraken2/database"
-  taxonnodes: "resources/taxonomy/nodes.dmp"
-  taxonnames: "resources/taxonomy/names.dmp"
-  taxonmap: "resources/taxonomy/prot.accession2taxid.gz"
-  palm_annot_dir: "resources/palm_annot"
-  logo_dirs: "resources/logo/"
+  diamond: 
+   #diamond workflow used for the database
+   - "resources/diamond/database.dmnd" 
+   #kraken2 folder with all the files
+  kraken2: 
+   - "resources/kraken2/" 
+   #taxonomy files
+  taxonnodes: 
+    - "resources/taxonomy/nodes.dmp" 
+  taxonnames: 
+    - "resources/taxonomy/names.dmp"
+  taxonmap: 
+    - "resources/taxonomy/prot.accession2taxid.gz"
+  #palm annot resources
+  palm_annot_dir: 
+    - "resources/palm_annot"
+  #logos
+  logo_dirs: 
+    - "resources/logo/"
 
 
 ### Parameters for each tool used within the dataset ###
