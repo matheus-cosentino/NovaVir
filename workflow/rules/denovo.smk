@@ -154,6 +154,7 @@ rule medaka_polish:
         "{out_dir}/{sample}/log/medaka_{assembler}.log"
     shell:
         """
+        rm -rf {params.outdir}
         medaka_consensus -i {input.reads} \
                          -d {input.draft} \
                          -o {params.outdir} \
