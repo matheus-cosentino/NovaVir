@@ -19,7 +19,7 @@
 ##################################
 # --- 1. Load Configuration --- #
 #################################
-configfile: "config/config.yaml"
+#configfile: "config/config.yaml"
 
 ###########################################
 # --- 2. Import functions to be used --- #
