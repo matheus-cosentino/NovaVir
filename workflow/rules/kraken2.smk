@@ -57,7 +57,7 @@ rule kraken_biom_contig:
     shell:
         """
         kraken-biom \
-        {input.report}
+        {input.report} \
         --max {params.maximun} \
         --min {params.minimum} \
         --fmt {params.out_format} \
@@ -136,7 +136,7 @@ rule kraken_biom_reads:
     shell:
         """
         kraken-biom \
-        {input.report}
+        {input.report} \
         --max {params.maximun} \
         --min {params.minimum} \
         --fmt {params.out_format} \

@@ -33,8 +33,7 @@ TOOL_OUTPUT_MAP = {
     "megahit": "final.contigs.fa", 
     "flye": "assembly.fasta",
     "raven": "assembly.fasta",       # Adicionar Raven (se for usar sem medaka)
-    "medaka_flye": "consensus.fasta", # NOVO: Medaka vindo do Flye
-    "medaka_raven": "consensus.fasta" # NOVO: Medaka vindo do Raven
+    "medaka": "consensus.fasta", # NOVO: Medaka vindo do Flye and/or Raven
 }
 
 # Global Lists to hold sorted SRA samples (Used by get_data.smk constraints)

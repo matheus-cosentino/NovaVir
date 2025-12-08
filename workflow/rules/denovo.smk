@@ -140,7 +140,6 @@ rule raven:
 # --- 5. Medaka Correcton --- #
 ###############################
 
-
 rule medaka_polish:
     input:
         reads = get_ONP_input,
@@ -159,6 +158,7 @@ rule medaka_polish:
                          -d {input.draft} \
                          -o {params.outdir} \
                          -t {resources.threads} \
-                         -m {params.model}
+                         -m {params.model} \
+        > {log} 2>&1
         
         """
