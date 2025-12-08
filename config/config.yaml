@@ -32,7 +32,7 @@ modules:
   diamond: false #Perform taxonomic assignment for Diamond against nr5 for Reads(default: false)
   duskmatter: false #Perform palm annot identification (default: false)
   reads_kraken2: true #Perform reads taxonomic identification (default: false)
-  reads_diamond: false #Perform reads taxonomic identification (default: false)
+  reads_diamond: true #Perform reads taxonomic identification (default: false)
 
 
 ### De novo tools to be requested

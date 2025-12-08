@@ -15,3 +15,5 @@ data/
 # Ignore .snakemake binaries
 .snakemake/
 
+# ignore paper folder
+paper/
