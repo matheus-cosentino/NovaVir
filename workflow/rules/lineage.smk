@@ -36,27 +36,43 @@ rule map_accession_to_taxid:
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_map_taxid.log")
     shell:
-        """
+       """
+        TAXID_MAP="{params.taxid_map}"
+        
+        # Determine qual comando usar (cat ou zcat)
+        if echo "$TAXID_MAP" | grep -qE '\.gz$|\.zip$|\.bz2$'; then
+            # Se for comprimido
+            CAT_CMD="zcat"
+        else
+            # Se não for (arquivo de texto simples)
+            CAT_CMD="cat"
+        fi
+        
         # 1. Extrai IDs únicos (pulando o cabeçalho do DIAMOND se presente)
-        tail -n +2 {input.hit_file} | cut -f 2 | sort -u > {output}.protein_ids.tmp
+        tail -n +2 {input.hit_file} | cut -f 2 | sort -u > {output}.protein_ids.tmp || (echo "ERROR: Failed to extract protein IDs." >&2; exit 1)
         
-        # 2. Filtra o mapa de taxids
-        # Mantendo a correção: zcat para pipe, tail -n +2 para remover o cabeçalho do mapa de taxids, e '-' para grep ler o STDIN
-        zcat {params.taxid_map} | tail -n +2 | grep -Fwf {output}.protein_ids.tmp - > {output}.filtered_map.tmp || (echo "ERROR: grep failed to filter taxid map." >&2; exit 1)
+        # --- Verificação de Arquivo Vazio (mantida por segurança) ---
+        if [ ! -s {output}.protein_ids.tmp ]; then
+            # Cria o cabeçalho e sai (regra bem-sucedida, sem hits para mapear)
+            echo -e "qseqid\\tsseqid\\tpident\\tlength\\tmismatch\\tgapopen\\tqstart\\tqend\\tsstart\\tsend\\tevalue\\tbitscore\\ttaxid" > {output}
+            echo "WARN: DIAMOND file contains no unique hits. Skipping TaxID mapping." >&2
+            exit 0
+        fi
+        # -----------------------------------------------------------
+
+        # 2. Filtra o mapa de taxids usando o comando CAT apropriado ($CAT_CMD)
+        # Assumindo 3 colunas, removemos o cabeçalho do mapa de taxids.
+        $CAT_CMD $TAXID_MAP | tail -n +2 | grep -Fwf {output}.protein_ids.tmp - > {output}.filtered_map.tmp || (echo "ERROR: $CAT_CMD/grep failed. Check map integrity/compression." >&2; exit 1)
         
-        # 3. Adiciona taxid ao arquivo de hits (AWK mais robusto)
+        # 3. Adiciona taxid ao arquivo de hits (AWK)
         awk 'BEGIN {{
-            # Define o separador de campos como TAB
             FS=OFS="\\t"
         }}
         
-        # Bloco de processamento do 1º arquivo ({output}.filtered_map.tmp)
         NR==FNR {{
-            # Assume formato: $1=accession, $2=accession.version, $3=taxid
-            # Se o seu arquivo só tem duas colunas (accession, taxid), mude $3 para $2.
+            # Agora usa $3 para o taxid e mapeia $1 e $2 (acessões)
             taxid = $3 
             
-            # Armazena ambos accession ($1) e accession.version ($2) como chaves
             if (taxid != "") {{
                 taxid_map[$1] = taxid
                 taxid_map[$2] = taxid
@@ -64,9 +80,7 @@ rule map_accession_to_taxid:
             next
         }}
         
-        # Bloco de processamento do 2º arquivo ({input.hit_file})
         FNR==1 {{
-            # Imprime o cabeçalho com a coluna 'taxid' adicionada
             print $0, "taxid"
             next
         }}
@@ -77,10 +91,10 @@ rule map_accession_to_taxid:
             print $0, taxid
         }}' {output}.filtered_map.tmp {input.hit_file} > {output} 2>> {log} || (echo "ERROR: awk failed to map taxids." >&2; exit 1)
         
-        # Limpeza temporariamente desativada para depuração!
+        # Limpeza
         # rm {output}.protein_ids.tmp {output}.filtered_map.tmp
         """
-
+        
 ##################################################
 # --- 2. Split Hits for Taxid and Not Found --- #
 ################################################# 
