@@ -49,7 +49,7 @@ rule map_accession_to_taxid:
 
         # 2. Filtra o mapa de taxids. USANDO 'cat' (ASSUMINDO ARQUIVO DESCOMPACTADO)
         # CORREÇÃO CRÍTICA: Adição do '-' no grep para ler do pipe.
-        cat {params.taxid_map} | tail -n +2 | grep -Fwf {output}.protein_ids.tmp - > {output}.filtered_map.tmp || (echo "ERROR: cat/grep failed." >&2; exit 1)
+        zcat {params.taxid_map} | tail -n +2 | grep -Fwf {output}.protein_ids.tmp - > {output}.filtered_map.tmp || (echo "ERROR: zcat/grep failed." >&2; exit 1)
         
         # 3. Adiciona taxid aos hits (AWK - Formato de 3 Colunas NCBI)
         awk 'BEGIN {{
