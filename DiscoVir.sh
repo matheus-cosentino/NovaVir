@@ -403,7 +403,10 @@ modules:
 EOF
 
 if [[ -n "$TAXONMAP_OVERRIDE" ]]; then
-    echo "taxonmap: \"$TAXONMAP_OVERRIDE\"" >> "$run_overrides"
+    cat <<EOF >> "$run_overrides"
+resources:
+  taxonmap: "$TAXONMAP_OVERRIDE"
+EOF
 fi
 
 # --- Workflow Execution Steps ---
