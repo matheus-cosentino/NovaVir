@@ -39,8 +39,6 @@ rule map_accession_to_taxid:
         """
         # Extract unique protein IDs (skip header if present)
         tail -n +2 {input.hit_file} | cut -f 2 | sort -u > {output}.protein_ids.tmp
-
-        cat {output}.protein_ids.tmp 2>> {log}
         
         # Filter taxid map and create lookup
         zcat {params.taxid_map} | grep -Fwf {output}.protein_ids.tmp > {output}.filtered_map.tmp
