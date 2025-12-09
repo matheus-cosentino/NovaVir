@@ -37,17 +37,35 @@ rule map_accession_to_taxid:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_map_taxid.log")
     shell:    
         """
-        # Extract unique protein IDs (skip header if present)
+        # 1. Extract unique protein IDs (skip header if present)
         tail -n +2 {input.hit_file} | cut -f 2 | sort -u > {output}.protein_ids.tmp
+        if [ $? -ne 0 ]; then
+            echo "ERROR: Initial pipe (tail|cut|sort) failed. Check if {input.hit_file} exists." >&2
+            exit 1
+        fi
         echo "unique prot IDs step done within {output}.protein_ids.tmp" 2>> {log}
-
+        
         if [ ! -s {output}.protein_ids.tmp ]; then
             echo "WARN: DIAMOND file contains no unique hits. Skipping TaxID mapping." 2>> {log}
+            # Adicione o cabeçalho de saída para que a próxima regra possa ser executada
+            echo -e "qseqid\\tsseqid\\tpident\\tlength\\tmismatch\\tgapopen\\tqstart\\tqend\\tsstart\\tsend\\tevalue\\tbitscore\\ttaxid" > {output}
             exit 0
         else
             echo "Found unique hits within {input.hit_file}" 2>> {log}
         fi
+
+        # 2. Lógica Try/Catch (zcat || cat) + grep (-)
+        echo "Attempting zcat || cat pipe for TaxID prot2acc" 2>> {log}
+        
+        # O pipe completo é envolto em um comando de subshell.
+        ( ( zcat {params.taxid_map} || cat {params.taxid_map} ) | tail -n +2 | grep -Fwf {output}.protein_ids.tmp - > {output}.filtered_map.tmp )
+
+        if [ $? -ne 0 ]; then
+            echo "ERROR: TaxID Map I/O failed (zcat/cat/grep). Check file access/integrity." >&2
+            exit 1
+        fi
         """
+
 
 ##################################################
 # --- 2. Split Hits for Taxid and Not Found --- #
