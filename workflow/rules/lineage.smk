@@ -38,7 +38,7 @@ rule map_accession_to_taxid:
     shell:    
         """
         # Extract unique protein IDs (skip header if present)
-        tail -n +2 {input.hit_file} | cut -f 2 | sort -u > {output.id}
+        tail -n +2 {input.hit_file} | cut -f 2 | sort -u > {output.ids}
         """
 
 ##################################################
