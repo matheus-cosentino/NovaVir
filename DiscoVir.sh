@@ -111,7 +111,7 @@ help(){
    --kraken2            Enable Kraken2 Taxonomy (Default: False)
    --diamond            Enable Diamond Taxonomy (Default: False)
    --duskmatter         Enable Palm Annot / Dusk Matter (Default: False)
-   --remove-download    Do NOT keep downloaded SRA files (Default: Keep)
+   --remove-download    Revome downloaded SRA files (Default: Keep)
    --skip-reads-kraken  Skip Reads Kraken2 ID (Default: Run)
    --skip-reads-diamond Skip Reads Diamond ID (Default: Run)
  
