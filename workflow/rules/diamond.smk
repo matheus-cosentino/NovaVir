@@ -36,7 +36,7 @@ rule diamond_blastx_contigs:
         """
         diamond blastx \
             --query {input.contigs} \
-            --db {params.db} \
+            --db resources/diamond/{params.db} \
             --out {output.hits} \
             --threads {resources.threads} \
             --outfmt {params.outfmt} \
@@ -69,7 +69,7 @@ rule diamond_blastx_reads:
         """
         diamond blastx \
             --query {input.r1} {input.r2} {input.extra} \
-            --db {params.db} \
+            --db resources/diamond/{params.db} \
             --out {output.hits} \
             --threads {resources.threads} \
             --outfmt {params.outfmt} \
