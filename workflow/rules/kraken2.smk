@@ -115,6 +115,7 @@ rule kraken2_reads_unpaired:
       --confidence {params.confidence} \
       --report {output.report} \
       --threads {resources.threads} \
+      --memory-mapping \
       {input.r1} \
       > {log} 2>&1
       """
