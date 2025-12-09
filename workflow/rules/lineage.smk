@@ -41,7 +41,7 @@ rule map_accession_to_taxid:
         tail -n +2 {input.hit_file} | cut -f 2 | sort -u > {output}.protein_ids.tmp
         
         # Filter taxid map and create lookup
-        zcat {params.taxid_map} | grep -Fwf {output}.protein_ids.tmp > {output}.filtered_map.tmp
+        zcat {params.taxid_map} | grep -Fwf {output}.protein_ids.tmp - > {output}.filtered_map.tmp
         
         # Add taxid to hits
         awk -F'\\t' -v OFS='\\t' '
