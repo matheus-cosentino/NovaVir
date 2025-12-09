@@ -5,3 +5,4 @@ channels:
   - nodefaults
 dependencies:
   - taxonkit=0.20.0
+  - pandas=2.3.2
