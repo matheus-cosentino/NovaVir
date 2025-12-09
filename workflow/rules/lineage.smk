@@ -34,7 +34,7 @@ rule map_accession_to_taxid:
         #taxid_map="resources/database/prot.accession2taxid.gz"
         taxid_map = config["resources"]["taxonmap"]
     log:
-        os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_map_taxid.log")
+        os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_map_acc_prot.log")
     shell:    
        """
         
@@ -185,7 +185,7 @@ rule append_lineage:
         base_header="qseqid\tsseqid\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore\tTaxid",
         lineage_header="Lineage\tCelular\tAcelular\tRealm\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies"
     log:
-        os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_map_taxid.log")
+        os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_append_lineage.log")
     conda:
         TAXONKIT
     shell:
