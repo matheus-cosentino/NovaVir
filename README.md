@@ -34,17 +34,17 @@ DiscoVir is a comprehensive and scalable Snakemake workflow for the detection of
 ## Requirements
 
 ### Conda Installation
-The pipeline uses Conda to manage its dependencies. We recommend the presence of any version running within the machine. If is there any version available, follown the proper conda installation within miniforge, [conda](https://forge.ird.fr/transvihmi/nfernandez/install_conda_with_miniforge).
+The pipeline uses Conda to manage its dependencies. We recommend the presence of any version running within the machine. If no version is available, follown the conda installation within miniforge, [conda](https://forge.ird.fr/transvihmi/nfernandez/install_conda_with_miniforge).
 
 ### Databases and Taxonomic files
-Due the large size of databases used, and its common presence within HPC clusters, databases path must be prior present to run the pipeline. In case of doubts, open an issue or get in touch within your HPC support team to proper intallation.
+Due the large size of databases used, and its common presence within HPC clusters, databases path must be prior present to run the pipeline and its download does not make part of this pipeline. In case of doubts, open an issue or get in touch within your HPC support team to proper intallation.
  - [Nr5](https://ftp.ncbi.nlm.nih.gov/blast/db/v5/)
  - [prot.accession2taxid.gz](https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/)
  - [tamdump](https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/)
  - [Kraken2](https://benlangmead.github.io/aws-indexes/k2)
 
 ## Installation
-The DiscoVir.sh script is resoponsible to manage the run, automatically downloading and creating the necessary Conda environments, as well as manage conda versions for the pipeline to work.
+The DiscoVir.sh script is responsible to manage the run, automatically downloading and creating the necessary Conda environments, as well as manage conda versions for the pipeline to work.
 
 1.  **Clone the repository:**
 
@@ -102,7 +102,7 @@ DiscoVir: Viral Metagenomics & 'Dusk Matter' Discovery
 
 ## Usage
 ### Overall Pipeline Use
-The DiscoVir standard configuration is optimized for Illumina data. The script is intrinsically capable of automatically differentiating between paired-end and single-end data formats. To perform a comprehensive analysis—including quality-based read filtering and assessment of taxonomy diversity—run the standard script within the following options:
+The DiscoVir standard configuration is optimized for Illumina data and to run within an HPC cluster within [slurm](https://slurm.schedmd.com/documentat). The script is intrinsically capable of automatically differentiating between paired-end and single-end data formats. To perform a comprehensive analysis—including quality-based read filtering and assessment of taxonomy diversity—run the standard script within the following options:
 
 - Kraken2 & Diamond Reads Iddentfication
 ```shell
@@ -209,7 +209,7 @@ tool:
    # - 'medaka_raven'  #correction to ONP raven assembly
 ```
 
-The same process can be made to use the raven assemby software and medaka correction, also available. Nevertheless, is worth mentioning that overall contig assembly within ONP reads overall generate very low number of reads.
+The same process can be made to use the raven assemby software and medaka correction, also available. Nevertheless, is worth mentioning that overall contig assembly within ONP reads overall generate very low number of contigs.
 
 
 # Contributing
