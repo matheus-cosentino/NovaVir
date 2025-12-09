@@ -152,7 +152,7 @@ bash DiscoVir.sh --input <DIR> --output <DIR> --sra <FILE>
 ```
 
 **Caution**:
-After the whole workflom is finished, data will be keepted. In case of interested in mantaining the data after the run, use the following command:
+After the whole workflow is finished, data will be keepted. In case of interested in deleting the data after the run, use the following command:
 
 ```shell
 bash DiscoVir.sh --input <DIR> --output <DIR> --sra <FILE> --remove-download 
