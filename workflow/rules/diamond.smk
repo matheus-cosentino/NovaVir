@@ -57,7 +57,7 @@ rule diamond_blastx_reads:
         hits="{out_dir}/{sample}/diamond_reads/{sample}_reads_report.txt"
     params:
         #db=f"{workflow.basedir}/{config['resources']['diamond']}",
-        db=config["resources"]["diamond"],
+        db= get_diamond_db_name,
         outfmt=config["diamond"]["outfmt"],
         max_target_seqs=config["diamond"]["max_target_seqs"],
         evalue=config["diamond"]["evalue"]
