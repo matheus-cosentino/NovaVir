@@ -5,7 +5,7 @@ import os
 import csv
 import gzip
 import logging
-import subprocess # Mantido caso você precise rodar um comando auxiliar no futuro, mas não usado aqui.
+import subprocess 
 
 # Objeto Snakemake
 s = snakemake 
@@ -25,6 +25,7 @@ try:
     taxid_map_file = s.params["taxid_map"]
     
     # 1.1. Checagem de Header (Lógica Interna, independente de params)
+    # Verifica se a primeira linha do arquivo de hits começa com 'qseqid'
     with open(hit_file, 'r') as f:
         first_line_hit = f.readline()
         # Se começar com qseqid, header presente (1). Senão, não (0).
@@ -37,7 +38,6 @@ except Exception as e:
 logging.info(f"Iniciando mapeamento para {hit_file} (Header presente: {header_present})")
 logging.info(f"Arquivo de TaxID Map: {taxid_map_file}")
 
-
 # --- 2. Função de Construção do Mapa Accession -> TaxID ---
 
 def build_taxid_map(taxid_path):
@@ -46,7 +46,7 @@ def build_taxid_map(taxid_path):
     
     # Usa gzip.open se o arquivo terminar com .gz, senão usa open() (Robusto)
     open_func = gzip.open if taxid_path.endswith('.gz') else open
-    read_mode = 'rt' # 'rt' for reading text, crucial for gzip.open
+    read_mode = 'rt' # 'rt' para leitura de texto, crucial para gzip.open
 
     try:
         logging.info(f"Lendo mapa de TaxID com {open_func.__name__}...")
@@ -88,7 +88,6 @@ def build_taxid_map(taxid_path):
 
 
 taxid_map = build_taxid_map(taxid_map_file)
-
 
 # --- 3. Processar Hits DIAMOND e Anexar TaxID ---
 
