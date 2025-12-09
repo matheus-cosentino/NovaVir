@@ -36,24 +36,20 @@ rule map_accession_to_taxid:
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_map_taxid.log")
     shell:
-       """
-        TAXID_MAP="{params.taxid_map}"
-        
-        # Determine qual comando usar (cat ou zcat)
-        if echo "$TAXID_MAP" | grep -qE '\\.gz$|\\.zip$|\\.bz2$'; then
-            # Se for comprimido
+        """
+        # --- 0. Determinação do Comando de Leitura (CAT_CMD) ---
+        # Se o nome do arquivo contém .gz, usa zcat. Caso contrário, usa cat.
+        if echo "{params.taxid_map}" | grep -qE '\\.gz$|\\.zip$|\\.bz2$'; then
             CAT_CMD="zcat"
         else
-            # Se não for (arquivo de texto simples)
             CAT_CMD="cat"
         fi
         
-        # 1. Extrai IDs únicos (pulando o cabeçalho do DIAMOND se presente)
+        # 1. Extrai IDs únicos
         tail -n +2 {input.hit_file} | cut -f 2 | sort -u > {output}.protein_ids.tmp || (echo "ERROR: Failed to extract protein IDs." >&2; exit 1)
         
         # --- Verificação de Arquivo Vazio (mantida por segurança) ---
         if [ ! -s {output}.protein_ids.tmp ]; then
-            # Cria o cabeçalho e sai (regra bem-sucedida, sem hits para mapear)
             echo -e "qseqid\\tsseqid\\tpident\\tlength\\tmismatch\\tgapopen\\tqstart\\tqend\\tsstart\\tsend\\tevalue\\tbitscore\\ttaxid" > {output}
             echo "WARN: DIAMOND file contains no unique hits. Skipping TaxID mapping." >&2
             exit 0
@@ -61,8 +57,8 @@ rule map_accession_to_taxid:
         # -----------------------------------------------------------
 
         # 2. Filtra o mapa de taxids usando o comando CAT apropriado ($CAT_CMD)
-        # Assumindo 3 colunas, removemos o cabeçalho do mapa de taxids.
-        $CAT_CMD $TAXID_MAP | tail -n +2 | grep -Fwf {output}.protein_ids.tmp - > {output}.filtered_map.tmp || (echo "ERROR: $CAT_CMD/grep failed. Check map integrity/compression." >&2; exit 1)
+        # O Snakemake expande {params.taxid_map} diretamente aqui.
+        $CAT_CMD {params.taxid_map} | tail -n +2 | grep -Fwf {output}.protein_ids.tmp - > {output}.filtered_map.tmp || (echo "ERROR: $CAT_CMD/grep failed. Check map integrity/compression." >&2; exit 1)
         
         # 3. Adiciona taxid ao arquivo de hits (AWK)
         awk 'BEGIN {{
@@ -70,7 +66,7 @@ rule map_accession_to_taxid:
         }}
         
         NR==FNR {{
-            # Agora usa $3 para o taxid e mapeia $1 e $2 (acessões)
+            # Assume 3 colunas: $1=accession, $2=accession.version, $3=taxid
             taxid = $3 
             
             if (taxid != "") {{
