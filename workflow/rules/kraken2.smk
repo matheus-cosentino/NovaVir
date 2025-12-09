@@ -61,6 +61,7 @@ rule kraken_biom_contig:
         --max {params.maximun} \
         --min {params.minimum} \
         --fmt {params.out_format} \
+        --memory-mapping \
         -o {output.biom} \
         > {log} 2>&1
         """
@@ -88,6 +89,7 @@ rule kraken2_reads_paired:
       --confidence {params.confidence} \
       --report {output.report} \
       --threads {resources.threads} \
+      --memory-mapping \
       {input.r1} {input.r2} {input.extra} \
       > {log} 2>&1
       """
