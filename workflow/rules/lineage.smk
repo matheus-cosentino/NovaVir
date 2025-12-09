@@ -35,28 +35,21 @@ rule map_accession_to_taxid:
         taxid_map = config["resources"]["taxonmap"]
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_map_taxid.log")
-    shell:
+    shell:    
         """
-        TAXID_MAP="{params.taxid_map}"
-
         # 1. Extrai IDs únicos (pulando cabeçalho)
         tail -n +2 {input.hit_file} | cut -f 2 | sort -u > {output}.protein_ids.tmp || (echo "ERROR: Failed to extract protein IDs." >&2; exit 1)
         
         # --- Verificação de Arquivo Vazio ---
         if [ ! -s {output}.protein_ids.tmp ]; then
             echo -e "qseqid\\tsseqid\\tpident\\tlength\\tmismatch\\tgapopen\\tqstart\\tqend\\tsstart\\tsend\\tevalue\\tbitscore\\ttaxid" > {output}
-            echo "WARN: DIAMOND file contains no unique hits. Skipping TaxID mapping." >&2
             exit 0
         fi
         # ------------------------------------
-        
-        # 2. Leitura do Arquivo de Mapeamento (Lógica Try/Catch)
-        # Tenta zcat. Se falhar (código de saída não-zero, e.g., não é gzip), 
-        # tenta cat e, se falhar, retorna erro.
-        
-        ( zcat "$TAXID_MAP" || cat "$TAXID_MAP" ) | \\
-            tail -n +2 | \\
-            grep -Fwf {output}.protein_ids.tmp - > {output}.filtered_map.tmp || (echo "ERROR: TaxID Map I/O failed. Check file access/integrity." >&2; exit 1)
+
+        # 2. Filtra o mapa de taxids. USANDO 'cat' (ASSUMINDO ARQUIVO DESCOMPACTADO)
+        # CORREÇÃO CRÍTICA: Adição do '-' no grep para ler do pipe.
+        cat {params.taxid_map} | tail -n +2 | grep -Fwf {output}.protein_ids.tmp - > {output}.filtered_map.tmp || (echo "ERROR: cat/grep failed." >&2; exit 1)
         
         # 3. Adiciona taxid aos hits (AWK - Formato de 3 Colunas NCBI)
         awk 'BEGIN {{
@@ -64,7 +57,7 @@ rule map_accession_to_taxid:
         }}
         
         NR==FNR {{
-            # Armazena ambos $1 e $2 como chaves, usando $3 (taxid)
+            # Mapeamento 3 colunas: $1 e $2 como chaves, $3 como TaxID.
             taxid = $3 
             
             if (taxid != "") {{
