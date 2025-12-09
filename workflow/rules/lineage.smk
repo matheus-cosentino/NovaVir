@@ -39,17 +39,14 @@ rule map_accession_to_taxid:
         """
         # Extract unique protein IDs (skip header if present)
         tail -n +2 {input.hit_file} | cut -f 2 | sort -u > {output}.protein_ids.tmp
-        
-        if ( zcat {params.taxid_map} > /dev/null 2>&1 ); then
-         echo "Zipped file, zcat worked " 2>> {log}
-         zcat {params.taxid_map} | tail -n +2 | grep -Fwf {output}.protein_ids.tmp - > {output}.filtered_map.tmp
-        else 
-         echo "Unzipped file, zcat not worked " 2>> {log}
-         cat {params.taxid_map} | tail -n +2 | grep -Fwf {output}.protein_ids.tmp - > {output}.filtered_map.tmp
+        echo "unique prot IDs step done within {output}.protein_ids.tmp" 2>> {log}
+
+        if [ ! -s {output}.protein_ids.tmp ]; then
+            echo "WARN: DIAMOND file contains no unique hits. Skipping TaxID mapping." 2>> {log}
+            exit 0
+        else
+            echo "Found unique hits within {input.hit_file}" 2>> {log}
         fi
-
-
-
         """
 
 ##################################################
