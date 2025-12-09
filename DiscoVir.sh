@@ -258,7 +258,8 @@ setup_resources(){
         else
         # If plain text, create a gzipped version
         echo -e "${blu}[INFO]${nc} Compressing taxmap file for efficiency..."
-        gzip -c "$taxmap" > "$RES_DIR/taxonomy/prot.accession2taxid.gz"
+        cp "$taxmap" "$RES_DIR/taxonomy/prot.accession2taxid"
+        gzip -c prot.accession2taxid > "$RES_DIR/taxonomy/prot.accession2taxid.gz"
         fi
     fi
 }
