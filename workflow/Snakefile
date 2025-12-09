@@ -42,10 +42,10 @@ from scripts.functions import get_ONP_input
 from scripts.functions import get_spades_params
 from scripts.functions import get_megahit_params
 from scripts.functions import get_sra_layout
-
-
 from scripts.functions import get_diamond_db_input
 from scripts.functions import get_diamond_db_name
+from scripts.functions import get_header_check
+
 
 ###########################################################
 # --- 3. Define workflown directory and local infos  --- #
@@ -91,6 +91,7 @@ functions.get_ONP_input = get_ONP_input
 functions.get_spades_params = get_spades_params
 functions.get_megahit_params = get_megahit_params
 functions.get_sra_layout = get_sra_layout
+functions.get_header_check = get_header_check
  
 ##############################################
 # --- 5. Define Conda Environment Paths --- #

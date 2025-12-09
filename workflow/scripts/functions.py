@@ -570,3 +570,24 @@ def get_diamond_db_name(wildcards):
     # Fallback genérico: pega o nome do primeiro arquivo sem extensão
     first_file = os.path.basename(glob.glob(os.path.join(db_dir, "*"))[0])
     return first_file.split('.')[0]
+
+########################################################
+# --- 12. Check Presence of header in Diamond File --- #
+########################################################
+
+def get_header_check(hit_file_path):
+    """
+    Checks if the DIAMOND hit file has a header (starting with 'qseqid').
+    Returns 1 if header is present, 0 otherwise.
+    """
+    try:
+        # Tenta abrir o arquivo. Não precisamos de gzip aqui, 
+        # pois o DIAMOND output não deve ser comprimido.
+        with open(hit_file_path, 'r') as f:
+            first_line = f.readline()
+            if first_line.startswith('qseqid'):
+                return 1
+            return 0
+    except Exception as e:
+        print(f"[ERROR] Could not read hit file header check: {e}", file=sys.stderr)
+        return 0
