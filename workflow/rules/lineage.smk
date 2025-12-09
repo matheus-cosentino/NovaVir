@@ -40,7 +40,7 @@ rule map_accession_to_taxid:
         TAXID_MAP="{params.taxid_map}"
         
         # Determine qual comando usar (cat ou zcat)
-        if echo "$TAXID_MAP" | grep -qE '\.gz$|\.zip$|\.bz2$'; then
+        if echo "$TAXID_MAP" | grep -qE '\\.gz$|\\.zip$|\\.bz2$'; then
             # Se for comprimido
             CAT_CMD="zcat"
         else
@@ -94,7 +94,7 @@ rule map_accession_to_taxid:
         # Limpeza
         # rm {output}.protein_ids.tmp {output}.filtered_map.tmp
         """
-        
+
 ##################################################
 # --- 2. Split Hits for Taxid and Not Found --- #
 ################################################# 
