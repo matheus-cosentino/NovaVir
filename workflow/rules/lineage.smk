@@ -42,16 +42,17 @@ rule map_accession_to_taxid:
         # 1. Extract protein IDs
         HEADER=$(head -1 {input.hit_file} | grep -c "^qseqid" || echo "0")
         
-        echo "Extract step of protein ID Header..." > {log}
+        echo "Extract step of protein ID Header..." >> {log}
 
         if [ "$HEADER" -eq 1 ]; then
             tail -n +2 {input.hit_file} | cut -f 2 | sort -u > {output}.protein_ids.tmp
+            echo "Header idd in the diamond file..." >> {log}
         else
             cut -f 2 {input.hit_file} | sort -u > {output}.protein_ids.tmp
+            echo "Header idd NOT the diamond file..." >> {log}
         fi
 
-        echo "step of protein ID finished ..." > {log}
-
+        echo "step of protein ID finished ..." >> {log}
         # Add tab for joining on second column
         awk '{{print $1 "\\t"}}' {output}.protein_ids.tmp > {output}.protein_ids_for_join.tmp
         
