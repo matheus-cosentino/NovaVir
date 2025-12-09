@@ -65,41 +65,34 @@ rule map_accession_to_taxid:
             exit 1
         fi
 
-            awk 'BEGIN {
-    # Define o separador de campos de entrada e saída como TAB
-    FS=OFS="\t"
-}   
-
-# Bloco de processamento do 1º arquivo: O mapa filtrado ({output}.filtered_map.tmp)
-NR==FNR {
-    # Assume 3 colunas: $1=accession, $2=accession.version, $3=taxid.
-    taxid = $3 
-    
-    # Armazena ambos accession ($1) e accession.version ($2) como chaves
-    if (taxid != "") {
+        awk 'BEGIN {
+        # Define o separador de campos de entrada e saída como TAB
+        FS=OFS="\t"
+        }   
+        # Bloco de processamento do 1º arquivo: O mapa filtrado ({output}.filtered_map.tmp)
+        NR==FNR {
+        # Assume 3 colunas: $1=accession, $2=accession.version, $3=taxid.
+        taxid = $3 
+        # Armazena ambos accession ($1) e accession.version ($2) como chaves
+        if (taxid != "") {
         taxid_map[$1] = taxid
         taxid_map[$2] = taxid
-    }
-    next
-}
-
-# Bloco de processamento do 2º arquivo: O arquivo de hits DIAMOND ({input.hit_file})
-FNR==1 {
-    # Se for a primeira linha do segundo arquivo (cabeçalho DIAMOND), imprime o cabeçalho com 'taxid'
-    print $0, "taxid"
-    next
-}
-
-{
-    # Usa o ID da proteína (coluna 2 do DIAMOND) para fazer a busca
-    protein_id = $2
-    taxid = (protein_id in taxid_map) ? taxid_map[protein_id] : "NOT_FOUND"
-    
-    # Imprime todas as colunas originais mais o TaxID
-    print $0, taxid
-}'
-
-        
+        }
+        next
+        }
+        # Bloco de processamento do 2º arquivo: O arquivo de hits DIAMOND ({input.hit_file})
+        FNR==1 {
+        # Se for a primeira linha do segundo arquivo (cabeçalho DIAMOND), imprime o cabeçalho com 'taxid'
+        print $0, "taxid"
+        next
+        }
+        {# Usa o ID da proteína (coluna 2 do DIAMOND) para fazer a busca
+        protein_id = $2
+        taxid = (protein_id in taxid_map) ? taxid_map[protein_id] : "NOT_FOUND"
+        # Imprime todas as colunas originais mais o TaxID
+        print $0, taxid
+        }'
+       
         """
 
 
