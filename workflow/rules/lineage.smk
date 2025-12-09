@@ -38,7 +38,18 @@ rule map_accession_to_taxid:
     shell:    
         """
         # Extract unique protein IDs (skip header if present)
-        tail -n +2 {input.hit_file} | cut -f 2 | sort -u > {output.ids}
+        tail -n +2 {input.hit_file} | cut -f 2 | sort -u > {output}.protein_ids.tmp
+        
+        if ( zcat {params.taxid_map} > /dev/null 2>&1 ); then
+         echo "Zipped file, zcat worked " 2>> {log}
+         zcat {params.taxid_map} | tail -n +2 | grep -Fwf {output}.protein_ids.tmp - > {output}.filtered_map.tmp
+        else 
+         echo "Unzipped file, zcat not worked " 2>> {log}
+         cat {params.taxid_map} | tail -n +2 | grep -Fwf {output}.protein_ids.tmp - > {output}.filtered_map.tmp
+        fi
+
+
+
         """
 
 ##################################################
