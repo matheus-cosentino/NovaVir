@@ -8,11 +8,6 @@
   <img src="resources/logo/DiscoVir_Logo.png" width="300" alt="DiscoVir Logo">
 </p>
 
-<div align="center">
-  <img src="resources/logo/LDDV.png" width="150" alt="LDDV Logo" style="display: inline-block; margin-left: 10px;">
-  <img src="resources/logo/index.png" width="150" alt="Transvhmi Logo" style="display: inline-block; margin-left: 10px;">
-</div>
-
 ---
 
 ## Table of Contents
@@ -221,3 +216,8 @@ This project is licensed under the GNU General Public License v3.0.
 # Author
 MSc. Matheus Cosentino
 
+---
+<div align="left">
+  <img src="resources/logo/LDDV.png" width="200" alt="LDDV Logo" style="display: inline-block; margin-left: 10px;">
+  <img src="resources/logo/index.png" width="200" alt="Transvhmi Logo" style="display: inline-block; margin-left: 10px;">
+</div>
