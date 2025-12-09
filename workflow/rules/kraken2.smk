@@ -87,7 +87,6 @@ rule kraken2_reads_paired:
       --db {params.db} \
       --confidence {params.confidence} \
       --report {output.report} \
-      --memory-mapping \
       --threads {resources.threads} \
       {input.r1} {input.r2} {input.extra} \
       > {log} 2>&1
@@ -113,7 +112,6 @@ rule kraken2_reads_unpaired:
       --db {params.db} \
       --confidence {params.confidence} \
       --report {output.report} \
-      --memory-mapping \
       --threads {resources.threads} \
       {input.r1} \
       > {log} 2>&1
