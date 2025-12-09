@@ -37,36 +37,34 @@ rule map_accession_to_taxid:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_map_taxid.log")
     shell:
         """
-        # --- 0. Determinação do Comando de Leitura (CAT_CMD) ---
-        # Se o nome do arquivo contém .gz, usa zcat. Caso contrário, usa cat.
-        if echo "{params.taxid_map}" | grep -qE '\\.gz$|\\.zip$|\\.bz2$'; then
-            CAT_CMD="zcat"
-        else
-            CAT_CMD="cat"
-        fi
-        
-        # 1. Extrai IDs únicos
+        TAXID_MAP="{params.taxid_map}"
+
+        # 1. Extrai IDs únicos (pulando cabeçalho)
         tail -n +2 {input.hit_file} | cut -f 2 | sort -u > {output}.protein_ids.tmp || (echo "ERROR: Failed to extract protein IDs." >&2; exit 1)
         
-        # --- Verificação de Arquivo Vazio (mantida por segurança) ---
+        # --- Verificação de Arquivo Vazio ---
         if [ ! -s {output}.protein_ids.tmp ]; then
             echo -e "qseqid\\tsseqid\\tpident\\tlength\\tmismatch\\tgapopen\\tqstart\\tqend\\tsstart\\tsend\\tevalue\\tbitscore\\ttaxid" > {output}
             echo "WARN: DIAMOND file contains no unique hits. Skipping TaxID mapping." >&2
             exit 0
         fi
-        # -----------------------------------------------------------
-
-        # 2. Filtra o mapa de taxids usando o comando CAT apropriado ($CAT_CMD)
-        # O Snakemake expande {params.taxid_map} diretamente aqui.
-        $CAT_CMD {params.taxid_map} | tail -n +2 | grep -Fwf {output}.protein_ids.tmp - > {output}.filtered_map.tmp || (echo "ERROR: $CAT_CMD/grep failed. Check map integrity/compression." >&2; exit 1)
+        # ------------------------------------
         
-        # 3. Adiciona taxid ao arquivo de hits (AWK)
+        # 2. Leitura do Arquivo de Mapeamento (Lógica Try/Catch)
+        # Tenta zcat. Se falhar (código de saída não-zero, e.g., não é gzip), 
+        # tenta cat e, se falhar, retorna erro.
+        
+        ( zcat "$TAXID_MAP" || cat "$TAXID_MAP" ) | \\
+            tail -n +2 | \\
+            grep -Fwf {output}.protein_ids.tmp - > {output}.filtered_map.tmp || (echo "ERROR: TaxID Map I/O failed. Check file access/integrity." >&2; exit 1)
+        
+        # 3. Adiciona taxid aos hits (AWK - Formato de 3 Colunas NCBI)
         awk 'BEGIN {{
             FS=OFS="\\t"
         }}
         
         NR==FNR {{
-            # Assume 3 colunas: $1=accession, $2=accession.version, $3=taxid
+            # Armazena ambos $1 e $2 como chaves, usando $3 (taxid)
             taxid = $3 
             
             if (taxid != "") {{
@@ -87,8 +85,8 @@ rule map_accession_to_taxid:
             print $0, taxid
         }}' {output}.filtered_map.tmp {input.hit_file} > {output} 2>> {log} || (echo "ERROR: awk failed to map taxids." >&2; exit 1)
         
-        # Limpeza
-        # rm {output}.protein_ids.tmp {output}.filtered_map.tmp
+        # Cleanup
+        rm {output}.protein_ids.tmp {output}.filtered_map.tmp
         """
 
 ##################################################
