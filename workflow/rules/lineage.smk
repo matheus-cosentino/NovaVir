@@ -36,7 +36,7 @@ rule map_accession_to_taxid:
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_map_taxid.log")
     shell:    
-        """
+       """
         echo "Starting taxid mapping with join approach..." > {log}
         
         # 1. Extract protein IDs
@@ -53,29 +53,67 @@ rule map_accession_to_taxid:
         fi
 
         echo "step of protein ID finished ..." >> {log}
+        
+        # Check if we have any protein IDs
+        PROTEIN_COUNT=$(wc -l < {output}.protein_ids.tmp)
+        if [ "$PROTEIN_COUNT" -eq 0 ]; then
+            echo "WARNING: No protein IDs found. Creating empty output with header." >> {log}
+            echo -e "qseqid\\tsseqid\\tpident\\tlength\\tmismatch\\tgapopen\\tqstart\\tqend\\tsstart\\tsend\\tevalue\\tbitscore\\ttaxid" > {output}
+            exit 0
+        fi
+        
         # Add tab for joining on second column
         awk '{{print $1 "\\t"}}' {output}.protein_ids.tmp > {output}.protein_ids_for_join.tmp
         
-        # 2. Check taxid map and prepare it
-        TAXID_HEADER=$(head -1 {params.taxid_map} | grep -c "^accession" || echo "0")
+        # 2. Check if taxid map is gzipped or plain text
+        echo "Checking taxid map format: {params.taxid_map}" >> {log}
+        
+        if file {params.taxid_map} | grep -q "gzip compressed"; then
+            echo "Taxid map is gzipped, using zcat" >> {log}
+            DECOMPRESS="zcat"
+        else
+            echo "Taxid map is plain text, using cat" >> {log}
+            DECOMPRESS="cat"
+        fi
+        
+        # 3. Check taxid map header and prepare it
+        TAXID_HEADER=$($DECOMPRESS {params.taxid_map} | head -1 | grep -c "^accession" || echo "0")
+        echo "Taxid map header present: $TAXID_HEADER" >> {log}
         
         if [ "$TAXID_HEADER" -eq 1 ]; then
             # Skip header and extract columns 2 (accession.version) and 3 (taxid)
-            tail -n +2 {params.taxid_map} | cut -f 2,3 | sort -k1,1 > {output}.taxmap_sorted.tmp
+            echo "Extracting columns from taxid map (skipping header)..." >> {log}
+            $DECOMPRESS {params.taxid_map} | tail -n +2 | cut -f 2,3 | sort -k1,1 > {output}.taxmap_sorted.tmp
         else
             # Extract columns 2 and 3 directly
-            cut -f 2,3 {params.taxid_map} | sort -k1,1 > {output}.taxmap_sorted.tmp
+            echo "Extracting columns from taxid map (no header)..." >> {log}
+            $DECOMPRESS {params.taxid_map} | cut -f 2,3 | sort -k1,1 > {output}.taxmap_sorted.tmp
         fi
         
+        TAXMAP_LINES=$(wc -l < {output}.taxmap_sorted.tmp)
+        echo "Taxid map sorted with $TAXMAP_LINES lines" >> {log}
+        
         # 3. Join on first field (accession.version)
+        echo "Joining protein IDs with taxid map..." >> {log}
         join -t $'\\t' -1 1 -2 1 -a 1 -e "NOT_FOUND" -o 1.1,2.2 \
             <(sort -k1,1 {output}.protein_ids_for_join.tmp) \
             {output}.taxmap_sorted.tmp > {output}.id_to_taxid.tmp
+        
+        JOIN_RESULT=$?
+        JOIN_LINES=$(wc -l < {output}.id_to_taxid.tmp 2>/dev/null || echo "0")
+        echo "Join completed with exit code $JOIN_RESULT, found $JOIN_LINES matches" >> {log}
+        
+        if [ $JOIN_RESULT -ne 0 ] || [ "$JOIN_LINES" -eq 0 ]; then
+            echo "WARNING: Join may have failed or found no matches. Creating mapping with NOT_FOUND." >> {log}
+            # Create a mapping file with all NOT_FOUND
+            awk '{{print $1 "\\tNOT_FOUND"}}' {output}.protein_ids.tmp > {output}.id_to_taxid.tmp
+        fi
         
         # 4. Create a mapping file for awk
         awk 'BEGIN {{FS=OFS="\\t"}} {{print $1, $2}}' {output}.id_to_taxid.tmp > {output}.mapping.tmp
         
         # 5. Add taxid column to original file
+        echo "Adding taxid column to original hits..." >> {log}
         awk 'BEGIN {{
             FS=OFS="\\t"
             while (getline < "{output}.mapping.tmp") {{
@@ -91,6 +129,12 @@ rule map_accession_to_taxid:
                 print $0, taxid
             }}
         }}' {input.hit_file} > {output}
+        
+        AWK_RESULT=$?
+        if [ $AWK_RESULT -ne 0 ]; then
+            echo "ERROR: awk failed with exit code $AWK_RESULT" >> {log}
+            exit 1
+        fi
         
         # Cleanup
         rm -f {output}.*.tmp

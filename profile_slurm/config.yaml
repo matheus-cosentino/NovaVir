@@ -82,3 +82,6 @@ set-resources:
     mem_mb: 80000
     threads: 16
   #  slurm_partition: normal
+  map_accession_to_taxid:
+    mem_mb: 60000
+    threads: 12

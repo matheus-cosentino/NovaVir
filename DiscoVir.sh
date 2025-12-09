@@ -252,13 +252,13 @@ setup_resources(){
     fi
 
     if [[ -n "$taxmap" ]]; then
-        if [[ -f "$taxmap" ]]; then
-            echo -e "${blu}[INFO]${nc} Linking Accession Map to resources/taxonomy/..."
-            ln -sf "$taxmap" "$RES_DIR/taxonomy/prot.accession2taxid.gz"
+        # Check if file needs gzipping
+        if [[ "$taxmap" == *.gz ]]; then
+          ln -sf "$taxmap" "$RES_DIR/taxonomy/prot.accession2taxid.gz"
         else
-             echo -e "${red}[ERROR]${nc} Taxmap file not found: $taxmap"
-             exit 1
-        fi
+        # If plain text, create a gzipped version
+        echo -e "${blu}[INFO]${nc} Compressing taxmap file for efficiency..."
+        gzip -c "$taxmap" > "$RES_DIR/taxonomy/prot.accession2taxid.gz"
     fi
 }
 
