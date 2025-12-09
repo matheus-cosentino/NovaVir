@@ -28,7 +28,7 @@
 
 ## Introduction
 
-DiscoVir is a comprehensive and scalable Snakemake workflow for the detection of known viruses within HTS data. The pipeline is designed to work with both short-read (Illumina) and long-read (Nanopore/PacBio) metagenomic and transcriptomic data.
+DiscoVir is a comprehensive and scalable Snakemake workflow for the detection of novel viruses within HTS data. The pipeline is designed to work with both short-read (Illumina) and long-read (Nanopore/PacBio) metagenomic and transcriptomic data.
 
 
 ## Requirements
