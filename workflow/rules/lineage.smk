@@ -37,61 +37,60 @@ rule map_accession_to_taxid:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_map_taxid.log")
     shell:    
         """
-        # 1. Extract unique protein IDs (skip header if present)
-        tail -n +2 {input.hit_file} | cut -f 2 | sort -u > {output}.protein_ids.tmp
-        if [ $? -ne 0 ]; then
-            echo "ERROR: Initial pipe (tail|cut|sort) failed. Check if {input.hit_file} exists." >&2
-            exit 1
-        fi
-        echo "unique prot IDs step done within {output}.protein_ids.tmp" 2>> {log}
+        echo "Starting taxid mapping with join approach..." > {log}
         
-        if [ ! -s {output}.protein_ids.tmp ]; then
-            echo "WARN: DIAMOND file contains no unique hits. Skipping TaxID mapping." 2>> {log}
-            # Adicione o cabeçalho de saída para que a próxima regra possa ser executada
-            echo -e "qseqid\\tsseqid\\tpident\\tlength\\tmismatch\\tgapopen\\tqstart\\tqend\\tsstart\\tsend\\tevalue\\tbitscore\\ttaxid" > {output}
-            exit 0
+        # 1. Extract protein IDs
+        HEADER=$(head -1 {input.hit_file} | grep -c "^qseqid" || echo "0")
+        
+        if [ "$HEADER" -eq 1 ]; then
+            tail -n +2 {input.hit_file} | cut -f 2 | sort -u > {output}.protein_ids.tmp
         else
-            echo "Found unique hits within {input.hit_file}" 2>> {log}
+            cut -f 2 {input.hit_file} | sort -u > {output}.protein_ids.tmp
         fi
-
-        # 2. Try/Catch (zcat || cat) + grep (-)
-        echo "Attempting zcat || cat pipe for TaxID prot2acc" 2>> {log}
         
-        # O pipe completo é envolto em um comando de subshell.
-        ( ( zcat {params.taxid_map} || cat {params.taxid_map} ) | tail -n +2 | grep -Fwf {output}.protein_ids.tmp - > {output}.filtered_map.tmp )
-
-        if [ $? -ne 0 ]; then
-            echo "ERROR: TaxID Map I/O failed (zcat/cat/grep). Check file access/integrity." >&2
-            exit 1
+        # Add tab for joining on second column
+        awk '{{print $1 "\\t"}}' {output}.protein_ids.tmp > {output}.protein_ids_for_join.tmp
+        
+        # 2. Check taxid map and prepare it
+        TAXID_HEADER=$(head -1 {params.taxid_map} | grep -c "^accession" || echo "0")
+        
+        if [ "$TAXID_HEADER" -eq 1 ]; then
+            # Skip header and extract columns 2 (accession.version) and 3 (taxid)
+            tail -n +2 {params.taxid_map} | cut -f 2,3 | sort -k1,1 > {output}.taxmap_sorted.tmp
+        else
+            # Extract columns 2 and 3 directly
+            cut -f 2,3 {params.taxid_map} | sort -k1,1 > {output}.taxmap_sorted.tmp
         fi
-
-        # 3. Adiciona taxid aos hits (AWK - Formato de 3 Colunas NCBI)
+        
+        # 3. Join on first field (accession.version)
+        join -t $'\\t' -1 1 -2 1 -a 1 -e "NOT_FOUND" -o 1.1,2.2 \
+            <(sort -k1,1 {output}.protein_ids_for_join.tmp) \
+            {output}.taxmap_sorted.tmp > {output}.id_to_taxid.tmp
+        
+        # 4. Create a mapping file for awk
+        awk 'BEGIN {{FS=OFS="\\t"}} {{print $1, $2}}' {output}.id_to_taxid.tmp > {output}.mapping.tmp
+        
+        # 5. Add taxid column to original file
         awk 'BEGIN {{
-            # Escape de chaves e tabulação dupla
             FS=OFS="\\t"
-        }}
-        
-        NR==FNR {{
-            taxid = $3 
-            
-            if (taxid != "") {{
-                taxid_map[$1] = taxid
-                taxid_map[$2] = taxid
+            while (getline < "{output}.mapping.tmp") {{
+                taxid_map[$1] = $2
             }}
-            next
         }}
-        
-        FNR==1 {{
-            print $0, "taxid"
-            next
-        }}
-        
         {{
-            protein_id = $2
-            taxid = (protein_id in taxid_map) ? taxid_map[protein_id] : "NOT_FOUND"
-            print $0, taxid
-        }}' {output}.filtered_map.tmp {input.hit_file} > {output} 2>> {log} || (echo "ERROR: awk failed to map taxids." >&2; exit 1)
-       
+            if (NR == 1 && $1 == "qseqid") {{
+                print $0, "taxid"
+            }} else {{
+                protein_id = $2
+                taxid = (protein_id in taxid_map) ? taxid_map[protein_id] : "NOT_FOUND"
+                print $0, taxid
+            }}
+        }}' {input.hit_file} > {output}
+        
+        # Cleanup
+        rm -f {output}.*.tmp
+        
+        echo "Done." >> {log}
         """
 
 
