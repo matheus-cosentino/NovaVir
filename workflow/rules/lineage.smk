@@ -37,6 +37,7 @@ rule map_accession_to_taxid:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_map_taxid.log")
     shell:    
        """
+        
         echo "Starting taxid mapping with join approach..." > {log}
         
         # 1. Extract protein IDs
@@ -54,7 +55,7 @@ rule map_accession_to_taxid:
 
         echo "step of protein ID finished ..." >> {log}
         
-        # Check if we have any protein IDs
+        # Check if we have protein IDs
         PROTEIN_COUNT=$(wc -l < {output}.protein_ids.tmp)
         if [ "$PROTEIN_COUNT" -eq 0 ]; then
             echo "WARNING: No protein IDs found. Creating empty output with header." >> {log}
@@ -65,14 +66,10 @@ rule map_accession_to_taxid:
         # Add tab for joining on second column
         awk '{{print $1 "\\t"}}' {output}.protein_ids.tmp > {output}.protein_ids_for_join.tmp
         
-        # 2. Check if taxid map is gzipped or plain text
-        echo "Checking taxid map format: {params.taxid_map}" >> {log}
-        
-        if file {params.taxid_map} | grep -q "gzip compressed"; then
-            echo "Taxid map is gzipped, using zcat" >> {log}
+        # 2. Check if taxid map is gzipped
+        if [[ {params.taxid_map} == *.gz ]]; then
             DECOMPRESS="zcat"
         else
-            echo "Taxid map is plain text, using cat" >> {log}
             DECOMPRESS="cat"
         fi
         
@@ -93,11 +90,11 @@ rule map_accession_to_taxid:
         TAXMAP_LINES=$(wc -l < {output}.taxmap_sorted.tmp)
         echo "Taxid map sorted with $TAXMAP_LINES lines" >> {log}
         
-        # 3. Join on first field (accession.version)
+        # 4. Join on first field (accession.version)
         echo "Joining protein IDs with taxid map..." >> {log}
         join -t $'\\t' -1 1 -2 1 -a 1 -e "NOT_FOUND" -o 1.1,2.2 \
             <(sort -k1,1 {output}.protein_ids_for_join.tmp) \
-            {output}.taxmap_sorted.tmp > {output}.id_to_taxid.tmp
+            {output}.taxmap_sorted.tmp > {output}.id_to_taxid.tmp 2>> {log}
         
         JOIN_RESULT=$?
         JOIN_LINES=$(wc -l < {output}.id_to_taxid.tmp 2>/dev/null || echo "0")
@@ -109,10 +106,10 @@ rule map_accession_to_taxid:
             awk '{{print $1 "\\tNOT_FOUND"}}' {output}.protein_ids.tmp > {output}.id_to_taxid.tmp
         fi
         
-        # 4. Create a mapping file for awk
+        # 5. Create a mapping file for awk
         awk 'BEGIN {{FS=OFS="\\t"}} {{print $1, $2}}' {output}.id_to_taxid.tmp > {output}.mapping.tmp
         
-        # 5. Add taxid column to original file
+        # 6. Add taxid column to original file
         echo "Adding taxid column to original hits..." >> {log}
         awk 'BEGIN {{
             FS=OFS="\\t"
@@ -128,7 +125,7 @@ rule map_accession_to_taxid:
                 taxid = (protein_id in taxid_map) ? taxid_map[protein_id] : "NOT_FOUND"
                 print $0, taxid
             }}
-        }}' {input.hit_file} > {output}
+        }}' {input.hit_file} > {output} 2>> {log}
         
         AWK_RESULT=$?
         if [ $AWK_RESULT -ne 0 ]; then
@@ -139,8 +136,9 @@ rule map_accession_to_taxid:
         # Cleanup
         rm -f {output}.*.tmp
         
-        echo "Done." >> {log}
-        """
+        echo "Done." >> {log} 
+
+       """
 
 
 ##################################################

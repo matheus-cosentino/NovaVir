@@ -251,17 +251,19 @@ setup_resources(){
         fi
     fi
 
-    if [[ -n "$taxmap" ]]; then
-        # Check if file needs gzipping
-        if [[ "$taxmap" == *.gz ]]; then
-          ln -sf "$taxmap" "$RES_DIR/taxonomy/prot.accession2taxid.gz"
-        else
-        # If plain text, create a gzipped version
-        echo -e "${blu}[INFO]${nc} Compressing taxmap file for efficiency..."
-        cp "$taxmap" "$RES_DIR/taxonomy/prot.accession2taxid"
-        gzip -c prot.accession2taxid > "$RES_DIR/taxonomy/prot.accession2taxid.gz"
-        fi
+   if [[ -n "$taxmap" ]]; then
+    # Check if file is gzipped
+      if [[ "$taxmap" == *.gz ]] || file "$taxmap" | grep -q "gzip compressed"; then
+        echo -e "${blu}[INFO]${nc} Taxmap is gzipped, linking with .gz extension"
+        ln -sf "$taxmap" "$RES_DIR/taxonomy/prot.accession2taxid.gz"
+      else
+        echo -e "${blu}[INFO]${nc} Taxmap is plain text, linking without .gz extension"
+        ln -sf "$taxmap" "$RES_DIR/taxonomy/prot.accession2taxid"
+        # Set the override variable
+        TAXONMAP_OVERRIDE="$RES_DIR/taxonomy/prot.accession2taxid"
+      fi 
     fi
+
 }
 
 
@@ -399,6 +401,10 @@ modules:
   reads_kraken2: $mod_reads_kraken2
   reads_diamond: $mod_reads_diamond
 EOF
+
+if [[ -n "$TAXONMAP_OVERRIDE" ]]; then
+    echo "taxonmap: \"$TAXONMAP_OVERRIDE\"" >> "$run_overrides"
+fi
 
 # --- Workflow Execution Steps ---
 # We pass BOTH config files. Snakemake loads them in order.
