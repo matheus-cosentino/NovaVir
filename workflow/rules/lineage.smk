@@ -27,7 +27,7 @@ rule map_accession_to_taxid:
     input:
         hit_file = os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt")
     output:
-        temp(os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_hits_with_taxid.tmp"))
+        ids = os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_hits_with_taxid.tmp")
     shadow: 
         "minimal" 
     params:
@@ -37,49 +37,8 @@ rule map_accession_to_taxid:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_map_taxid.log")
     shell:    
         """
-        # 1. Extrai IDs únicos (pulando cabeçalho)
-        tail -n +2 {input.hit_file} | cut -f 2 | sort -u > {output}.protein_ids.tmp || (echo "ERROR: Failed to extract protein IDs." >&2; exit 1)
-        
-        # --- Verificação de Arquivo Vazio ---
-        if [ ! -s {output}.protein_ids.tmp ]; then
-            echo -e "qseqid\\tsseqid\\tpident\\tlength\\tmismatch\\tgapopen\\tqstart\\tqend\\tsstart\\tsend\\tevalue\\tbitscore\\ttaxid" > {output}
-            exit 0
-        fi
-        # ------------------------------------
-
-        # 2. Filtra o mapa de taxids. USANDO 'cat' (ASSUMINDO ARQUIVO DESCOMPACTADO)
-        # CORREÇÃO CRÍTICA: Adição do '-' no grep para ler do pipe.
-        zcat {params.taxid_map} | tail -n +2 | grep -Fwf {output}.protein_ids.tmp - > {output}.filtered_map.tmp || (echo "ERROR: zcat/grep failed." >&2; exit 1)
-        
-        # 3. Adiciona taxid aos hits (AWK - Formato de 3 Colunas NCBI)
-        awk 'BEGIN {{
-            FS=OFS="\\t"
-        }}
-        
-        NR==FNR {{
-            # Mapeamento 3 colunas: $1 e $2 como chaves, $3 como TaxID.
-            taxid = $3 
-            
-            if (taxid != "") {{
-                taxid_map[$1] = taxid
-                taxid_map[$2] = taxid
-            }}
-            next
-        }}
-        
-        FNR==1 {{
-            print $0, "taxid"
-            next
-        }}
-        
-        {{
-            protein_id = $2
-            taxid = (protein_id in taxid_map) ? taxid_map[protein_id] : "NOT_FOUND"
-            print $0, taxid
-        }}' {output}.filtered_map.tmp {input.hit_file} > {output} 2>> {log} || (echo "ERROR: awk failed to map taxids." >&2; exit 1)
-        
-        # Cleanup
-        rm {output}.protein_ids.tmp {output}.filtered_map.tmp
+        # Extract unique protein IDs (skip header if present)
+        tail -n +2 {input.hit_file} | cut -f 2 | sort -u > {output.id}
         """
 
 ##################################################
