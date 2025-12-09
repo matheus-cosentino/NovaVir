@@ -36,7 +36,7 @@ rule map_accession_to_taxid:
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_map_acc_prot.log")
     script:
-        "workflow/scripts/map_acc_to_taxid.py"
+        "scripts/map_acc_to_taxid.py"
 
 
 ##################################################
