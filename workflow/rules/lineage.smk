@@ -37,33 +37,41 @@ rule map_accession_to_taxid:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_map_taxid.log")
     shell:
         """
-        # Extract unique protein IDs (skip header if present)
+        # 1. Extrai IDs únicos (pulando o cabeçalho do DIAMOND se presente)
         tail -n +2 {input.hit_file} | cut -f 2 | sort -u > {output}.protein_ids.tmp
         
-        # Filter taxid map and create lookup
-        zcat {params.taxid_map} | grep -Fwf {output}.protein_ids.tmp - > {output}.filtered_map.tmp
+        # 2. Filtra o mapa de taxids
+        # CORREÇÃO: Usando '-' para grep ler o STDIN
+        # ADIÇÃO: Usando tail -n +2 para garantir que o cabeçalho do mapa de taxids seja sempre removido, caso exista
+        zcat {params.taxid_map} | tail -n +2 | grep -Fwf {output}.protein_ids.tmp - > {output}.filtered_map.tmp
         
-        # Add taxid to hits
+        # 3. Adiciona taxid ao arquivo de hits
         awk -F'\\t' -v OFS='\\t' '
         NR==FNR {{
-            # Store both accession and accession.version as keys
-            taxid_map[$1] = $3
-            taxid_map[$2] = $3
+            # Arquivo 1: {output}.filtered_map.tmp
+            # Assume formato: accession, accession.version, taxid
+            
+            taxid = $3
+            
+            # Armazena ambos accession ($1) e accession.version ($2) como chaves
+            taxid_map[$1] = taxid
+            taxid_map[$2] = taxid
             next
         }}
         FNR==1 {{
-            # Print header with added taxid column
+            # Arquivo 2: {input.hit_file} - Imprime o cabeçalho
             print $0, "taxid"
             next
         }}
         {{
+            # Usa o ID da coluna 2 do DIAMOND para fazer a busca
             protein_id = $2
             taxid = (protein_id in taxid_map) ? taxid_map[protein_id] : "NOT_FOUND"
             print $0, taxid
         }}' {output}.filtered_map.tmp {input.hit_file} > {output} 2>> {log}
         
-        # Cleanup
-        rm {output}.protein_ids.tmp {output}.filtered_map.tmp
+        # Limpeza temporariamente desativada para depuração!
+        # rm {output}.protein_ids.tmp {output}.filtered_map.tmp
         """
 
 
