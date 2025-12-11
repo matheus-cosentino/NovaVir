@@ -46,11 +46,11 @@ rule multiqc_report:
     conda:
         MULTIQC
     input:
-        final_outputs = get_final_outputs()
+        final_outputs = get_final_outputs(),
         files = get_multiqc_inputs()
     output:
-        report = os.path.join(OUT_DIR, "{sample}", "multiqc", "multiqc_report.html")
-        data_dir = directory(os.path.join(OUT_DIR, "{sample}", "multiqc"))s
+        report = os.path.join(OUT_DIR, "{sample}", "multiqc", "multiqc_report.html"),
+        data_dir = directory(os.path.join(OUT_DIR, "{sample}", "multiqc"))
     params:
         config_override = "sp: { diamond/log: { fn: '*_diamond.log' } }"
     conda:
