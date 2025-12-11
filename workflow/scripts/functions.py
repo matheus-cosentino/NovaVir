@@ -65,8 +65,8 @@ def get_final_outputs():
         final_outputs.extend(expand("{output_dir}/{sample}/{tool}/{filename}", 
                                     sample=SAMPLE, tool=tool_name, filename=file_name, output_dir=OUT_DIR))
 
-  # 3. Duskmatter
-  if MODULES["duskmatter"]:
+  # 3. darkmatter
+  if MODULES["darkmatter"]:
     assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
     
     for sample, meta in SAMPLE_META.items():
