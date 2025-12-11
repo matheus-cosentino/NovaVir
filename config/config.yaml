@@ -30,7 +30,7 @@ modules:
   assembly: false # Perform de novo assembly for reads (default: false)
   kraken2: false #Perform taxonomic assignment for Kraken2 (default: false)
   diamond: false #Perform taxonomic assignment for Diamond against nr5 for Reads(default: false)
-  duskmatter: false #Perform palm annot identification (default: false)
+  darkmatter: false #Perform palm annot identification (default: false)
   reads_kraken2: true #Perform reads taxonomic identification (default: false)
   reads_diamond: true #Perform reads taxonomic identification (default: false)
 
@@ -144,7 +144,7 @@ kraken_biom:
     #- "S"
     #- "SS"
 
-#  Dusk Matter Search
+#  Dark Matter Search
 palm_annot: 
   seqtype: "aa" 
   minscore: 50

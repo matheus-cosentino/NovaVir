@@ -83,7 +83,7 @@ run_with_spinner() {
 help(){
  echo -e "
  ${green}
- DiscoVir${nc}: Viral Metagenomics & 'Dusk Matter' Discovery
+ DiscoVir${nc}: Viral Metagenomics & 'Dark Matter' Discovery
 
  ${green}Author${nc}: MSc. Matheus Cosentino 
  ${green}Version${nc}: 12.2025
@@ -110,7 +110,7 @@ help(){
    --assembly           Enable De Novo Assembly (Default: False)
    --kraken2            Enable Kraken2 Taxonomy (Default: False)
    --diamond            Enable Diamond Taxonomy (Default: False)
-   --duskmatter         Enable Palm Annot / Dusk Matter (Default: False)
+   --darkmatter         Enable Palm Annot / Dark Matter (Default: False)
    --remove-download    Revome downloaded SRA files (Default: Keep)
    --skip-reads-kraken  Skip Reads Kraken2 ID (Default: Run)
    --skip-reads-diamond Skip Reads Diamond ID (Default: Run)
@@ -321,7 +321,7 @@ mod_keep_download="true"   # lowercase for yaml
 mod_assembly="false"
 mod_kraken2="false"
 mod_diamond="false"
-mod_duskmatter="false"
+mod_darkmatter="false"
 mod_reads_kraken2="true"
 mod_reads_diamond="true"
 
@@ -344,7 +344,7 @@ while [[ $# -gt 0 ]]; do
         --assembly) mod_assembly="true"; shift ;;
         --kraken2) mod_kraken2="true"; shift ;;
         --diamond) mod_diamond="true"; shift ;;
-        --duskmatter) mod_duskmatter="true"; shift ;;
+        --darkmatter) mod_darkmatter="true"; shift ;;
         
         # --- Negative Flags ---
         --remove-download) mod_keep_download="false"; shift ;;
@@ -397,7 +397,7 @@ modules:
   assembly: $mod_assembly
   kraken2: $mod_kraken2
   diamond: $mod_diamond
-  duskmatter: $mod_duskmatter
+  darkmatter: $mod_darkmatter
   reads_kraken2: $mod_reads_kraken2
   reads_diamond: $mod_reads_diamond
 EOF
