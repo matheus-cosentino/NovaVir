@@ -138,7 +138,7 @@ def get_final_outputs():
                     tool=assembler_list
                 ))    
   if any(MODULES(m, True) for m in ["diamond", "reads_diamond", "kraken2", "reads_kraken2"]):
-      final_outputs.extend(os.path.join(OUT_DIR, "multiqc", "multiqc_report.html"))
+      final_outputs.extend(expand("{out_dir}/multiqc/multiqc_report.html"))
 
   return final_outputs
 
