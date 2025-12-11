@@ -25,7 +25,6 @@
 
 DiscoVir is a comprehensive and scalable Snakemake workflow for the detection of novel viruses within HTS data. The pipeline is designed to work with both short-read (Illumina) and long-read (Nanopore/PacBio) metagenomic and transcriptomic data.
 
-
 ## Requirements
 
 ### Conda Installation
@@ -57,41 +56,7 @@ The DiscoVir.sh script is responsible to manage the run, automatically downloadi
 The following must appear within your screen.
 
 ```yaml
-DiscoVir: Viral Metagenomics & 'Dusk Matter' Discovery
 
- Author: MSc. Matheus Cosentino 
- Version: 12.2025
-
- Usage:
-  bash DiscoVir.sh --input <DIR> --output <DIR> [OPTIONS]
-
- Required Arguments:
-   --input <DIR>        Directory containing raw reads (.fastq.gz) or contigs (.fasta)
-   --output <DIR>       Directory where results will be saved
-
- Optional Arguments:
-   --sra <FILE>         Text file containing SRA Accession IDs for download.
-   --jobs <INT>         Number of jobs (default: 15)
-   --profile <STR>      Snakemake profile (default: profile_slurm)
-
- Database Overrides (Use external DBs):
-   --diamond_db <FILE>  External Diamond database (.dmnd).
-   --kraken2 <DIR>      External Kraken2 database directory (Must contain hash.k2d, opts.k2d, taxo.k2d)
-   --taxdump <DIR>      Directory containing nodes.dmp and names.dmp
-   --taxmap <FILE>      Path to prot.accession2taxid.gz
-
- Module Toggles (Enable/Disable Analysis):
-   --assembly           Enable De Novo Assembly (Default: False)
-   --kraken2            Enable Kraken2 Taxonomy (Default: False)
-   --diamond            Enable Diamond Taxonomy (Default: False)
-   --duskmatter         Enable Palm Annot / Dusk Matter (Default: False)
-   --remove-download    Do NOT keep downloaded SRA files (Default: Keep)
-   --skip-reads-kraken  Skip Reads Kraken2 ID (Default: Run)
-   --skip-reads-diamond Skip Reads Diamond ID (Default: Run)
- 
- Flags:
-   -h, --help           Show this help message
-   -v, --version        Show version
 ```
 
 
@@ -134,10 +99,6 @@ SRR25008974
 SRR25008975
 SRR25008976
 SRR25008977
-.
-.
-.
-
 ```
 
 Once librarys of interest are givenn, run the following command to download the files.

@@ -82,6 +82,8 @@ rule diamond_blastx_reads:
             --evalue {params.evalue} \
             --log \
             &> {log}
+          
+        mv diamond.log {output.log}
         """
 
 
