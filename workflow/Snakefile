@@ -142,7 +142,7 @@ include: "rules/reporting.smk"
 ##############################################################
 rule all:
     input: 
-        expand(os.path.join(OUT_DIR, "{sample}", "multiqc", "{sample}_reporting.html"), sample=SAMPLE)
+        expand(os.path.join(OUT_DIR, "multiqc", "multiqc_report.html"))
 
 onsuccess:
     cleanup_downloaded_fastqs()
