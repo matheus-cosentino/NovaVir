@@ -55,9 +55,10 @@ envs:
   kraken2_biom: "envs/kraken2_biom.yaml"
   taxonkit: "envs/taxonkit.yaml"
   download: "envs/download.yaml"
-  scripts: "envs/DiscoVir.yaml"
+  core: "envs/DiscoVir.yaml"
   report: "envs/report.yaml"
   palm_annot: "envs/palm_annot.yaml"
+  multiqc: "envs/multiqc.yaml"
 
 ### databases and resources for the workflow
 resources:

@@ -45,6 +45,7 @@ from scripts.functions import get_sra_layout
 from scripts.functions import get_diamond_db_input
 from scripts.functions import get_diamond_db_name
 from scripts.functions import get_header_check
+from scripts.functions import get_multiqc_inputs
 
 
 ###########################################################
@@ -92,7 +93,8 @@ functions.get_spades_params = get_spades_params
 functions.get_megahit_params = get_megahit_params
 functions.get_sra_layout = get_sra_layout
 functions.get_header_check = get_header_check
- 
+functions.get_multiqc_inputs = get_multiqc_inputs 
+
 ##############################################
 # --- 5. Define Conda Environment Paths --- #
 #############################################
@@ -104,9 +106,11 @@ DIAMOND = workflow.source_path(config["envs"]["diamond"])
 KRAKEN2= workflow.source_path(config["envs"]["kraken2"])
 KRAKEN2_BIOM= workflow.source_path(config["envs"]["kraken2_biom"])
 TAXONKIT = workflow.source_path(config["envs"]["taxonkit"])
-SCRIPTS = workflow.source_path(config["envs"]["scripts"])
+CORE = workflow.source_path(config["envs"]["core"])
 REPORT = workflow.source_path(config["envs"]["report"])
 PALM = workflow.source_path(config["envs"]["palm_annot"])
+MULTIQC = workflow.source_path(config["envs"]["multiqc"])
+
 
 #################################
 # --- 6. Define Parameters --- #
@@ -138,7 +142,7 @@ include: "rules/reporting.smk"
 ##############################################################
 rule all:
     input: 
-        expand(os.path.join(OUT_DIR, "{sample}", "reporting", "{sample}_reporting.html"), sample=SAMPLE)
+        expand(os.path.join(OUT_DIR, "{sample}", "multiqc", "{sample}_reporting.html"), sample=SAMPLE)
 
 onsuccess:
     cleanup_downloaded_fastqs()

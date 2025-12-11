@@ -19,3 +19,5 @@ data/
 paper/
 
 workflow/rules/diamond.smk
+
+#slurm_test

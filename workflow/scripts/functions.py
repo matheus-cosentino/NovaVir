@@ -44,7 +44,7 @@ SINGLE_SRA = []
 ##########################################################
 # --- 2. Function to obtain final outputs per module --- #
 ##########################################################
-## in process
+## list to generate all output
 def get_final_outputs():
   final_outputs = []
 
@@ -139,6 +139,58 @@ def get_final_outputs():
                 ))    
     
   return final_outputs
+
+
+## in process
+# list of all expected inputs of multiqc
+def get_multiqc_inputs(wildcards):
+
+    mqc_inputs = []
+
+    # 1. Fastp (JSON) - Se houver processamento de reads
+    uses_reads = any(m['mode'] in ['PAIRED', 'UNPAIRED', 'SRA'] for m in SAMPLE_META.items())
+    if uses_reads:
+        # Ajuste o caminho abaixo conforme sua regra 'fastp' (ex: trim ou log)
+        mqc_inputs.extend(expand("{out_dir}/{sample}/trimmed/{sample}_{paired}.json", 
+                                 out_dir=OUT_DIR, sample=SAMPLE))
+
+    # 2. Diamond (Contigs)
+    if MODULES("diamond"):
+        assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
+        for sample, meta in SAMPLE_META.items():
+            tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
+            mqc_inputs.extend(expand(
+                "{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_diamond.log",
+                out_dir=OUT_DIR, sample=sample, tool=tools
+            ))
+
+    # 3. Diamond (Reads)
+    if MODULES("reads_diamond"):
+        mqc_inputs.extend(expand(
+            "{out_dir}/{sample}/diamond_reads/{sample}_reads_diamond.log",
+            out_dir=OUT_DIR, sample=SAMPLE
+        ))
+
+    # 4. Kraken2 (Contigs)
+    if MODULES("kraken2"):
+        assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
+        for sample, meta in SAMPLE_META.items():
+            tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
+            # O MultiQC lê o arquivo de 'report' do Kraken (.kreport ou .txt)
+            mqc_inputs.extend(expand(
+                "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_report.txt",
+                out_dir=OUT_DIR, sample=sample, tool=tools
+            ))
+
+    # 5. Kraken2 (Reads)
+    if MODULES("reads_kraken2"):
+        mqc_inputs.extend(expand(
+            "{out_dir}/{sample}/kraken2_reads/{sample}_reads_report.txt",
+            out_dir=OUT_DIR, sample=SAMPLE
+        ))
+
+    return mqc_inputs
+
 
 #############################################################
 # --- 3. Clean Up SRA Downloads after total processing --- #

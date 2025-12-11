@@ -430,6 +430,16 @@ snakemake --profile $profile \
     --configfile "$main_config" "$run_overrides" \
     --keep-going 
 
+echo -e "\n${green}> Snakemake: Creating DAG & Report...${nc}"
+
+snakemake --report --profile $profile \
+    --jobs $jobs \
+    --use-conda \
+    --configfile "$main_config" "$run_overrides" \
+    --keep-going 
+
 echo -e "\n${blu}[INFO]${nc} Deactivating ${ylo}${ENV_NAME}${nc} conda environment."
 conda deactivate
 echo -e "${green}✔ Done.${nc}"
+
+echo -e "\n${green} Thank you for using DiscoVir"
