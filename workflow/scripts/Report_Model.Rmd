@@ -111,7 +111,7 @@ create_and_plot_frequency_chart <- function(data_subset, column_name, kingdom_la
       legend.position = "none"
     )
   
-  print(p)
+  #print(p)
 }
 
 PlotPP <- function(ps){
@@ -442,6 +442,8 @@ write.table(
 
 # plot graphs
 virus_plot <- create_and_plot_frequency_chart(virus_data, "Family", kingdom_label = "Viruses")
+
+virus_plot
 
 output_filename <- file.path(OUTPUT_DIR_ABS,paste0(params$sample_name,"Virus_Classification_Log10.png"))
 
