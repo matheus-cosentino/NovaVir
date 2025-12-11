@@ -45,12 +45,13 @@ rule multiqc_aggregate:
     conda:
         MULTIQC
     input:
-        #final_outputs = get_final_outputs() ,
-        files = [f for s in SAMPLE for f in get_multiqc_inputs(sample=s)]
+        final_outputs = get_final_outputs()
+        #files = [f for s in SAMPLE for f in get_multiqc_inputs(sample=s)]
     output:
         report = os.path.join(OUT_DIR, "multiqc_all", "multiqc_report.html"),
         data_dir = directory(os.path.join(OUT_DIR, "multiqc_all"))
     params:
+        files = [f for s in SAMPLE for f in get_multiqc_inputs(sample=s)],
         config_override = "sp: { diamond/log: { fn: '*_diamond.log' } }",
         extra = "--title 'DiscoVir Aggregate Report'"
     conda:
@@ -67,7 +68,7 @@ rule multiqc_aggregate:
         --filename {output.report} \
         --cl-config "{params.config_override}" \
         {params.extra} \
-        {input.files} > {log} 2>&1 
+        {params.files} > {log} 2>&1 
         """
 
 # --- Rule 2: Per-Sample Report ---
