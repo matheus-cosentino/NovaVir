@@ -38,7 +38,6 @@
 
 
 rule multiqc_report:
-    # Aim: generates a multic report of snakemake run
     message:
         """
         Generate a multiqc report in HTML format 
@@ -62,5 +61,5 @@ rule multiqc_report:
         --quiet \
         --export \
         --outdir {output.data_dir} \
-        --cl-config "{params.config_override}" \
-        {input.files} > {log} 2>&1 
+        --cl-config {params.config_override} \
+        {input.files} > {log} 2>&1 "
