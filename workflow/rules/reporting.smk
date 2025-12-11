@@ -45,8 +45,8 @@ rule multiqc_report:
     conda:
         MULTIQC
     input:
-        final_outputs = get_final_outputs(),
-        files = get_multiqc_inputs()
+        final_outputs = get_final_outputs,
+        files = get_multiqc_inputs
     output:
         report = os.path.join(OUT_DIR, "{sample}", "multiqc", "multiqc_report.html"),
         data_dir = directory(os.path.join(OUT_DIR, "{sample}", "multiqc"))
@@ -57,9 +57,10 @@ rule multiqc_report:
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "multiqc_{sample}.log")
     shell:
-        "multiqc \
+        """
+        multiqc \
         --quiet \
         --export \
         --outdir {output.data_dir} \
-        --cl-config {params.config_override} \
-        {input.files} > {log} 2>&1 "
+        --cl-config "{params.config_override}" \
+        {input.files} > {log} 2>&1 """
