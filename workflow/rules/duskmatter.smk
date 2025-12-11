@@ -31,7 +31,7 @@ rule get_nohit_fasta:
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "duskmatter_{tool}_{sample}_nohits.log")
   conda:
-    SCRIPTS
+    CORE
   script:
     "scripts/filter_nohits.py"
 
