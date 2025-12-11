@@ -45,7 +45,7 @@ rule multiqc_aggregate:
     conda:
         MULTIQC
     input:
-        final_outputs = get_final_outputs() ,
+        #final_outputs = get_final_outputs() ,
         files = [f for s in SAMPLE for f in get_multiqc_inputs(sample=s)]
     output:
         report = os.path.join(OUT_DIR, "multiqc_all", "multiqc_report.html"),
