@@ -77,7 +77,7 @@ rule multiqc_sample:
         MULTIQC
     input:
         # We pass the wildcards object to get inputs ONLY for this sample
-        files = get_multiqc_inputs
+        files = lambda wc: get_multiqc_inputs(wildcards=wc)
     output:
         report = os.path.join(OUT_DIR, "{sample}", "multiqc", "multiqc_report.html"),
         data_dir = directory(os.path.join(OUT_DIR, "{sample}", "multiqc"))

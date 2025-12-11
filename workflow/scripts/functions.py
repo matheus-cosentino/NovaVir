@@ -146,6 +146,8 @@ def get_final_outputs():
 
 ## in process
 # list of all expected inputs of multiqc
+# In workflow/scripts/functions.py
+
 def get_multiqc_inputs(wildcards=None, sample=None):
     """
     Get MultiQC inputs. Can be called with 'wildcards' (for single sample rules)
@@ -159,33 +161,57 @@ def get_multiqc_inputs(wildcards=None, sample=None):
     else:
         raise ValueError("[ERROR] get_multiqc_inputs requires either 'wildcards' or 'sample' argument.")
 
-    inputs = []
-
-    # 2. Collect files (Using .get() to avoid dictionary errors)
-    # Fastp (Always included if fastp ran)
-    inputs.append(os.path.join(OUT_DIR, sample_id, "quality_control", "fastp.json"))
-
-    # Diamond Contigs
-    if MODULES.get("diamond", False):
-         inputs.append(os.path.join(OUT_DIR, sample_id, "diamond", "diamond.log"))
+    mqc_inputs = []
     
-    # Diamond Reads
+    # Retrieve metadata to determine if Paired or Unpaired
+    meta = SAMPLE_META.get(sample_id)
+    if not meta:
+        return [] # Should not happen if sample list is correct
+
+    # Logic: SRA with 2 files OR explicit PAIRED mode = Paired
+    is_paired = (meta['mode'] == 'PAIRED') or (meta['mode'] == 'SRA' and len(meta['files']) == 2)
+    label_reads = "paired" if is_paired else "unpaired" # For Kraken2 reads naming
+    fastp_suffix = "paired" if is_paired else "unp"    # For Fastp naming
+
+    # --- 1. Fastp (JSON) ---
+    # Path: results/{sample}/trimmed/{sample}_{suffix}.json
+    mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "trimmed", f"{sample_id}_{fastp_suffix}.json"))
+
+    # --- 2. Diamond (Reads) ---
     if MODULES.get("reads_diamond", False):
-         inputs.append(os.path.join(OUT_DIR, sample_id, "diamond", "reads_diamond.log"))
+        # Path: results/{sample}/diamond_reads/{sample}_reads_diamond.log
+        mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "diamond_reads", f"{sample_id}_reads_diamond.log"))
 
-    # Kraken2 Contigs
-    if MODULES.get("kraken2", False):
-         inputs.append(os.path.join(OUT_DIR, sample_id, "kraken2", "kraken2.report"))
-    
-    # Kraken2 Reads
+    # --- 3. Kraken2 (Reads) ---
     if MODULES.get("reads_kraken2", False):
-         inputs.append(os.path.join(OUT_DIR, sample_id, "kraken2", "reads_kraken2.report"))
-    
-    # Quast / Assembly (If assembly was requested)
-    if MODULES.get("assembly", False):
-        inputs.append(os.path.join(OUT_DIR, sample_id, "assembly", "quast", "report.tsv"))
+        # Path: results/{sample}/kraken2_reads/{sample}_{label}_reads_report.txt
+        mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "kraken2_reads", f"{sample_id}_{label_reads}_reads_report.txt"))
 
-    return inputs
+    # --- 4. Diamond (Contigs) ---
+    if MODULES.get("diamond", False):
+        assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
+        
+        # If input is already contigs, we use PRE_ASSEMBLED_LABEL
+        tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
+        
+        mqc_inputs.extend(expand(
+            "{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_diamond.log",
+            out_dir=OUT_DIR, sample=sample_id, tool=tools
+        ))
+
+    # --- 5. Kraken2 (Contigs) ---
+    if MODULES.get("kraken2", False):
+        # [cite_start]Rule: kraken2_contigs [cite: 141]
+        assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
+        
+        tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
+        
+        mqc_inputs.extend(expand(
+            "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_report.txt",
+            out_dir=OUT_DIR, sample=sample_id, tool=tools
+        ))
+
+    return mqc_inputs
 
 #############################################################
 # --- 3. Clean Up SRA Downloads after total processing --- #
