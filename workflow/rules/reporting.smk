@@ -82,8 +82,8 @@ rule multiqc_sample:
         report = os.path.join(OUT_DIR, "{sample}", "multiqc", "multiqc_report.html"),
         data_dir = directory(os.path.join(OUT_DIR, "{sample}", "multiqc"))
     params:
-        config_override = "sp: { diamond/log: { fn: '*_diamond.log' } }",
-        extra = "--title 'Report for {wildcards.sample}'"
+        config_override = "sp: {{ diamond/log: {{ fn: '*_diamond.log' }} }}",
+        extra = "--title 'Report for {sample}'"
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "multiqc.log")
     shell:
