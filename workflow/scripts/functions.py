@@ -160,7 +160,7 @@ def get_multiqc_inputs(wildcards):
         for sample, meta in SAMPLE_META.items():
             tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
             mqc_inputs.extend(expand(
-                "{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_diamond.log",
+                "{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_diamond.log",
                 out_dir=OUT_DIR, sample=sample, tool=tools
             ))
 
@@ -178,7 +178,7 @@ def get_multiqc_inputs(wildcards):
             tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
             # O MultiQC lê o arquivo de 'report' do Kraken (.kreport ou .txt)
             mqc_inputs.extend(expand(
-                "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_report.txt",
+                "{out_dir}/{sample}/kraken2_{tool}/{sample}_contigs_report.txt",
                 out_dir=OUT_DIR, sample=sample, tool=tools
             ))
 

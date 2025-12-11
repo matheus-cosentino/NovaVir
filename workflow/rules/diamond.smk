@@ -21,8 +21,8 @@ rule diamond_blastx_contigs:
     input:
       contigs = get_contigs_path
     output:
-      hits="{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_report.txt",
-      log="{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_diamond.log"
+      hits="{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_report.txt",
+      log="{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_diamond.log"
     params:
       #db=f"{workflow.basedir}/{config['resources']['diamond']}",
       db=get_diamond_db_name,
@@ -59,7 +59,7 @@ rule diamond_blastx_reads:
      extra = get_denovo_unpaired
     output:
         hits="{out_dir}/{sample}/diamond_reads/{sample}_reads_report.txt",
-        log="{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_diamond.log"
+        log="{out_dir}/{sample}/diamond_{tool}/{sample}_reads_diamond.log"
     params:
         #db=f"{workflow.basedir}/{config['resources']['diamond']}",
         db= get_diamond_db_name,
