@@ -141,8 +141,12 @@ include: "rules/reporting.smk"
 # --- 8. Obtain the final target & Download Data cleanup --- #
 ##############################################################
 rule all:
-    input: 
-        expand(os.path.join(OUT_DIR, "multiqc", "multiqc_report.html"))
+    input:
+        # 1. The Aggregate Report
+        os.path.join(OUT_DIR, "multiqc", "multiqc_report.html"),
+        
+        # 2. The Per-Sample Reports (Expanded for all samples)
+        expand(os.path.join(OUT_DIR, "{sample}", "multiqc", "multiqc_report.html"), sample=SAMPLE)
 
 onsuccess:
     cleanup_downloaded_fastqs()

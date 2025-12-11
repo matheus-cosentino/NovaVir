@@ -146,54 +146,46 @@ def get_final_outputs():
 
 ## in process
 # list of all expected inputs of multiqc
-def get_multiqc_inputs(wildcards):
+def get_multiqc_inputs(wildcards=None, sample=None):
+    """
+    Get MultiQC inputs. Can be called with 'wildcards' (for single sample rules)
+    or with 'sample' string (for aggregate rules).
+    """
+    # 1. Determine the sample name
+    if wildcards is not None:
+        sample_id = wildcards.sample
+    elif sample is not None:
+        sample_id = sample
+    else:
+        raise ValueError("[ERROR] get_multiqc_inputs requires either 'wildcards' or 'sample' argument.")
 
-    mqc_inputs = []
+    inputs = []
 
-    # 1. Fastp (JSON) - Se houver processamento de reads
-    uses_reads = any(m['mode'] in ['PAIRED', 'UNPAIRED', 'SRA'] for m in SAMPLE_META.items())
-    if uses_reads:
-        # Ajuste o caminho abaixo conforme sua regra 'fastp' (ex: trim ou log)
-        mqc_inputs.extend(expand("{out_dir}/{sample}/trimmed/{sample}_{paired}.json", 
-                                 out_dir=OUT_DIR, sample=SAMPLE))
+    # 2. Collect files (Using .get() to avoid dictionary errors)
+    # Fastp (Always included if fastp ran)
+    inputs.append(os.path.join(OUT_DIR, sample_id, "quality_control", "fastp.json"))
 
-    # 2. Diamond (Contigs)
-    if MODULES("diamond"):
-        assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
-        for sample, meta in SAMPLE_META.items():
-            tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
-            mqc_inputs.extend(expand(
-                "{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_diamond.log",
-                out_dir=OUT_DIR, sample=sample, tool=tools
-            ))
+    # Diamond Contigs
+    if MODULES.get("diamond", False):
+         inputs.append(os.path.join(OUT_DIR, sample_id, "diamond", "diamond.log"))
+    
+    # Diamond Reads
+    if MODULES.get("reads_diamond", False):
+         inputs.append(os.path.join(OUT_DIR, sample_id, "diamond", "reads_diamond.log"))
 
-    # 3. Diamond (Reads)
-    if MODULES("reads_diamond"):
-        mqc_inputs.extend(expand(
-            "{out_dir}/{sample}/diamond_reads/{sample}_reads_diamond.log",
-            out_dir=OUT_DIR, sample=SAMPLE
-        ))
+    # Kraken2 Contigs
+    if MODULES.get("kraken2", False):
+         inputs.append(os.path.join(OUT_DIR, sample_id, "kraken2", "kraken2.report"))
+    
+    # Kraken2 Reads
+    if MODULES.get("reads_kraken2", False):
+         inputs.append(os.path.join(OUT_DIR, sample_id, "kraken2", "reads_kraken2.report"))
+    
+    # Quast / Assembly (If assembly was requested)
+    if MODULES.get("assembly", False):
+        inputs.append(os.path.join(OUT_DIR, sample_id, "assembly", "quast", "report.tsv"))
 
-    # 4. Kraken2 (Contigs)
-    if MODULES("kraken2"):
-        assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
-        for sample, meta in SAMPLE_META.items():
-            tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
-            # O MultiQC lê o arquivo de 'report' do Kraken (.kreport ou .txt)
-            mqc_inputs.extend(expand(
-                "{out_dir}/{sample}/kraken2_{tool}/{sample}_contigs_report.txt",
-                out_dir=OUT_DIR, sample=sample, tool=tools
-            ))
-
-    # 5. Kraken2 (Reads)
-    if MODULES("reads_kraken2"):
-        mqc_inputs.extend(expand(
-            "{out_dir}/{sample}/kraken2_reads/{sample}_reads_report.txt",
-            out_dir=OUT_DIR, sample=SAMPLE
-        ))
-
-    return mqc_inputs
-
+    return inputs
 
 #############################################################
 # --- 3. Clean Up SRA Downloads after total processing --- #

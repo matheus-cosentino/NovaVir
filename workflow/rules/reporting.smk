@@ -37,30 +37,64 @@
 #        "2> {log}"               # Log redirection
 
 
-rule multiqc_report:
+rule multiqc_aggregate:
     message:
         """
-        Generate a multiqc report in HTML format 
+        Generate a multiqc report in HTML format all samples
         """
     conda:
         MULTIQC
     input:
-        final_outputs = get_final_outputs() ,
-        files = get_multiqc_inputs(wildcards={wildcards.sample})
+        files = [f for s in SAMPLE for f in get_multiqc_inputs(sample=s)]
     output:
-        report = os.path.join(OUT_DIR, "multiqc", "multiqc_report.html"),
-        data_dir = directory(os.path.join(OUT_DIR, "multiqc"))
+        report = os.path.join(OUT_DIR, "multiqc_all", "multiqc_report.html"),
+        data_dir = directory(os.path.join(OUT_DIR, "multiqc_all"))
     params:
-        config_override = "sp: { diamond/log: { fn: '*_diamond.log' } }"
+        config_override = "sp: { diamond/log: { fn: '*_diamond.log' } }",
+        extra = "--title 'DiscoVir Aggregate Report'"
     conda:
         MULTIQC    
     log:
-        os.path.join(OUT_DIR, "log", "multiqc.log")
+        os.path.join(OUT_DIR, "log", "multiqc_agregate.log")
     shell:
         """
         multiqc \
         --quiet \
         --export \
+        --force \
         --outdir {output.data_dir} \
+        --filename {output.report} \
         --cl-config "{params.config_override}" \
-        {input.files} > {log} 2>&1 """
+        {params.extra} \
+        {input.files} > {log} 2>&1 
+        """
+
+# --- Rule 2: Per-Sample Report ---
+rule multiqc_sample:
+    message:
+        "Generate MultiQC report for sample: {wildcards.sample}"
+    conda:
+        MULTIQC
+    input:
+        # We pass the wildcards object to get inputs ONLY for this sample
+        files = get_multiqc_inputs
+    output:
+        report = os.path.join(OUT_DIR, "{sample}", "multiqc", "multiqc_report.html"),
+        data_dir = directory(os.path.join(OUT_DIR, "{sample}", "multiqc"))
+    params:
+        config_override = "sp: { diamond/log: { fn: '*_diamond.log' } }",
+        extra = "--title 'Report for {wildcards.sample}'"
+    log:
+        os.path.join(OUT_DIR, "{sample}", "log", "multiqc.log")
+    shell:
+        """
+        multiqc \
+        --quiet \
+        --export \
+        --force \
+        --outdir {output.data_dir} \
+        --filename {output.report} \
+        --cl-config "{params.config_override}" \
+        {params.extra} \
+        {input.files} > {log} 2>&1 
+        """
