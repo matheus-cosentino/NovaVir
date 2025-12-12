@@ -214,7 +214,7 @@ def get_multiqc_inputs(wildcards=None, sample=None):
 # --- 3. Clean Up SRA Downloads after total processing --- #
 ############################################################
 ## ready to test
-def cleanup_downloaded_fastqs():
+def cleanup_downloaded_fastqs(config):
     """
     Delete Fastq Data downloaded from SRA after workflown conclusion,
     unless 'keep_download' is TRUE.

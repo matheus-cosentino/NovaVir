@@ -149,7 +149,7 @@ rule all:
         expand(os.path.join(OUT_DIR, "{sample}", "multiqc", "multiqc_report.html"), sample=SAMPLE)
 
 onsuccess:
-    cleanup_downloaded_fastqs()
+    cleanup_downloaded_fastqs(config)
     print("Workflow finished successfully!")
 
 onerror:
