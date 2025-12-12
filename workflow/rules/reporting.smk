@@ -65,7 +65,7 @@ rule multiqc_aggregate:
         --export \
         --force \
         --outdir {output.data_dir} \
-        --filename {output.report} \
+        --filename multiqc_report.html \
         --cl-config "{params.config_override}" \
         {params.extra} \
         {input.files} > {log} 2>&1 
@@ -95,7 +95,7 @@ rule multiqc_sample:
         --export \
         --force \
         --outdir {output.data_dir} \
-        --filename {output.report} \
+        --filename multiqc_report.html \
         --cl-config "{params.config_override}" \
         {params.extra} \
         {input.files} > {log} 2>&1 
