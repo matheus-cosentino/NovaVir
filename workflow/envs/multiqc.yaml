@@ -1,8 +1,8 @@
 name: multiqc
 channels:
-  - bioconda
   - conda-forge
+  - bioconda
   - nodefaults
 dependencies:
-  - multiqc
-  - python=3.9
+  - multiqc=1.32
+  - pandoc=3.7.0.2
