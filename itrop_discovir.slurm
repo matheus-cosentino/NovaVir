@@ -2,7 +2,7 @@
 #SBATCH --job-name=DiscoVir
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
-#SBATCH --output=DiscoVir_%j.out
+#SBATCH --output=logs_slurm/DiscoVir_%j.out
 
 echo "
 #####M#A#C#C##2#0#2#5###############I#R#D##&##U#F#R#J#####
@@ -14,7 +14,7 @@ echo "
 ##                                                      ##
 #####M#A#C#C##2#0#2#5###############I#R#D##&##U#F#R#J#####
 ## Name ___________________ DiscoVir.slurm              ##
-## Version ________________ v.2025.09                   ##
+## Version ________________ v.2025.12                   ##
 ## Author _________________ Matheus Cosentino           ##
 ## Affiliation ____________ IRD TransVIHMI & UFRJ PGGEN ##
 #####M#A#C#C##2#0#2#5###############I#R#D##&##U#F#R#J#####
