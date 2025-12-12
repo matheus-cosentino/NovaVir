@@ -1,9 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=DiscoVir
-#SBATCH --cpus-per-task=2
-#SBATCH --mem=8G
-#SBATCH --time=120:00:00
-#SBATCH --output=slurm_%j.out
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=4G
+#SBATCH --output=DiscoVir_%j.out
 
 echo "
 #####M#A#C#C##2#0#2#5###############I#R#D##&##U#F#R#J#####
