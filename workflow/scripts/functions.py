@@ -176,8 +176,8 @@ def get_multiqc_inputs(wildcards=None, sample=None):
 
     # --- 2. Diamond (Reads) ---
     if MODULES.get("reads_diamond", False):
-        # Path: results/{sample}/diamond_reads/{sample}_reads_diamond.log
-        mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "diamond_reads", f"{sample_id}_reads_diamond.log"))
+        # Path: results/{sample}/diamond_reads/diamond.log
+        mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "diamond_reads", "diamond.log"))
 
     # --- 3. Kraken2 (Reads) ---
     if MODULES.get("reads_kraken2", False):
@@ -192,7 +192,7 @@ def get_multiqc_inputs(wildcards=None, sample=None):
         tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
         
         mqc_inputs.extend(expand(
-            "{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_diamond.log",
+            "{out_dir}/{sample}/diamond_{tool}/diamond.log",
             out_dir=OUT_DIR, sample=sample_id, tool=tools
         ))
 
