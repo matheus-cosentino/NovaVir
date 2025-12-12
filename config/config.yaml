@@ -88,11 +88,11 @@ resources:
 # QC
 fastp:
   length_required: 
-    #- 15 #illlumina adapters expected
-    - 500 #nanopore conservative size for low reads
+    - 15 #illlumina adapters expected
+    #- 500 #nanopore conservative size for low reads
   qualified_quality_phred: 
-    #- 30 #illumina paired end
-    - 10 #long read
+    - 30 #illumina paired end
+    #- 10 #long read
   
 # De Novo Assembly for Illumina reads
 spades:
@@ -101,7 +101,7 @@ spades:
   #algorithm: "--meta" #high resources and identification of low coverage/presence virus
 
 #De novo for long reads assembly data
-flye: 
+#flye: 
   #type: "pacbio-raw" #PacBio regular CLR reads (<20% error)
   #type: "pacbio-corr" #PacBio reads that were corrected with other methods (<3% error)
   #type: "pacbio-hifi" #PacBio HiFi reads (<1% error)
