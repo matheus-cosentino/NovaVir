@@ -17,7 +17,7 @@
 
 rule diamond_blastx_contigs:
   wildcard_constraints:
-    tool = "^(?!reads$).*"
+    tool = "spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
   input:
     contigs = get_contigs_path
   output:
