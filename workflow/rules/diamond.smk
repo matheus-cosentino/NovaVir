@@ -33,7 +33,8 @@ rule diamond_blastx_contigs:
     max_target_seqs=config["diamond"]["max_target_seqs"],
     evalue=config["diamond"]["evalue"]
   log:
-    "{out_dir}/{sample}/log/diamond_{tool}_{sample}.log"
+    os.path.join(OUT_DIR, "{sample}", "log", "diamond_{tool}_{sample}.log")
+    #"{out_dir}/{sample}/log/diamond_{tool}_{sample}.log"
   conda:
     DIAMOND
   shell:
@@ -61,8 +62,10 @@ rule diamond_blastx_reads:
     r2 = get_denovo_r2,
     extra = get_denovo_unpaired
   output:
-    hits="{out_dir}/{sample}/diamond_reads/{sample}_reads_report.txt",
-    log="{out_dir}/{sample}/diamond_reads/diamond.log"
+    hits = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads_report.txt"),
+    log  = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "diamond.log")
+    #hits="{out_dir}/{sample}/diamond_reads/{sample}_reads_report.txt",
+    #log="{out_dir}/{sample}/diamond_reads/diamond.log"
   params:
     #db=f"{workflow.basedir}/{config['resources']['diamond']}",
     db= get_diamond_db_name,
@@ -70,7 +73,8 @@ rule diamond_blastx_reads:
     max_target_seqs=config["diamond"]["max_target_seqs"],
     evalue=config["diamond"]["evalue"]
   log:
-    "{out_dir}/{sample}/log/diamond_reads_{sample}.log"
+    os.path.join(OUT_DIR, "{sample}", "log", "diamond_reads_{sample}.log")
+    #"{out_dir}/{sample}/log/diamond_reads_{sample}.log"
   conda:
     DIAMOND
   shell:
