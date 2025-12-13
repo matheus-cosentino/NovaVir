@@ -43,7 +43,7 @@ rule spades:
 
         spades.py \
             {params.extra} \
-            --threads {threads} \
+            --threads {reources.threads} \
             --memory $mem_gb \
             {params.input_args} \
             -o {params.outdir} \
