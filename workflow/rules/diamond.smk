@@ -16,75 +16,77 @@
 ###################################################################################
 
 rule diamond_blastx_contigs:
-    wildcard_constraints:
-      tool="^(?!reads$).*$"
-    input:
-      contigs = get_contigs_path
-    output:
-      hits="{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_report.txt",
-      log="{out_dir}/{sample}/diamond_{tool}/diamond.log"
-    params:
-      #db=f"{workflow.basedir}/{config['resources']['diamond']}",
-      tool = config["tool"]["denovo"],
-      db=get_diamond_db_name,
-      outfmt=config["diamond"]["outfmt"],
-      max_target_seqs=config["diamond"]["max_target_seqs"],
-      evalue=config["diamond"]["evalue"]
-    log:
-      "{out_dir}/{sample}/log/diamond_{tool}_{sample}.log"
-    conda:
-      DIAMOND
-    shell:
-        """
-        diamond blastx \
-            --query {input.contigs} \
-            --db resources/diamond/{params.db} \
-            --out {output.hits} \
-            --threads {resources.threads} \
-            --outfmt {params.outfmt} \
-            --max-target-seqs {params.max_target_seqs} \
-            --evalue {params.evalue} \
-            --log \
-            &> {log}
+  wildcard_constraints:
+    tool="^(?!reads$).*$"
+  input:
+    contigs = get_contigs_path
+  output:
+    #hits="{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_report.txt",
+    #log="{out_dir}/{sample}/diamond_{tool}/diamond.log"
+    hits = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
+    log  = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "diamond.log")
+  params:
+    #db=f"{workflow.basedir}/{config['resources']['diamond']}",
+    tool = config["tool"]["denovo"],
+    db=get_diamond_db_name,
+    outfmt=config["diamond"]["outfmt"],
+    max_target_seqs=config["diamond"]["max_target_seqs"],
+    evalue=config["diamond"]["evalue"]
+  log:
+    "{out_dir}/{sample}/log/diamond_{tool}_{sample}.log"
+  conda:
+    DIAMOND
+  shell:
+    """
+    diamond blastx \
+    --query {input.contigs} \
+    --db resources/diamond/{params.db} \
+    --out {output.hits} \
+    --threads {resources.threads} \
+    --outfmt {params.outfmt} \
+    --max-target-seqs {params.max_target_seqs} \
+    --evalue {params.evalue} \
+    --log \
+    &> {log}
 
-        mv diamond.log {output.log}
+    mv diamond.log {output.log}
   
-        """
+    """
 
 
 
 rule diamond_blastx_reads:
-    input:
-     r1 = get_denovo_r1,
-     r2 = get_denovo_r2,
-     extra = get_denovo_unpaired
-    output:
-        hits="{out_dir}/{sample}/diamond_reads/{sample}_reads_report.txt",
-        log="{out_dir}/{sample}/diamond_reads/diamond.log"
-    params:
-        #db=f"{workflow.basedir}/{config['resources']['diamond']}",
-        db= get_diamond_db_name,
-        outfmt=config["diamond"]["outfmt"],
-        max_target_seqs=config["diamond"]["max_target_seqs"],
-        evalue=config["diamond"]["evalue"]
-    log:
-        "{out_dir}/{sample}/log/diamond_reads_{sample}.log"
-    conda:
-        DIAMOND
-    shell:
-        """
-        diamond blastx \
-            --query {input.r1} {input.r2} {input.extra} \
-            --db resources/diamond/{params.db} \
-            --out {output.hits} \
-            --threads {resources.threads} \
-            --outfmt {params.outfmt} \
-            --max-target-seqs {params.max_target_seqs} \
-            --evalue {params.evalue} \
-            --log \
-            &> {log}
+  input:
+    r1 = get_denovo_r1,
+    r2 = get_denovo_r2,
+    extra = get_denovo_unpaired
+  output:
+    hits="{out_dir}/{sample}/diamond_reads/{sample}_reads_report.txt",
+    log="{out_dir}/{sample}/diamond_reads/diamond.log"
+  params:
+    #db=f"{workflow.basedir}/{config['resources']['diamond']}",
+    db= get_diamond_db_name,
+    outfmt=config["diamond"]["outfmt"],
+    max_target_seqs=config["diamond"]["max_target_seqs"],
+    evalue=config["diamond"]["evalue"]
+  log:
+    "{out_dir}/{sample}/log/diamond_reads_{sample}.log"
+  conda:
+    DIAMOND
+  shell:
+    """
+    diamond blastx \
+      --query {input.r1} {input.r2} {input.extra} \
+      --db resources/diamond/{params.db} \
+      --out {output.hits} \
+      --threads {resources.threads} \
+      --outfmt {params.outfmt} \
+      --max-target-seqs {params.max_target_seqs} \
+      --evalue {params.evalue} \
+      --log \
+      &> {log}
           
-        mv diamond.log {output.log}
-        """
+    mv diamond.log {output.log}
+    """
 
 
