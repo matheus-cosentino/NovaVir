@@ -59,6 +59,7 @@ envs:
   report: "envs/report.yaml"
   palm_annot: "envs/palm_annot.yaml"
   multiqc: "envs/multiqc.yaml"
+  spades: "envs/spades.yaml"
 
 ### databases and resources for the workflow
 resources:

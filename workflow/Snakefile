@@ -110,7 +110,7 @@ CORE = workflow.source_path(config["envs"]["core"])
 REPORT = workflow.source_path(config["envs"]["report"])
 PALM = workflow.source_path(config["envs"]["palm_annot"])
 MULTIQC = workflow.source_path(config["envs"]["multiqc"])
-
+SPADES = workflow.source_path(config["envs"]["spades"])
 
 #################################
 # --- 6. Define Parameters --- #
