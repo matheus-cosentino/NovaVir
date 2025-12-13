@@ -66,6 +66,7 @@ rule diamond_blastx_reads:
     hits = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads_report.txt"),
     log  = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "diamond.log")
   params:
+    seqs = temp(os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads.fastq.gz")),
     db = get_diamond_db_name,
     outfmt = config["diamond"]["outfmt"],
     max_target_seqs = config["diamond"]["max_target_seqs"],
@@ -76,8 +77,10 @@ rule diamond_blastx_reads:
     DIAMOND
   shell:
     """
+    cat {input.r1} {input.r2} {input.extra} > {params.seqs}
+
     diamond blastx \
-      --query {input.r1} {input.r2} {input.extra} \
+      --query {params.seqs} \
       --db resources/diamond/{params.db} \
       --out {output.hits} \
       --threads {resources.threads} \
