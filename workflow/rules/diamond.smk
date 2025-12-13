@@ -23,22 +23,20 @@
 ###################################################################################
 
 rule diamond_blastx_contigs:
-  #wildcard_constraints:
-    #tool="^(?!reads$).*$"
   input:
     contigs = get_contigs_path
   output:
-    hits = os.path.join(OUT_DIR, "{sample}", "diamond_contigs", "{sample}_contigs_report.txt"),
-    log  = os.path.join(OUT_DIR, "{sample}", "diamond_contigs", "diamond.log")
+    # FIXED: Replaced "contigs" with "{tool}" to match downstream expectations
+    hits = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
+    log  = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "diamond.log")
   params:
-    #tool = config["tool"]["denovo"],
     db = get_diamond_db_name,
     outfmt = config["diamond"]["outfmt"],
     max_target_seqs = config["diamond"]["max_target_seqs"],
     evalue = config["diamond"]["evalue"]
   log:
-    # This log uses {tool}, so output MUST also use {tool}
-    os.path.join(OUT_DIR, "{sample}", "log", "diamond_contigs_{sample}.log")
+    # FIXED: Log path now also matches the {tool} wildcard
+    os.path.join(OUT_DIR, "{sample}", "log", "diamond_{tool}_{sample}.log")
   conda:
     DIAMOND
   shell:
