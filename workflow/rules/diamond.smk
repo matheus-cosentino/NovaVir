@@ -23,7 +23,7 @@
 ###################################################################################
 
 rule diamond_blastx_contigs:
-  #wildcard_constraints:
+    #wildcard_constraints:
     #tool = "^(?!reads$).*"
   input:
     contigs = get_contigs_path
@@ -66,7 +66,7 @@ rule diamond_blastx_reads:
     hits = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads_report.txt"),
     log  = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "diamond.log")
   params:
-    seqs = temp(os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads.fastq.gz")),
+    seqs = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads.fastq.gz"),
     db = get_diamond_db_name,
     outfmt = config["diamond"]["outfmt"],
     max_target_seqs = config["diamond"]["max_target_seqs"],
@@ -89,6 +89,7 @@ rule diamond_blastx_reads:
       --evalue {params.evalue} \
       --log \
       &> {log}
-          
+
+    rm -rf {params.seqs}      
     mv diamond.log {output.log}
     """
