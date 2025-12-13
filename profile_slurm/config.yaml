@@ -38,8 +38,8 @@ show-failed-logs: True
 ######################################
 
 default-resources:
-#  slurm_account: transvihmi
-#  slurm_partition: short
+  slurm_account: transvihmi
+  slurm_partition: short
   tmpdir: /scratch
   threads: 2
   mem_mb: 8000
