@@ -23,11 +23,11 @@ rule diamond_blastx_contigs:
   output:
     #hits="{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_report.txt",
     #log="{out_dir}/{sample}/diamond_{tool}/diamond.log"
-    hits = os.path.join(OUT_DIR, "{sample}", "diamond_contigs", "{sample}_{tool}_report.txt"),
+    hits = os.path.join(OUT_DIR, "{sample}", "diamond_contigs", "{sample}_contigs_report.txt"),
     log  = os.path.join(OUT_DIR, "{sample}", "diamond_contigs", "diamond.log")
   params:
     #db=f"{workflow.basedir}/{config['resources']['diamond']}",
-    tool = config["tool"]["denovo"],
+    #tool = config["tool"]["denovo"],
     db=get_diamond_db_name,
     outfmt=config["diamond"]["outfmt"],
     max_target_seqs=config["diamond"]["max_target_seqs"],
