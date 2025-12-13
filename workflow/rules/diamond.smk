@@ -23,7 +23,7 @@ rule diamond_blastx_contigs:
   output:
     #hits="{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_report.txt",
     #log="{out_dir}/{sample}/diamond_{tool}/diamond.log"
-    hits = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
+    hits = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_contigs_report.txt"),
     log  = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "diamond.log")
   params:
     #db=f"{workflow.basedir}/{config['resources']['diamond']}",
