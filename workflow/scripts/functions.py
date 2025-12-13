@@ -447,30 +447,26 @@ def get_input_unp(wildcards):
 def get_contigs_path(wildcards):
     """
     Determines input file based on the wildcard label.
+    FIX: Uses os.path.join to ensure path consistency with Snakemake rules.
     """
     tool_name = wildcards.tool
     sample = wildcards.sample
     meta = SAMPLE_META.get(sample)
     
-    # Safety Check
     if not meta:
         raise ValueError(f"Metadata missing for {sample}")
 
-    # PATH A: The wildcard indicates pre-assembled data
     if tool_name == PRE_ASSEMBLED_LABEL:
         if meta['mode'] != 'CONTIGS':
             raise ValueError(f"Sample '{sample}' is marked as {meta['mode']}, but '{PRE_ASSEMBLED_LABEL}' was requested.")
-        # Return the original file path from data/ folder
         return meta['files'][0]
 
-    # PATH B: The wildcard is a real assembler (spades, flye, etc.)
     else:
         filename = TOOL_OUTPUT_MAP.get(tool_name)
         if not filename:
             raise ValueError(f"Tool '{tool_name}' not recognized in TOOL_OUTPUT_MAP.")
             
-        # Return the assembly result path
-        return f"{OUT_DIR}/{sample}/{tool_name}/{filename}"
+        return os.path.join(OUT_DIR, sample, tool_name, filename)
 
 
 #####################################################
