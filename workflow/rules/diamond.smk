@@ -15,26 +15,30 @@
 #                              version: 12.2025                                   #
 ###################################################################################
 
+###################################################################################
+#                       workflow/rules/diamond.smk                                #
+#                         MSc. Matheus Cosentino                                  # 
+###################################################################################
+#                              version: 12.2025                                   #
+###################################################################################
+
 rule diamond_blastx_contigs:
   wildcard_constraints:
-    #tool="^(?!reads$).*$"
+    tool="^(?!reads$).*$"
   input:
     contigs = get_contigs_path
   output:
-    #hits="{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_report.txt",
-    #log="{out_dir}/{sample}/diamond_{tool}/diamond.log"
-    hits = os.path.join(OUT_DIR, "{sample}", "diamond_contigs", "{sample}_contigs_report.txt"),
-    log  = os.path.join(OUT_DIR, "{sample}", "diamond_contigs", "diamond.log")
+    hits = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
+    log  = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "diamond.log")
   params:
-    #db=f"{workflow.basedir}/{config['resources']['diamond']}",
-    #tool = config["tool"]["denovo"],
-    db=get_diamond_db_name,
-    outfmt=config["diamond"]["outfmt"],
-    max_target_seqs=config["diamond"]["max_target_seqs"],
-    evalue=config["diamond"]["evalue"]
+    tool = config["tool"]["denovo"],
+    db = get_diamond_db_name,
+    outfmt = config["diamond"]["outfmt"],
+    max_target_seqs = config["diamond"]["max_target_seqs"],
+    evalue = config["diamond"]["evalue"]
   log:
+    # This log uses {tool}, so output MUST also use {tool}
     os.path.join(OUT_DIR, "{sample}", "log", "diamond_{tool}_{sample}.log")
-    #"{out_dir}/{sample}/log/diamond_{tool}_{sample}.log"
   conda:
     DIAMOND
   shell:
@@ -51,10 +55,7 @@ rule diamond_blastx_contigs:
     &> {log}
 
     mv diamond.log {output.log}
-  
     """
-
-
 
 rule diamond_blastx_reads:
   input:
@@ -64,17 +65,13 @@ rule diamond_blastx_reads:
   output:
     hits = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads_report.txt"),
     log  = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "diamond.log")
-    #hits="{out_dir}/{sample}/diamond_reads/{sample}_reads_report.txt",
-    #log="{out_dir}/{sample}/diamond_reads/diamond.log"
   params:
-    #db=f"{workflow.basedir}/{config['resources']['diamond']}",
-    db= get_diamond_db_name,
-    outfmt=config["diamond"]["outfmt"],
-    max_target_seqs=config["diamond"]["max_target_seqs"],
-    evalue=config["diamond"]["evalue"]
+    db = get_diamond_db_name,
+    outfmt = config["diamond"]["outfmt"],
+    max_target_seqs = config["diamond"]["max_target_seqs"],
+    evalue = config["diamond"]["evalue"]
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "diamond_reads_{sample}.log")
-    #"{out_dir}/{sample}/log/diamond_reads_{sample}.log"
   conda:
     DIAMOND
   shell:
@@ -92,5 +89,3 @@ rule diamond_blastx_reads:
           
     mv diamond.log {output.log}
     """
-
-
