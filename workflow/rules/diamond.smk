@@ -28,8 +28,8 @@ rule diamond_blastx_contigs:
   input:
     contigs = get_contigs_path
   output:
-    hits = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
-    log  = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "diamond.log")
+    hits = os.path.join(OUT_DIR, "{sample}", "diamond_contigs", "{sample}_{tool}_report.txt"),
+    log  = os.path.join(OUT_DIR, "{sample}", "diamond_contigs", "diamond.log")
   params:
     tool = config["tool"]["denovo"],
     db = get_diamond_db_name,
