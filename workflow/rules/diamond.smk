@@ -21,7 +21,7 @@ rule diamond_blastx_contigs:
     input:
       contigs = get_contigs_path
     output:
-      hits="{out_dir}/{sample}/diamond_{tool}/{sample}_contigs_report.txt",
+      hits="{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_report.txt",
       log="{out_dir}/{sample}/diamond_{tool}/diamond.log"
     params:
       #db=f"{workflow.basedir}/{config['resources']['diamond']}",
@@ -31,7 +31,7 @@ rule diamond_blastx_contigs:
       max_target_seqs=config["diamond"]["max_target_seqs"],
       evalue=config["diamond"]["evalue"]
     log:
-      "{out_dir}/{sample}/log/diamond_contigs_{tool}_{sample}.log"
+      "{out_dir}/{sample}/log/diamond_{tool}_{sample}.log"
     conda:
       DIAMOND
     shell:
