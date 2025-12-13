@@ -33,7 +33,7 @@ rule spades:
         input_args = get_spades_params,
         extra = config["spades"]["algorithm"]
     conda:
-        SPADES
+        SPADES_ENV
     shadow:
         "minimal"
     shell:
