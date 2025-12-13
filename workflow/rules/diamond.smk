@@ -23,8 +23,8 @@
 ###################################################################################
 
 rule diamond_blastx_contigs:
-    #wildcard_constraints:
-    #tool = "^(?!reads$).*"
+  wildcard_constraints:
+    tool = "^(?!reads$).*"
   input:
     contigs = get_contigs_path
   output:
