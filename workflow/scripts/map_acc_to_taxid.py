@@ -59,12 +59,12 @@ def build_taxid_map(taxid_path):
             try:
                 first_line = next(reader)
                 # Verifica se a primeira linha é o cabeçalho padrão (e.g., 'accession.version')
-                if first_line and len(first_line) >= 3 and first_line[1] == 'accession.version':
+                if first_line and len(first_line) >= 2 and first_line[0] == 'accession.version':
                     logging.info("TaxID Map: Header detectado e pulado.")
                 else:
                     # Se não for header, processamos essa linha
-                    if len(first_line) >= 3:
-                        taxid_map[first_line[1]] = first_line[2]
+                    if len(first_line) >= 2:
+                        taxid_map[first_line[0]] = first_line[1]
             except StopIteration:
                  logging.warning("TaxID Map: Arquivo vazio.")
                  return taxid_map
@@ -74,9 +74,9 @@ def build_taxid_map(taxid_path):
 
             # Processa o resto do arquivo
             for row in reader:
-                if len(row) >= 3:
+                if len(row) >= 2:
                     # Mapeia accession.version (col 2) -> taxid (col 3)
-                    taxid_map[row[1]] = row[2]
+                    taxid_map[row[0]] = row[1]
         
         logging.info(f"Mapa de TaxID construído com {len(taxid_map)} entradas.")
         return taxid_map
