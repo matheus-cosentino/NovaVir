@@ -111,7 +111,7 @@ try:
 
             # Lógica de processamento de dados (Subject ID é a coluna 2, índice 1)
             if len(row) >= 2:
-                protein_id = row[2]
+                protein_id = row[1]
                 
                 # Procura no mapa, se não encontrar, usa 'NOT_FOUND'.
                 taxid = taxid_map.get(protein_id, "NOT_FOUND")
