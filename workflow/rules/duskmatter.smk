@@ -33,7 +33,7 @@ rule get_nohit_fasta:
   conda:
     CORE
   script:
-    "scripts/filter_nohits.py"
+    "../scripts/filter_nohits.py"
 
 
 #################################################
@@ -111,7 +111,7 @@ rule palm_annot:
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "duskmatter_{tool}_{sample}_palmannot.log")  
   script:
-    "scripts/palm_annot_run.py"
+    "../scripts/palm_annot_run.py"
   
 ##################################
 # --- 5. Convert FEV to TSV --- #
@@ -129,7 +129,7 @@ rule fev2tsv_single:
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "duskmatter_{tool}_{sample}_fev2tsv.log")
   script:
-    "scripts/fev2tsv_run.py"
+    "../scripts/fev2tsv_run.py"
 
 ##############################################
 # --- 6. Summarize Dusk Matter Findings --- #
