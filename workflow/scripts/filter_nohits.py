@@ -19,21 +19,22 @@ def main():
         sys.exit(1)
 
     # Configure logging to stderr (which snakemake redirects to the log file)
-    print(f"Starting sample {sample_name}: filtering no-hit sequences", file=sys.stderr)
+    print(f"Starting sample {sample_name}: filtering sequences with taxonomic hits", file=sys.stderr)
     print(f"  Log file: {log_file}", file=sys.stderr)
     print(f"  Input FASTA: {fasta_file}", file=sys.stderr)
     print(f"  DIAMOND results: {blast_file}", file=sys.stderr)
     print(f"  Output FASTA: {output_file}", file=sys.stderr)
  
-    # Read BLAST hits
-    ids_with_hits = set()
+    # Identify sequence IDs that have a 'proper' taxonomic hit and should be excluded.
+    ids_to_exclude = set()
     try:
         with open(blast_file, 'r') as f:
             for line_num, line in enumerate(f, 1):
                 if line.strip():
                     parts = line.split('\t')
-                    if parts:  # Ensure line has content
-                        ids_with_hits.add(parts[0])
+                    # Exclude if there's a hit and it's not a 'NOT_FOUND' hit
+                    if len(parts) > 1 and "NOT_FOUND" not in parts[1]:
+                        ids_to_exclude.add(parts[0])
     except FileNotFoundError:
         print(f"ERROR: DIAMOND hits file not found at {blast_file}", file=sys.stderr)
         sys.exit(1)
@@ -41,10 +42,11 @@ def main():
         print(f"ERROR reading DIAMOND file {blast_file}: {e}", file=sys.stderr)
         sys.exit(1)
     
-    print(f"Found {len(ids_with_hits)} unique sequences with hits", file=sys.stderr)
+    print(f"Found {len(ids_to_exclude)} unique sequences with taxonomic hits to be excluded.", file=sys.stderr)
     
-    # Process and write sequences in one pass
-    count_no_hits = 0
+    # Process FASTA file: keep sequences that are not in the exclusion list.
+    # This includes sequences with no hits at all, or hits to 'NOT_FOUND'.
+    count_kept = 0
     count_total = 0
     
     try:
@@ -58,8 +60,8 @@ def main():
         with open_func(fasta_file, read_mode) as fasta_handle, open(output_file, 'w') as output_handle:
             for record in SeqIO.parse(fasta_handle, "fasta"):
                 count_total += 1
-                if record.id not in ids_with_hits:
-                    count_no_hits += 1
+                if record.id not in ids_to_exclude:
+                    count_kept += 1
                     SeqIO.write(record, output_handle, "fasta")
                     
     except FileNotFoundError:
@@ -71,7 +73,8 @@ def main():
     
     # Summary statistics
     print(f"Processed {count_total} total sequences", file=sys.stderr)
-    print(f"Saved {count_no_hits} sequences with no hits ({count_no_hits/max(1,count_total)*100:.1f}%)", file=sys.stderr)
+    percent_kept = (count_kept / count_total * 100) if count_total > 0 else 0
+    print(f"Saved {count_kept} sequences with no taxonomic hit ({percent_kept:.1f}%)", file=sys.stderr)
     print(f"Output written to: {output_file}", file=sys.stderr)
     print("Filtering complete.", file=sys.stderr)
 
