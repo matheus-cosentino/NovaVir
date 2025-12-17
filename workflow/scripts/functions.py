@@ -81,7 +81,7 @@ def get_final_outputs():
   if MODULES["reads_diamond"]:
     # CORREÇÃO: sample=SAMPLE
     final_outputs.extend(expand(
-                    "{out_dir}/{sample}/basta_reads/{sample}_lca.tsv"",
+                    "{out_dir}/{sample}/basta_reads/{sample}_lca.tsv",
                     out_dir=OUT_DIR,
                     sample=SAMPLE))
 
