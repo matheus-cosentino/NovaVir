@@ -31,5 +31,8 @@ source /usr/local/bioinfo/Miniforge3-24.9.2-0/etc/profile.d/conda.sh
 # This tells Snakemake to run everything inside our unique temp directory
 #bash DiscoVir.sh --input data --output results --diamond_db /share/banks/diamond/nr/21-09/diamond_nr.dmnd --taxdump /share/banks/taxdump --taxmap /databases/banks/ncbi/taxonomy/accession2taxid/prot.accession2taxid.FULL  --skip-reads-kraken --sra accessions.txt
  
-bash DiscoVir.sh --input data --output results  --skip-reads-kraken --skip-reads-diamond --assembly --diamond --darkmatter --taxdump /share/banks/taxdump --taxmap /scratch-ib/cosentino/discovir/resources/database/prot.accession2taxid.gz
+bash DiscoVir.sh --input data --output results  --skip-reads-kraken --skip-reads-diamond --assembly --diamond --darkmatter --taxdump /share/banks/taxdump 
+
+
+#--taxmap /scratch-ib/cosentino/discovir/resources/database/prot.accession2taxid.gz
  
