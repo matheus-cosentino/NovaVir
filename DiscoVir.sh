@@ -406,7 +406,7 @@ EOF
 if [[ -n "$TAXONMAP_OVERRIDE" ]]; then
     cat <<EOF >> "$run_overrides"
 resources:
-  taxonmap: "$TAXONMAP_OVERRIDE"
+  taxonmap: ["$TAXONMAP_OVERRIDE"]
 EOF
 fi
 
