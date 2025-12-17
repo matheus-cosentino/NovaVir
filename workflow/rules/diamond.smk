@@ -21,7 +21,6 @@ rule diamond_blastx_contigs:
   input:
     contigs = get_contigs_path
   output:
-    # FIXED: Replaced "contigs" with "{tool}" to match downstream expectations
     hits = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
     log  = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "diamond.log")
   params:

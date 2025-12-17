@@ -81,7 +81,7 @@ def get_final_outputs():
   if MODULES["reads_diamond"]:
     # CORREÇÃO: sample=SAMPLE
     final_outputs.extend(expand(
-                    "{out_dir}/{sample}/diamond_reads/{sample}_reads_hits_with_lineage.tsv",
+                    "{out_dir}/{sample}/basta_reads/{sample}_lca.tsv"",
                     out_dir=OUT_DIR,
                     sample=SAMPLE))
 
@@ -125,18 +125,18 @@ def get_final_outputs():
         for sample, meta in SAMPLE_META.items():
             if meta['mode'] == 'CONTIGS':
                 final_outputs.extend(expand(
-                    "{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_hits_with_lineage.tsv",
+                    "{out_dir}/{sample}/basta_{tool}/{sample}_{tool}_lca.tsv"",
                     out_dir=OUT_DIR,
                     sample=sample,
                     tool=PRE_ASSEMBLED_LABEL 
                 ))
             else:
                 final_outputs.extend(expand(
-                    "{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_hits_with_lineage.tsv",
+                    "{out_dir}/{sample}/basta_{tool}/{sample}_{tool}_lca.tsv",
                     out_dir=OUT_DIR,
                     sample=sample,
                     tool=assembler_list
-                ))    
+                ))
 
   return final_outputs
 

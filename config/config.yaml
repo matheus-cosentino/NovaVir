@@ -33,6 +33,7 @@ modules:
   darkmatter: false #Perform palm annot identification (default: false)
   reads_kraken2: true #Perform reads taxonomic identification (default: false)
   reads_diamond: true #Perform reads taxonomic identification (default: false)
+  basta: true #Perform taxonomic assignment for Basta (default: false)
 
 
 ### De novo tools to be requested
@@ -60,6 +61,7 @@ envs:
   palm_annot: "envs/palm_annot.yaml"
   multiqc: "envs/multiqc.yaml"
   spades: "envs/spades.yaml"
+  basta: "envs/basta.yaml"
 
 ### databases and resources for the workflow
 resources:
@@ -112,10 +114,26 @@ flye:
 
 # Taxonomy by local alignment
 diamond:
-  outfmt: 6
-  max_target_seqs: 1
+  outfmt: 
+    #- 0 #BLAST pairwise
+    #- 5 #BLAST XML
+    - 6 #BLAST tabular (default)
+    #- 100 #DIAMOND alignment archive (DAA)
+    #- 101 #SAM
+    #- 102 #Taxonomic classification
+    #- 103 #PAF
+    #- 104 #JSON (flat)
+  max_target_seqs: 
+    #- 1
+    - 50
   evalue: 0.00001
-  sensitivity: "--very-sensitive"
+  sensitivity: 
+     #- "--ultra-sensitive"
+     - "--very-sensitive" #(default)
+     #- "--mid-sensitive"
+     #- "--more-sensitive"
+     #- "--sensitive"
+
 
 # Taxonomy by k-mer iddentification
 kraken2:

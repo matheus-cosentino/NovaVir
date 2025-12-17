@@ -111,6 +111,7 @@ REPORT = workflow.source_path(config["envs"]["report"])
 PALM = workflow.source_path(config["envs"]["palm_annot"])
 MULTIQC = workflow.source_path(config["envs"]["multiqc"])
 SPADES_ENV = workflow.source_path(config["envs"]["spades"])
+BASTA = workflow.source_path(config["envs"]["basta"])
 
 #################################
 # --- 6. Define Parameters --- #
@@ -136,6 +137,7 @@ include: "rules/kraken2.smk"
 include: "rules/lineage.smk"
 include: "rules/duskmatter.smk"
 include: "rules/reporting.smk"
+include: "rules/basta.smk"
 
 ###############################################################
 # --- 8. Obtain the final target & Download Data cleanup --- #
