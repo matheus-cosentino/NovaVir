@@ -256,12 +256,13 @@ setup_resources(){
       if [[ "$taxmap" == *.gz ]] || file "$taxmap" | grep -q "gzip compressed"; then
         echo -e "${blu}[INFO]${nc} Taxmap is gzipped, linking with .gz extension"
         ln -sf "$taxmap" "$RES_DIR/taxonomy/prot.accession2taxid.gz"
+        TAXONMAP_OVERRIDE="$RES_DIR/taxonomy/prot.accession2taxid.gz"
       else
         echo -e "${blu}[INFO]${nc} Taxmap is plain text, linking without .gz extension"
         ln -sf "$taxmap" "$RES_DIR/taxonomy/prot.accession2taxid"
         # Set the override variable
         TAXONMAP_OVERRIDE="$RES_DIR/taxonomy/prot.accession2taxid"
-      fi 
+      fi
     fi
 
 }
