@@ -125,7 +125,7 @@ def get_final_outputs():
         for sample, meta in SAMPLE_META.items():
             if meta['mode'] == 'CONTIGS':
                 final_outputs.extend(expand(
-                    "{out_dir}/{sample}/basta_{tool}/{sample}_{tool}_lca.tsv"",
+                    "{out_dir}/{sample}/basta_{tool}/{sample}_{tool}_lca.tsv",
                     out_dir=OUT_DIR,
                     sample=sample,
                     tool=PRE_ASSEMBLED_LABEL 
