@@ -61,7 +61,7 @@ rule basta_search:
         lca=os.path.join(OUT_DIR, "{sample}", "basta_{source}", "{sample}_{source}_lca.tsv")
     params:
         db_type="prot",
-        tax_dir=lambda w, i: os.path.dirname(i.nodes)
+        tax_dir=os.path.dirname(config["resources"]["taxonnodes"][0])
     conda: BASTA
     log:
         os.path.join(OUT_DIR, "log", "{sample}_{source}_basta_search.log")
