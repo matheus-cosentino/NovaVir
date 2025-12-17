@@ -25,14 +25,12 @@ rule map_accession_to_taxid:
     Maps protein IDs (Subject ID, column 2 of DIAMOND) to TaxIDs.
     """
     input:
-        hit_file = os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt")
+        hit_file = os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt"),
+        taxid_map = config["resources"]["taxonmap"]
     output:
         ids = os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_hits_with_taxid.tmp")
     shadow: 
-        "minimal" 
-    params:
-        #taxid_map="resources/database/prot.accession2taxid.gz"
-        taxid_map = config["resources"]["taxonmap"]
+        "minimal"
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_map_acc_prot.log")
     script:

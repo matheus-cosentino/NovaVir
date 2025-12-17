@@ -23,7 +23,7 @@ try:
     hit_file = s.input["hit_file"]
     output_file = s.output["ids"]
     
-    taxid_map_file_raw = s.params["taxid_map"]
+    taxid_map_file_raw = s.input["taxid_map"]
     taxid_map_file = taxid_map_file_raw[0] if isinstance(taxid_map_file_raw, list) else taxid_map_file_raw
 
     # 1.1. Checagem de Header (Lógica Interna, independente de params)
