@@ -24,10 +24,11 @@ rule basta_prepare_mapping:
         os.path.join(OUT_DIR, "log", "basta_prepare_mapping.log")
     shell:
         """
-        if input.mapping_file.endswith(".gz"):
-            shell("gunzip -c {input.mapping_file} > {output} 2> {log}")
-        else:
-            shell("ln -sfr {input.mapping_file} {output} 2> {log}")
+        if [[ "{input.mapping_file}" == *.gz ]]; then
+            gunzip -c {input.mapping_file} > {output} 2> {log}
+        else
+            ln -sfr {input.mapping_file} {output} 2> {log}
+        fi
         """
 
 rule basta_createdb:
