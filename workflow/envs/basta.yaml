@@ -10,4 +10,4 @@ dependencies:
   - leveldb=1.23
   - python-wget=3.2
   - pip:
-      - basta==1.5.3
+      - git+https://github.com/timkahlke/BASTA.git
