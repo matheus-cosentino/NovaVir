@@ -8,6 +8,6 @@ dependencies:
   - pip=25.3
   - plyvel=1.5.1
   - leveldb=1.23
-  - python-wget=3.2=py_0
+  - python-wget=3.2
   - pip:
-      - basta==1.4
+      - basta==1.5.3
