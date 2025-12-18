@@ -22,7 +22,7 @@ rule basta_prepare_mapping:
         temp(os.path.join(OUT_DIR, "temp", "basta_mapping.txt"))
     log:
         os.path.join(OUT_DIR, "log", "basta_prepare_mapping.log")
-    run:
+    shell:
         """
         if input.mapping_file.endswith(".gz"):
             shell("gunzip -c {input.mapping_file} > {output} 2> {log}")
