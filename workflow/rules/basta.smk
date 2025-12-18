@@ -33,22 +33,22 @@ rule basta_prepare_mapping:
 
 rule basta_createdb:
     input:
-        mapping=os.path.join(OUT_DIR, "temp", "basta_mapping.txt") 
+        mapping=os.path.join(OUT_DIR, "temp", "basta_mapping.txt")
     output:
-        db=os.path.join("resources", "basta_db", "prot_mapping.db")
+        directory(os.path.join("resources", "basta_db", "prot_mapping.db"))
     params:
         acc_col=1,
         taxid_col=2,
-        db_name="prot_acc",
-        db_dir="resources/basta_db"
-    conda: 
+        db_name="prot_mapping"
+    conda:
         BASTA
     log:
         os.path.join(OUT_DIR, "log", "basta_createdb.log")
     shell:
         """
-        mkdir -p {params.db_dir}
-        basta create_db {input.mapping} {params.db_name} {params.acc_col} {params.taxid_col} -d {params.db_dir} > {log} 2>&1
+        basta create_db {input.mapping} {params.db_name} {params.acc_col} {params.taxid_col} > {log} 2>&1
+        # BASTA creates the db in the CWD, so we move it to the output directory
+        mv {params.db_name}.db {output} >> {log} 2>&1
         """
 
 rule basta_search:
