@@ -39,7 +39,7 @@ rule basta_createdb:
     params:
         acc_col=1,
         taxid_col=2,
-        db_name="prot",
+        db_name="prot_acc",
         db_dir="resources/basta_db"
     conda: 
         BASTA
@@ -48,7 +48,7 @@ rule basta_createdb:
     shell:
         """
         mkdir -p {params.db_dir}
-        basta create_db {input.mapping} {params.db_name} {params.acc_col} {params.taxid_col} --db_path {params.db_dir} > {log} 2>&1
+        basta create_db {input.mapping} {params.db_name} {params.acc_col} {params.taxid_col} -d {params.db_dir} > {log} 2>&1
         """
 
 rule basta_search:
