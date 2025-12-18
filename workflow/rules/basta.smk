@@ -48,8 +48,7 @@ rule basta_createdb:
     shell:
         """
         mkdir -p {params.db_dir}
-        basta create_db {input.mapping} {params.db_name} {params.acc_col} {params.taxid_col} > {log} 2>&1
-        mv {params.db_name}_mapping.db {output.db} >> {log} 2>&1
+        basta create_db {input.mapping} {params.db_name} {params.acc_col} {params.taxid_col} --db_path {params.db_dir} > {log} 2>&1
         """
 
 rule basta_search:
