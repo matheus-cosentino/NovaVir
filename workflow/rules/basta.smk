@@ -47,14 +47,7 @@ rule basta_createdb:
     shell:
         """
         # Create the DB with a specific name
-        basta create_db {input.mapping} {params.db_name} {params.acc_col} {params.taxid_col} >> {log} 2>&1
-        
-        # Move the CONTENTS of the created folder into the output directory
-        # This ensures resources/basta_db contains the .ldb files directly
-        mv {params.db_name}/* {output}/ >> {log} 2>&1
-        
-        # Clean up the empty source folder
-        rmdir {params.db_name} >> {log} 2>&1
+        basta create_db {input.mapping} {params.db_name} {params.acc_col} {params.taxid_col} -d {output} >> {log} 2>&1
         """
 
 rule basta_search:
