@@ -15,6 +15,19 @@
 #                              version: 12.2025                                   # 
 ###################################################################################
 
+rule basta_download:
+    output:
+        touch(os.path.join(os.path.dirname(config["resources"]["taxonnodes"][0]), "complete_taxa.db"))
+    params:
+        tax_dir=os.path.dirname(config["resources"]["taxonnodes"][0])
+    conda:
+        BASTA
+    log:
+        os.path.join(OUT_DIR, "log", "basta_download.log")
+    shell:
+        "basta download --tax_dir {params.tax_dir} > {log} 2>&1"
+
+
 rule basta_prepare_mapping:
     input:
         mapping_file = config["resources"]["taxonmap"]
@@ -35,11 +48,13 @@ rule basta_createdb:
     input:
         mapping=os.path.join(OUT_DIR, "temp", "basta_mapping.txt")
     output:
-        directory(os.path.join("resources", "basta_db"))
+        touch(os.path.join(os.path.dirname(config["resources"]["taxonnodes"][0]), "prot"))     
     params:
         acc_col=1,
         taxid_col=2,
-        db_name="prot_mapping"
+        db_name="prot",
+        tax_dir=os.path.dirname(config["resources"]["taxonnodes"][0])
+
     conda:
         BASTA
     log:
@@ -47,18 +62,18 @@ rule basta_createdb:
     shell:
         """
         # Create the DB with a specific name
-        basta create_db {input.mapping} {params.db_name} {params.acc_col} {params.taxid_col} -d {output} >> {log} 2>&1
+        basta create_db {input.mapping} {params.db_name} {params.acc_col} {params.taxid_col} -d {params.tax_dir} >> {log} 2>&1
         """
 
 rule basta_search:
     input:
-        mapping_db=os.path.join("resources", "basta_db"),
-        query=os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt"),
-      
+        mapping_db=os.path.join(os.path.dirname(config["resources"]["taxonnodes"][0]), "prot"),
+        tax_db=os.path.join(os.path.dirname(config["resources"]["taxonnodes"][0]), "complete_taxa.db"),
     output:
         lca=os.path.join(OUT_DIR, "{sample}", "basta_{source}", "{sample}_{source}_lca.tsv")
     params:
-        db_type="prot_mapping.db",
+        db_type="prot",
+        tax_dir=os.path.dirname(config["resources"]["taxonnodes"][0])
     conda: 
         BASTA
     log:
@@ -66,6 +81,6 @@ rule basta_search:
     shell:
         """
         basta sequence {input.query} {output.lca} {params.db_type} \
-            -d {input.mapping_db} \
+            -d {params.tax_dir} \
             > {log} 2>&1
         """
