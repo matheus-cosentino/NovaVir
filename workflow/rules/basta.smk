@@ -48,7 +48,7 @@ rule basta_createdb:
         """
         basta create_db {input.mapping} {params.db_name} {params.acc_col} {params.taxid_col} > {log} 2>&1
         # BASTA creates the db in the CWD, so we move it to the output directory
-        mv {params.db_name}.db {output} >> {log} 2>&1
+        mv {params.db_name}.txt {output} >> {log} 2>&1
         """
 
 rule basta_search:
