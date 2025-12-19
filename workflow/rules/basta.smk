@@ -52,10 +52,9 @@ rule basta_createdb:
 
 rule basta_search:
     input:
-        mapping_db=os.path.join("resources", "basta_db"),
+        mapping_db=directory(os.path.join("resources", "basta_db")),
         query=os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt"),
-        nodes=config["resources"]["taxonnodes"],
-        names=config["resources"]["taxonnames"]
+      
     output:
         lca=os.path.join(OUT_DIR, "{sample}", "basta_{source}", "{sample}_{source}_lca.tsv")
     params:
@@ -63,11 +62,10 @@ rule basta_search:
         tax_dir=os.path.dirname(config["resources"]["taxonnodes"][0])
     conda: BASTA
     log:
-        os.path.join(OUT_DIR, "log", "{sample}_{source}_basta_search.log")
+        os.path.join(OUT_DIR,"{sample}" ,"log", "{sample}_{source}_basta_search.log")
     shell:
         """
         basta sequence {input.query} {output.lca} {params.db_type} \
-            --db_path {input.mapping_db} \
-            --tax_dir {params.tax_dir} \
+            -d {input.mapping_db} \
             > {log} 2>&1
         """
