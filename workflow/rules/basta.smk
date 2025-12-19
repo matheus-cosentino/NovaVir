@@ -57,7 +57,6 @@ rule basta_createdb:
         rmdir {params.db_name} >> {log} 2>&1
         """
 
-
 rule basta_search:
     input:
         mapping_db=os.path.join("resources", "basta_db"),
