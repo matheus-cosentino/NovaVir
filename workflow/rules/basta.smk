@@ -15,17 +15,17 @@
 #                              version: 12.2025                                   # 
 ###################################################################################
 
-rule basta_download:
+rule basta_taxonomy:
     output:
-        touch(os.path.join(os.path.dirname(config["resources"]["taxonnodes"][0]), "complete_taxa.db"))
+        os.path.join(os.path.dirname(config["resources"]["taxonnodes"][0]), "complete_taxa.db")
     params:
         tax_dir=os.path.dirname(config["resources"]["taxonnodes"][0])
     conda:
         BASTA
     log:
-        os.path.join(OUT_DIR, "log", "basta_download.log")
+        os.path.join(OUT_DIR, "log", "basta_taxonomy.log")
     shell:
-        "basta download --tax_dir {params.tax_dir} > {log} 2>&1"
+        "basta taxonomy -d {params.tax_dir} > {log} 2>&1"
 
 
 rule basta_prepare_mapping:
