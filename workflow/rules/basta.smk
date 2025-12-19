@@ -73,7 +73,6 @@ rule basta_search:
         os.path.join(OUT_DIR, "log", "{sample}_{source}_basta_search.log")
     shell:
         """
-        # BASTA sequence syntax: basta sequence [input_file] [output_file] [db_type] [options]
         basta sequence {input.query} {output.lca} {params.db_type} \
             --db_path {input.mapping_db} \
             --tax_dir {params.tax_dir} \
