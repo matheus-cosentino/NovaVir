@@ -69,6 +69,8 @@ rule basta_search:
     input:
         mapping_db=os.path.join(os.path.dirname(config["resources"]["taxonnodes"][0]), "prot"),
         tax_db=os.path.join(os.path.dirname(config["resources"]["taxonnodes"][0]), "complete_taxa.db"),
+        query=os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt")
+
     output:
         lca=os.path.join(OUT_DIR, "{sample}", "basta_{source}", "{sample}_{source}_lca.tsv")
     params:
