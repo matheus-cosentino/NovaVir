@@ -25,7 +25,7 @@ jobs: 15
 
 #snakemake params
 executor: slurm
-restart-times: 2
+restart-times: 0
 latency-wait: 300
 keep-going: True
 rerun-incomplete: True

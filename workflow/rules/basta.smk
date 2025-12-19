@@ -53,7 +53,7 @@ rule basta_createdb:
 
 rule basta_search:
     input:
-        mapping_db=os.path.join("resources", "basta_db", "prot_mapping.db"),
+        mapping_db=os.path.join("resources", "basta_db", "prot_mapping.txt"),
         query=os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt"),
         nodes=config["resources"]["taxonnodes"],
         names=config["resources"]["taxonnames"]
