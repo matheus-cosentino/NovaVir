@@ -46,12 +46,17 @@ rule basta_createdb:
         os.path.join(OUT_DIR, "log", "basta_createdb.log")
     shell:
         """
-        basta create_db --help > {log} 2>&1
+        # Create the DB with a specific name
         basta create_db {input.mapping} {params.db_name} {params.acc_col} {params.taxid_col} >> {log} 2>&1
-        ls -l >> {log} 2>&1
-        # BASTA creates the db in the CWD, so we move it to the output directory
-        mv {params.db_name} {output} >> {log} 2>&1
+        
+        # Move the CONTENTS of the created folder into the output directory
+        # This ensures resources/basta_db contains the .ldb files directly
+        mv {params.db_name}/* {output}/ >> {log} 2>&1
+        
+        # Clean up the empty source folder
+        rmdir {params.db_name} >> {log} 2>&1
         """
+
 
 rule basta_search:
     input:
@@ -68,6 +73,13 @@ rule basta_search:
     log:
         os.path.join(OUT_DIR, "log", "{sample}_{source}_basta_search.log")
     shell:
+        """
+        # BASTA sequence syntax: basta sequence [input_file] [output_file] [db_type] [options]
+        basta sequence {input.query} {output.lca} {params.db_type} \
+            --db_path {input.mapping_db} \
+            --tax_dir {params.tax_dir} \
+            > {log} 2>&1
+        """
         """
         basta sequence -i {input.query} -o {output.lca} --db_path {input.mapping_db} --tax_dir {params.tax_dir} {params.db_type} > {log} 2>&1
         """
