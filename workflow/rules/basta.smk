@@ -35,7 +35,7 @@ rule basta_createdb:
     input:
         mapping=os.path.join(OUT_DIR, "temp", "basta_mapping.txt")
     output:
-        directory(os.path.join("resources", "basta_db", "prot_mapping.txt"))
+        directory(os.path.join("resources", "basta_db"))
     params:
         acc_col=1,
         taxid_col=2,
@@ -46,14 +46,16 @@ rule basta_createdb:
         os.path.join(OUT_DIR, "log", "basta_createdb.log")
     shell:
         """
-        basta create_db {input.mapping} {params.db_name} {params.acc_col} {params.taxid_col} > {log} 2>&1
+        basta create_db --help > {log} 2>&1
+        basta create_db {input.mapping} {params.db_name} {params.acc_col} {params.taxid_col} >> {log} 2>&1
+        ls -l >> {log} 2>&1
         # BASTA creates the db in the CWD, so we move it to the output directory
-        mv {params.db_name}.txt {output} >> {log} 2>&1
+        mv {params.db_name} {output} >> {log} 2>&1
         """
 
 rule basta_search:
     input:
-        mapping_db=os.path.join("resources", "basta_db", "prot_mapping.txt"),
+        mapping_db=os.path.join("resources", "basta_db"),
         query=os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt"),
         nodes=config["resources"]["taxonnodes"],
         names=config["resources"]["taxonnames"]
