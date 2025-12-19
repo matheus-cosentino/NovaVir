@@ -78,6 +78,3 @@ rule basta_search:
             --tax_dir {params.tax_dir} \
             > {log} 2>&1
         """
-        """
-        basta sequence -i {input.query} -o {output.lca} --db_path {input.mapping_db} --tax_dir {params.tax_dir} {params.db_type} > {log} 2>&1
-        """
