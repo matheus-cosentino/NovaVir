@@ -26,7 +26,7 @@ jobs: 15
 #snakemake params
 executor: slurm
 restart-times: 0
-latency-wait: 300
+latency-wait: 60
 keep-going: True
 rerun-incomplete: True
 use-conda: True
