@@ -35,7 +35,7 @@ rule basta_createdb:
     input:
         mapping=os.path.join(OUT_DIR, "temp", "basta_mapping.txt")
     output:
-        directory(os.path.join("resources", "basta_db", "prot_mapping.db"))
+        directory(os.path.join("resources", "basta_db", "prot_mapping.txt"))
     params:
         acc_col=1,
         taxid_col=2,
