@@ -33,8 +33,6 @@ modules:
   darkmatter: false #Perform palm annot identification (default: false)
   reads_kraken2: true #Perform reads taxonomic identification (default: false)
   reads_diamond: true #Perform reads taxonomic identification (default: false)
-  basta: true #Perform taxonomic assignment for Basta (default: false)
-
 
 ### De novo tools to be requested
 tool:
