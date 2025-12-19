@@ -15,11 +15,14 @@
 #                              version: 12.2025                                   # 
 ###################################################################################
 
+# Define a consistent directory for BASTA databases
+BASTA_DB_DIR = os.path.join("resources", "basta_db")
+
 rule basta_taxonomy:
     output:
-        os.path.join(os.path.dirname(config["resources"]["taxonnodes"][0]), "complete_taxa.db")
+        os.path.join(BASTA_DB_DIR, "complete_taxa.db")
     params:
-        tax_dir=os.path.dirname(config["resources"]["taxonnodes"][0])
+        tax_dir=BASTA_DB_DIR
     conda:
         BASTA
     log:
@@ -30,7 +33,8 @@ rule basta_taxonomy:
 
 rule basta_prepare_mapping:
     input:
-        mapping_file = config["resources"]["taxonmap"]
+        # Assuming the map is a single file, not a list
+        mapping_file = config["resources"]["taxonmap"][0]
     output:
         temp(os.path.join(OUT_DIR, "temp", "basta_mapping.txt"))
     log:
@@ -48,40 +52,43 @@ rule basta_createdb:
     input:
         mapping=os.path.join(OUT_DIR, "temp", "basta_mapping.txt")
     output:
-        touch(os.path.join(os.path.dirname(config["resources"]["taxonnodes"][0]), "prot"))     
+        # The output is the created database file
+        os.path.join(BASTA_DB_DIR, "prot_mapping.db")   
     params:
         acc_col=1,
         taxid_col=2,
-        db_name="prot",
-        tax_dir=os.path.dirname(config["resources"]["taxonnodes"][0])
-
+        db_name="prot_mapping",
+        tax_dir=BASTA_DB_DIR
     conda:
         BASTA
     log:
         os.path.join(OUT_DIR, "log", "basta_createdb.log")
     shell:
         """
-        # Create the DB with a specific name
+        # Create the DB with a specific name in the specified directory
         basta create_db {input.mapping} {params.db_name} {params.acc_col} {params.taxid_col} -d {params.tax_dir} >> {log} 2>&1
         """
 
 rule basta_search:
     input:
-        mapping_db=os.path.join(os.path.dirname(config["resources"]["taxonnodes"][0]), "prot"),
-        tax_db=os.path.join(os.path.dirname(config["resources"]["taxonnodes"][0]), "complete_taxa.db"),
+        # Depend on both the taxonomy and the custom mapping DB
+        mapping_db=os.path.join(BASTA_DB_DIR, "prot_mapping.db"),
+        tax_db=os.path.join(BASTA_DB_DIR, "complete_taxa.db"),
         query=os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt")
 
     output:
         lca=os.path.join(OUT_DIR, "{sample}", "basta_{source}", "{sample}_{source}_lca.tsv")
     params:
-        db_type="prot",
-        tax_dir=os.path.dirname(config["resources"]["taxonnodes"][0])
+        # Use the name of the database created in basta_createdb
+        db_type="prot_mapping",
+        tax_dir=BASTA_DB_DIR
     conda: 
         BASTA
     log:
         os.path.join(OUT_DIR,"{sample}" ,"log", "{sample}_{source}_basta_search.log")
     shell:
         """
+        # Use the 'sequence' command with the correct db_type and directory
         basta sequence {input.query} {output.lca} {params.db_type} \
             -d {params.tax_dir} \
             > {log} 2>&1

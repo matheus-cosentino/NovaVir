@@ -70,10 +70,10 @@ resources:
   kraken2: 
    - "resources/kraken2/" 
    #taxonomy files
-  taxonnodes: 
-    - "resources/taxonomy/nodes.dmp" 
-  taxonnames: 
-    - "resources/taxonomy/names.dmp"
+  #taxonnodes: 
+  #  - "resources/taxonomy/nodes.dmp" 
+  #taxonnames: 
+  #  - "resources/taxonomy/names.dmp"
   taxonmap: 
     - resources/taxonomy/prot.accession2taxid.gz
   #palm annot resources
