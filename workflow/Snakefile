@@ -53,6 +53,7 @@ from scripts.functions import get_multiqc_inputs
 ##########################################################
 DATA = config["data_dir"]
 OUT_DIR = config["output_dir"]
+BASTA_DB_DIR = config["resources"]["basta_db"]
 
 with open(config["sample_list"], "r") as file:
     SAMPLE = [line.strip() for line in file if line.strip()]
