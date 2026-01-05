@@ -31,13 +31,13 @@ rule basta_taxonomy:
         """
         ln -sfr {input.names} {params.tax_dir}/names.dmp
         ln -sfr {input.nodes} {params.tax_dir}/nodes.dmp
-        basta taxonomy -d {params.tax_dir} > {log} 2>&1 || true
+        basta taxonomy -d {params.tax_dir} > {log} 2>&1
         """
 
 
 rule basta_prepare_mapping:
     input:
-        mapping_file = config["resources"]["taxonmap"]
+        mapping_file = config["resources"]["taxonmap"][0]
     output:
         temp(os.path.join(OUT_DIR, "temp", "basta_mapping.txt"))
     log:
@@ -68,7 +68,7 @@ rule basta_createdb:
     shell:
         """
         # Create the DB with a specific name
-        basta create_db {input.mapping} {params.db_name} {params.acc_col} {params.taxid_col} -d {params.tax_dir} >> {log} 2>&1 || true
+        basta create_db {input.mapping} {params.db_name} {params.acc_col} {params.taxid_col} -d {params.tax_dir} >> {log} 2>&1
         """
 
 rule basta_search:
