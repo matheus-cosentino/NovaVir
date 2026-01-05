@@ -55,13 +55,12 @@ rule basta_createdb:
     input:
         mapping=os.path.join(OUT_DIR, "temp", "basta_mapping.txt")
     output:
-        touch(os.path.join(os.path.dirname(config["resources"]["taxonnodes"][0]), "prot"))     
+        touch(os.path.join(BASTA_DB_DIR, "prot"))     
     params:
         acc_col=1,
         taxid_col=2,
         db_name="prot",
-        tax_dir=os.path.dirname(config["resources"]["taxonnodes"][0])
-
+        tax_dir=BASTA_DB_DIR
     conda:
         BASTA
     log:
@@ -74,15 +73,15 @@ rule basta_createdb:
 
 rule basta_search:
     input:
-        mapping_db=os.path.join(os.path.dirname(config["resources"]["taxonnodes"][0]), "prot"),
-        tax_db=os.path.join(os.path.dirname(config["resources"]["taxonnodes"][0]), "complete_taxa.db"),
+        mapping_db=os.path.join(BASTA_DB_DIR, "prot"),
+        tax_db=os.path.join(BASTA_DB_DIR, "complete_taxa.db"),
         query=os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt")
 
     output:
         lca=os.path.join(OUT_DIR, "{sample}", "basta_{source}", "{sample}_{source}_lca.tsv")
     params:
         db_type="prot",
-        tax_dir=os.path.dirname(config["resources"]["taxonnodes"][0])
+        tax_dir=BASTA_DB_DIR
     conda: 
         BASTA
     log:
