@@ -443,4 +443,4 @@ echo -e "\n${blu}[INFO]${nc} Deactivating ${ylo}${ENV_NAME}${nc} conda environme
 conda deactivate
 echo -e "${green}✔ Done.${nc}"
 
-echo -e "\n${green} Thank you for using DiscoVir"
+echo -e "\n${green} Thank you for using DiscoVir${nc}"
