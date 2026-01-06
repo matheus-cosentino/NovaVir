@@ -17,7 +17,3 @@ data/
 
 # ignore paper folder
 paper/
-
-#workflow/rules/diamond.smk
-
-#slurm_test
