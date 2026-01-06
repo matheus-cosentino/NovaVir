@@ -149,7 +149,10 @@ rule all:
         os.path.join(OUT_DIR, "multiqc_all", "multiqc_report.html"),
         
         # 2. The Per-Sample Reports (Expanded for all samples)
-        expand(os.path.join(OUT_DIR, "{sample}", "multiqc", "multiqc_report.html"), sample=SAMPLE)
+        expand(os.path.join(OUT_DIR, "{sample}", "multiqc", "multiqc_report.html"), sample=SAMPLE),
+
+        # 3. Module-specific outputs
+        get_final_outputs()
 
 onsuccess:
     cleanup_downloaded_fastqs(config)
