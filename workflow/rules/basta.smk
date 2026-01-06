@@ -89,6 +89,6 @@ rule basta_search:
     shell:
         """
         basta sequence {input.query} {output.lca} {params.db_type} \
-            -d {params.tax_dir} --header\
+            -d {params.tax_dir} \
             > {log} 2>&1
         """
