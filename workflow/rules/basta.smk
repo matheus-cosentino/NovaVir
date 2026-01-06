@@ -55,7 +55,7 @@ rule basta_createdb:
     input:
         mapping=os.path.join(OUT_DIR, "temp", "basta_mapping.txt")
     output:
-        touch(os.path.join(BASTA_DB_DIR, "prot"))     
+        touch(os.path.join(BASTA_DB_DIR[0], "prot"))     
     params:
         acc_col=1,
         taxid_col=2,
@@ -74,7 +74,7 @@ rule basta_createdb:
 rule basta_search:
     input:
         mapping_db=os.path.join(BASTA_DB_DIR, "prot"),
-        tax_db=os.path.join(BASTA_DB_DIR, "complete_taxa.db"),
+        tax_db=os.path.join(BASTA_DB_DIR[0], "complete_taxa.db"),
         query=os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt")
 
     output:
