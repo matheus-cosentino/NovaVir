@@ -20,7 +20,7 @@ rule basta_taxonomy:
         names=os.path.join("resources", "taxonomy", "names.dmp"),
         nodes=os.path.join("resources", "taxonomy", "nodes.dmp")
     output:
-        os.path.join(BASTA_DB_DIR, "complete_taxa.db")
+        os.path.join(BASTA_DB_DIR, "prot_mapping.db")
     params:
         tax_dir=BASTA_DB_DIR
     conda:

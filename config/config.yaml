@@ -76,7 +76,8 @@ resources:
     - "resources/taxonomy/names.dmp"
   taxonmap: 
     - resources/taxonomy/prot.accession2taxid.gz
-  basta_db: "resources/basta_db"
+  basta_db:
+    - "resources/basta_db"
   #palm annot resources
   palm_annot_dir: 
     - "resources/palm_annot"
