@@ -30,12 +30,12 @@ DiscoVir is a comprehensive and scalable Snakemake workflow for the detection of
 ### Conda Installation
 The pipeline uses Conda to manage its dependencies. We recommend the presence of any version running within the machine. If no version is available, follown the conda installation within miniforge, [conda](https://forge.ird.fr/transvihmi/nfernandez/install_conda_with_miniforge).
 
-### Databases and Taxonomic files
+### Databases
 Due the large size of databases used, and its common presence within HPC clusters, databases path must be prior present to run the pipeline and its download does not make part of this pipeline. In case of doubts, open an issue or get in touch within your HPC support team to proper intallation.
- - [Nr5](https://ftp.ncbi.nlm.nih.gov/blast/db/v5/)
- - [prot.accession2taxid.gz](https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/)
- - [tamdump](https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/)
+ - [nr](https://ftp.ncbi.nlm.nih.gov/blast/db/v5/)
  - [Kraken2](https://benlangmead.github.io/aws-indexes/k2)
+
+The `prot.accession2taxid.gz` file, which is used for taxonomic classification, is downloaded automatically by the workflow.
 
 ## Installation
 The DiscoVir.sh script is responsible to manage the run, automatically downloading and creating the necessary Conda environments, as well as manage conda versions for the pipeline to work.
@@ -55,7 +55,7 @@ The DiscoVir.sh script is responsible to manage the run, automatically downloadi
 
 The following must appear within your screen.
 
-```yaml
+ ```yaml
  DiscoVir: Viral Metagenomics & 'Dark Matter' Discovery
 
  Author: MSc. Matheus Cosentino 
@@ -76,7 +76,6 @@ The following must appear within your screen.
  Database Overrides (Use external DBs):
    --diamond_db <FILE>  External Diamond database (.dmnd).
    --kraken2 <DIR>      External Kraken2 database directory (Must contain hash.k2d, opts.k2d, taxo.k2d)
-   --taxdump <DIR>      Directory containing nodes.dmp and names.dmp
 
  Module Toggles (Enable/Disable Analysis):
    --assembly           Enable De Novo Assembly (Default: False)
@@ -84,30 +83,28 @@ The following must appear within your screen.
    --diamond            Enable Diamond Taxonomy (Default: False)
    --darkmatter         Enable Palm Annot / Dark Matter (Default: False)
    --remove-download    Revome downloaded SRA files (Default: Keep)
-   --skip-reads-kraken  Skip Reads Kraken2 ID (Default: Run)
-   --skip-reads-diamond Skip Reads Diamond ID (Default: Run)
+   --reads-kraken       Enable Kraken2 analysis on reads (Default: Disabled)
+   --reads-diamond      Enable Diamond analysis on reads (Default: Disabled)
  
  Flags:
    -h, --help           Show this help message
    -v, --version        Show version
 ```
 
-
 ## Usage
-### Overall Pipeline Use
-The DiscoVir standard configuration is optimized for Illumina data and to run within an HPC cluster managed by [slurm](https://slurm.schedmd.com/documentat). The script is intrinsically capable of automatically differentiating between paired-end and single-end data formats as well as to diferentiate within fasta format. - Kraken2 & Diamond Reads Iddentfication
+- Kraken2 & Diamond Reads Iddentfication
 ```shell
-bash DiscoVir.sh --input <DIR> --output <DIR> --kraken2 <DIR> --diamond_db <FILE> --taxdump <DIR> 
+bash DiscoVir.sh --input <DIR> --output <DIR> --kraken2 <DIR> --diamond_db <FILE> --reads-kraken --reads-diamond
 ```
 
 - Kraken2 Only Reads Iddentfication
 ```shell
-bash DiscoVir.sh --input <DIR> --output <DIR>  --kraken2 <DIR> --skip-reads-diamond
+bash DiscoVir.sh --input <DIR> --output <DIR>  --kraken2 <DIR> --reads-kraken
 ```
 
 - Diamond Only Reads Iddentfication
 ```shell
-bash DiscoVir.sh --input <DIR> --output <DIR> --diamond_db <FILE> --taxdump <DIR> --skip-reads-kraken
+bash DiscoVir.sh --input <DIR> --output <DIR> --diamond_db <FILE> --reads-diamond
 ```
 
 ### DiscoVir Core Pipelline
@@ -166,17 +163,17 @@ After edition, run the commands expected for read analysis according to your int
 
 - Kraken2 & Diamond Reads Iddentfication
 ```shell
-bash DiscoVir.sh --input <DIR> --output <DIR> --kraken2 <DIR> --diamond_db <FILE> --taxdump <DIR> 
+bash DiscoVir.sh --input <DIR> --output <DIR> --kraken2 <DIR> --diamond_db <FILE> --reads-kraken --reads-diamond
 ```
 
 - Kraken2 Only Reads Iddentfication
 ```shell
-bash DiscoVir.sh --input <DIR> --output <DIR>  --kraken2 <DIR> --skip-reads-diamond
+bash DiscoVir.sh --input <DIR> --output <DIR>  --kraken2 <DIR> --reads-kraken
 ```
 
 - Diamond Only Reads Iddentfication
 ```shell
-bash DiscoVir.sh --input <DIR> --output <DIR> --diamond_db <FILE> --taxdump <DIR> --skip-reads-kraken
+bash DiscoVir.sh --input <DIR> --output <DIR> --diamond_db <FILE> --reads-diamond
 ```
 
 ### ONP De Novo Assembly
