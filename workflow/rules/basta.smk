@@ -44,7 +44,7 @@ rule basta_search:
     input:
         mapping_db=os.path.join(BASTA_DB_DIR[0], "prot.accession2taxid.gz"),
         query=os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt")
-
+        taxonomy=os.path.join(BASTA_DB_DIR[0], "complete_taxa.db")
     output:
         lca=os.path.join(OUT_DIR, "{sample}", "basta_{source}", "{sample}_{source}_lca.tsv")
     params:
