@@ -114,20 +114,8 @@ MULTIQC = workflow.source_path(config["envs"]["multiqc"])
 SPADES_ENV = workflow.source_path(config["envs"]["spades"])
 BASTA = workflow.source_path(config["envs"]["basta"])
 
-#################################
-# --- 6. Define Parameters --- #
-################################
-
-FASTP_PAR = config['fastp']
-SPADES = config['spades']
-FLYE = config['flye']
-DIAMOND_PAR = config['diamond']
-KRAKEN2_PAR = config['kraken2']
-PALM_ANNOT = config['palm_annot']
-
-
 #######################################
-# --- 7. Load the Workflow Rules --- #
+# --- 6. Load the Workflow Rules --- #
 ######################################
 
 include: "rules/get_data.smk"
@@ -141,7 +129,7 @@ include: "rules/reporting.smk"
 include: "rules/basta.smk"
 
 ###############################################################
-# --- 8. Obtain the final target & Download Data cleanup --- #
+# --- 7. Obtain the final target & Download Data cleanup --- #
 ##############################################################
 rule all:
     input:

@@ -93,7 +93,7 @@ fastp:
 # De Novo Assembly for Illumina reads
 spades:
   algorithm : "--rnaviral" #low resources and correction of RNA artifacts assembly
-  #algorithm: "--coronaspades" #indicate for genomic de novo assembly of CoV genomes by HMM guides
+  #algorithm: "--coronaspades" #indicate for genomic de novo assembly of CoV/RNA Virus genomes by HMM guides of genome structure
   #algorithm: "--meta" #high resources and identification of low coverage/presence virus
 
 #De novo for long reads assembly data
