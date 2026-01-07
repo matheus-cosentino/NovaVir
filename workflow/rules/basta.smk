@@ -17,6 +17,7 @@
 
 rule basta_download_mapping:
     output:
+        db = directory(os.path.join(BASTA_DB_DIR[0], "prot_mapping.db")),
         gz=os.path.join(BASTA_DB_DIR[0], "prot.accession2taxid.gz")
     params:
         tax_dir=os.path.join(BASTA_DB_DIR[0])
@@ -42,7 +43,7 @@ rule basta_download_taxonomy:
 
 rule basta_search:
     input:
-        mapping_db=os.path.join(BASTA_DB_DIR[0], "prot.accession2taxid.gz"),
+        mapping_db=os.path.join(BASTA_DB_DIR[0], "prot_mapping.db"),
         query=os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt"),
         taxonomy=os.path.join(BASTA_DB_DIR[0], "complete_taxa.db")
     output:
