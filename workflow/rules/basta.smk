@@ -29,7 +29,7 @@ rule basta_download_mapping:
 
 rule basta_download_taxonomy:
     output:
-        gz=os.path.join(BASTA_DB_DIR[0], "complete_taxa.db")
+        gz=directory(os.path.join(BASTA_DB_DIR[0], "complete_taxa.db"))
     params:
         tax_dir=os.path.join(BASTA_DB_DIR[0])
     conda:
