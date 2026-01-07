@@ -77,7 +77,6 @@ The following must appear within your screen.
    --diamond_db <FILE>  External Diamond database (.dmnd).
    --kraken2 <DIR>      External Kraken2 database directory (Must contain hash.k2d, opts.k2d, taxo.k2d)
    --taxdump <DIR>      Directory containing nodes.dmp and names.dmp
-   --taxmap <FILE>      Path to prot.accession2taxid.gz
 
  Module Toggles (Enable/Disable Analysis):
    --assembly           Enable De Novo Assembly (Default: False)
@@ -96,11 +95,9 @@ The following must appear within your screen.
 
 ## Usage
 ### Overall Pipeline Use
-The DiscoVir standard configuration is optimized for Illumina data and to run within an HPC cluster managed by [slurm](https://slurm.schedmd.com/documentat). The script is intrinsically capable of automatically differentiating between paired-end and single-end data formats as well as to diferentiate within fasta format. To perform a comprehensive analysis—including quality-based read filtering and assessment of taxonomy diversity, run the standard script within the following options:
-
-- Kraken2 & Diamond Reads Iddentfication
+The DiscoVir standard configuration is optimized for Illumina data and to run within an HPC cluster managed by [slurm](https://slurm.schedmd.com/documentat). The script is intrinsically capable of automatically differentiating between paired-end and single-end data formats as well as to diferentiate within fasta format. - Kraken2 & Diamond Reads Iddentfication
 ```shell
-bash DiscoVir.sh --input <DIR> --output <DIR> --kraken2 <DIR> --diamond_db <FILE> --taxdump <DIR> --taxmap <FILE> 
+bash DiscoVir.sh --input <DIR> --output <DIR> --kraken2 <DIR> --diamond_db <FILE> --taxdump <DIR> 
 ```
 
 - Kraken2 Only Reads Iddentfication
@@ -110,7 +107,7 @@ bash DiscoVir.sh --input <DIR> --output <DIR>  --kraken2 <DIR> --skip-reads-diam
 
 - Diamond Only Reads Iddentfication
 ```shell
-bash DiscoVir.sh --input <DIR> --output <DIR> --diamond_db <FILE> --taxdump <DIR> --taxmap <FILE> --skip-reads-kraken
+bash DiscoVir.sh --input <DIR> --output <DIR> --diamond_db <FILE> --taxdump <DIR> --skip-reads-kraken
 ```
 
 ### DiscoVir Core Pipelline
@@ -169,7 +166,7 @@ After edition, run the commands expected for read analysis according to your int
 
 - Kraken2 & Diamond Reads Iddentfication
 ```shell
-bash DiscoVir.sh --input <DIR> --output <DIR> --kraken2 <DIR> --diamond_db <FILE> --taxdump <DIR> --taxmap <FILE> 
+bash DiscoVir.sh --input <DIR> --output <DIR> --kraken2 <DIR> --diamond_db <FILE> --taxdump <DIR> 
 ```
 
 - Kraken2 Only Reads Iddentfication
@@ -179,7 +176,7 @@ bash DiscoVir.sh --input <DIR> --output <DIR>  --kraken2 <DIR> --skip-reads-diam
 
 - Diamond Only Reads Iddentfication
 ```shell
-bash DiscoVir.sh --input <DIR> --output <DIR> --diamond_db <FILE> --taxdump <DIR> --taxmap <FILE> --skip-reads-kraken
+bash DiscoVir.sh --input <DIR> --output <DIR> --diamond_db <FILE> --taxdump <DIR> --skip-reads-kraken
 ```
 
 ### ONP De Novo Assembly

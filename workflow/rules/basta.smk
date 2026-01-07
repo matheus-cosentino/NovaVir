@@ -15,40 +15,28 @@
 #                              version: 12.2025                                   # 
 ###################################################################################
 
-rule basta_taxonomy:
-    input:
-        names=os.path.join("resources", "taxonomy", "names.dmp"),
-        nodes=os.path.join("resources", "taxonomy", "nodes.dmp")
+rule basta_download_mapping:
     output:
-        os.path.join(BASTA_DB_DIR[0], "prot_mapping.db")
+        os.path.join(BASTA_DB_DIR[0], "prot.accession2taxid.gz")
     params:
-        tax_dir=BASTA_DB_DIR
+        tax_dir=BASTA_DB_DIR[0]
     conda:
         BASTA
     log:
-        os.path.join(OUT_DIR, "log", "basta_taxonomy.log")
+        os.path.join(OUT_DIR, "log", "basta_download_mapping.log")
     shell:
-        """
-        ln -sfr {input.names} {params.tax_dir}/names.dmp
-        ln -sfr {input.nodes} {params.tax_dir}/nodes.dmp
-        basta taxonomy -d {params.tax_dir} > {log} 2>&1
-        """
-
+        "basta download prot.accession2taxid -d {params.tax_dir} > {log} 2>&1"
 
 rule basta_prepare_mapping:
     input:
-        mapping_file = config["resources"]["taxonmap"][0]
+        mapping_file = rules.basta_download_mapping.output
     output:
         temp(os.path.join(OUT_DIR, "temp", "basta_mapping.txt"))
     log:
         os.path.join(OUT_DIR, "log", "basta_prepare_mapping.log")
     shell:
         """
-        if [[ "{input.mapping_file}" == *.gz ]]; then
-            gunzip -c {input.mapping_file} > {output} 2> {log}
-        else
-            ln -sfr {input.mapping_file} {output} 2> {log}
-        fi
+        gunzip -c {input.mapping_file} | tail -n +2 > {output} 2> {log}
         """
 
 rule basta_createdb:
@@ -60,7 +48,7 @@ rule basta_createdb:
         acc_col=1,
         taxid_col=2,
         db_name="prot",
-        tax_dir=BASTA_DB_DIR
+        tax_dir=BASTA_DB_DIR[0]
     conda:
         BASTA
     log:
@@ -74,7 +62,6 @@ rule basta_createdb:
 rule basta_search:
     input:
         mapping_db=os.path.join(BASTA_DB_DIR[0], "prot"),
-        tax_db=os.path.join(BASTA_DB_DIR[0], "complete_taxa.db"),
         query=os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt")
 
     output:

@@ -103,8 +103,6 @@ help(){
  ${ylo}Database Overrides (Use external DBs):${nc}
    --diamond_db <FILE>  External Diamond database (.dmnd).
    --kraken2 <DIR>      External Kraken2 database directory (Must contain hash.k2d, opts.k2d, taxo.k2d)
-   --taxdump <DIR>      Directory containing nodes.dmp and names.dmp
-   --taxmap <FILE>      Path to prot.accession2taxid.gz
 
  ${ylo}Module Toggles (Enable/Disable Analysis):${nc}
    --assembly           Enable De Novo Assembly (Default: False)
@@ -112,8 +110,8 @@ help(){
    --diamond            Enable Diamond Taxonomy (Default: False)
    --darkmatter         Enable Palm Annot / Dark Matter (Default: False)
    --remove-download    Revome downloaded SRA files (Default: Keep)
-   --skip-reads-kraken  Skip Reads Kraken2 ID (Default: Run)
-   --skip-reads-diamond Skip Reads Diamond ID (Default: Run)
+   --reads-kraken       Enable Kraken2 analysis on reads (Default: Disabled)
+   --reads-diamond      Enable Diamond analysis on reads (Default: Disabled)
  
  ${ylo}Flags:${nc}
    -h, --help           Show this help message
@@ -224,46 +222,7 @@ setup_resources(){
         fi
     fi
 
-    # --- 3. Taxonomy (Nodes & Names & Map) ---
-    # O config.yaml deve apontar para: "resources/taxonomy/..."
-    if [[ -n "$taxdump" ]] || [[ -n "$taxmap" ]]; then
-        mkdir -p "$RES_DIR/taxonomy"
-    fi
 
-    if [[ -n "$taxdump" ]]; then
-        if [[ -d "$taxdump" ]]; then
-            echo -e "${blu}[INFO]${nc} Linking Taxonomy Dump to resources/taxonomy/..."
-            
-            if [[ -f "$taxdump/nodes.dmp" ]]; then
-                ln -sf "$taxdump/nodes.dmp" "$RES_DIR/taxonomy/nodes.dmp"
-            else 
-                echo -e "${ylo}[WARN]${nc} nodes.dmp not found in $taxdump"
-            fi
-            
-            if [[ -f "$taxdump/names.dmp" ]]; then
-                ln -sf "$taxdump/names.dmp" "$RES_DIR/taxonomy/names.dmp"
-            else
-                 echo -e "${ylo}[WARN]${nc} names.dmp not found in $taxdump"
-            fi
-        else
-            echo -e "${red}[ERROR]${nc} Taxdump directory not found: $taxdump"
-            exit 1
-        fi
-    fi
-
-   if [[ -n "$taxmap" ]]; then
-    # Check if file is gzipped
-      if [[ "$taxmap" == *.gz ]] || file "$taxmap" | grep -q "gzip compressed"; then
-        echo -e "${blu}[INFO]${nc} Taxmap is gzipped, linking with .gz extension"
-        ln -sf "$taxmap" "$RES_DIR/taxonomy/prot.accession2taxid.gz"
-        TAXONMAP_OVERRIDE="$RES_DIR/taxonomy/prot.accession2taxid.gz"
-      else
-        echo -e "${blu}[INFO]${nc} Taxmap is plain text, linking without .gz extension"
-        ln -sf "$taxmap" "$RES_DIR/taxonomy/prot.accession2taxid"
-        # Set the override variable
-        TAXONMAP_OVERRIDE="$RES_DIR/taxonomy/prot.accession2taxid"
-      fi
-    fi
 
 }
 
@@ -323,8 +282,8 @@ mod_assembly="false"
 mod_kraken2="false"
 mod_diamond="false"
 mod_darkmatter="false"
-mod_reads_kraken2="true"
-mod_reads_diamond="true"
+mod_reads_kraken2="false"
+mod_reads_diamond="false"
 
 # --- Argument Parsing --- #
 while [[ $# -gt 0 ]]; do
@@ -338,8 +297,7 @@ while [[ $# -gt 0 ]]; do
         ## Database Overrides
         --diamond_db) diamond_db="$2"; shift 2 ;;
         --kraken2) kraken2="$2"; shift 2 ;;
-        --taxdump) taxdump="$2"; shift 2 ;;
-        --taxmap) taxmap="$2"; shift 2 ;;
+
 
         # --- Module Toggles ---
         --assembly) mod_assembly="true"; shift ;;
@@ -349,8 +307,8 @@ while [[ $# -gt 0 ]]; do
         
         # --- Negative Flags ---
         --remove-download) mod_keep_download="false"; shift ;;
-        --skip-reads-kraken) mod_reads_kraken2="false"; shift ;;
-        --skip-reads-diamond) mod_reads_diamond="false"; shift ;;
+        --reads-kraken) mod_reads_kraken2="true"; shift ;;
+        --reads-diamond) mod_reads_diamond="true"; shift ;;
 
         # --- Others --- #
         -h|--help) help; exit 0 ;;
@@ -403,12 +361,6 @@ modules:
   reads_diamond: $mod_reads_diamond
 EOF
 
-if [[ -n "$TAXONMAP_OVERRIDE" ]]; then
-    cat <<EOF >> "$run_overrides"
-resources:
-  taxonmap: ["$TAXONMAP_OVERRIDE"]
-EOF
-fi
 
 # --- Workflow Execution Steps ---
 # We pass BOTH config files. Snakemake loads them in order.

@@ -69,13 +69,6 @@ resources:
    #kraken2 folder with all the files
   kraken2: 
    - "resources/kraken2/" 
-   #taxonomy files
-  taxonnodes: 
-    - "resources/taxonomy/nodes.dmp" 
-  taxonnames: 
-    - "resources/taxonomy/names.dmp"
-  taxonmap: 
-    - resources/taxonomy/prot.accession2taxid.gz
   basta_db:
     - "resources/basta_db"
   #palm annot resources
