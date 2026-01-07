@@ -25,7 +25,7 @@ rule basta_download_mapping:
     log:
         os.path.join(OUT_DIR, "log", "basta_download_mapping.log")
     shell:
-        "basta download prot.accession2taxid -d {params.tax_dir} > {log} 2>&1"
+        "basta download prot -d {params.tax_dir} > {log} 2>&1"
 
 rule basta_prepare_mapping:
     input:
