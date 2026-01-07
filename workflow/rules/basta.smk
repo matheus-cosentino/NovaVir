@@ -19,13 +19,25 @@ rule basta_download_mapping:
     output:
         gz=os.path.join(BASTA_DB_DIR[0], "prot.accession2taxid.gz")
     params:
-        tax_dir=BASTA_DB_DIR[0]
+        tax_dir=os.path.join(BASTA_DB_DIR[0])
     conda:
         BASTA
     log:
         os.path.join(OUT_DIR, "log", "basta_download_mapping.log")
     shell:
         "basta download prot -d {params.tax_dir} > {log} 2>&1"
+
+rule basta_download_taxonomy:
+    output:
+        gz=os.path.join(BASTA_DB_DIR[0], "complete_taxa.db")
+    params:
+        tax_dir=os.path.join(BASTA_DB_DIR[0])
+    conda:
+        BASTA
+    log:
+        os.path.join(OUT_DIR, "log", "basta_download_taxonomy.log")
+    shell:
+        "basta taxonomy -d {params.tax_dir} > {log} 2>&1"
 
 
 rule basta_search:
@@ -37,7 +49,7 @@ rule basta_search:
         lca=os.path.join(OUT_DIR, "{sample}", "basta_{source}", "{sample}_{source}_lca.tsv")
     params:
         db_type="prot",
-        tax_dir=BASTA_DB_DIR[0]
+        tax_dir=os.path.join(BASTA_DB_DIR[0])
     conda: 
         BASTA
     log:
