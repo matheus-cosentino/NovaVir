@@ -24,7 +24,7 @@ try:
     output_file = s.output["ids"]
     
     taxid_map_file_raw = s.input["taxid_map"]
-    taxid_map_file = taxid_map_file_raw[0] if isinstance(taxid_map_file_raw, list) else taxid_map_file_raw
+    taxid_map_file = str(taxid_map_file_raw[0]) if isinstance(taxid_map_file_raw, list) else str(taxid_map_file_raw)
 
     # 1.1. Checagem de Header (Lógica Interna, independente de params)
     # Verifica se a primeira linha do arquivo de hits começa com 'qseqid'

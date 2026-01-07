@@ -17,7 +17,7 @@
 
 rule basta_download_mapping:
     output:
-        os.path.join(BASTA_DB_DIR[0], "prot.accession2taxid.gz")
+        gz=os.path.join(BASTA_DB_DIR[0], "prot.accession2taxid.gz")
     params:
         tax_dir=BASTA_DB_DIR[0]
     conda:
@@ -27,37 +27,6 @@ rule basta_download_mapping:
     shell:
         "basta download prot -d {params.tax_dir} > {log} 2>&1"
 
-rule basta_prepare_mapping:
-    input:
-        mapping_file = rules.basta_download_mapping.output
-    output:
-        temp(os.path.join(OUT_DIR, "temp", "basta_mapping.txt"))
-    log:
-        os.path.join(OUT_DIR, "log", "basta_prepare_mapping.log")
-    shell:
-        """
-        gunzip -c {input.mapping_file} | tail -n +2 > {output} 2> {log}
-        """
-
-rule basta_createdb:
-    input:
-        mapping=os.path.join(OUT_DIR, "temp", "basta_mapping.txt")
-    output:
-        touch(os.path.join(BASTA_DB_DIR[0], "prot"))     
-    params:
-        acc_col=1,
-        taxid_col=2,
-        db_name="prot",
-        tax_dir=BASTA_DB_DIR[0]
-    conda:
-        BASTA
-    log:
-        os.path.join(OUT_DIR, "log", "basta_createdb.log")
-    shell:
-        """
-        # Create the DB with a specific name
-        basta create_db {input.mapping} {params.db_name} {params.acc_col} {params.taxid_col} -d {params.tax_dir} >> {log} 2>&1
-        """
 
 rule basta_search:
     input:
