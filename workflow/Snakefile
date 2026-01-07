@@ -123,10 +123,11 @@ include: "rules/fastp.smk"
 include: "rules/denovo.smk"
 include: "rules/diamond.smk"
 include: "rules/kraken2.smk"
+include: "rules/basta.smk"
 include: "rules/lineage.smk"
 include: "rules/duskmatter.smk"
 include: "rules/reporting.smk"
-include: "rules/basta.smk"
+
 
 ###############################################################
 # --- 7. Obtain the final target & Download Data cleanup --- #
