@@ -203,21 +203,21 @@ setup_resources(){
 
     # --- 2. Kraken2 DB ---
     # O config.yaml deve apontar para: "resources/kraken2/"
-    if [[ -n "$kraken2" ]]; then
+    if [[ -n "$kraken2_db" ]]; then
         # Remove a barra final se houver
-        kraken2=${kraken2%/}
+        kraken2_db=${kraken2_db%/}
 
-        if [[ -d "$kraken2" ]]; then
+        if [[ -d "$kraken2_db" ]]; then
             echo -e "${blu}[INFO]${nc} Linking external Kraken2 DB to resources/kraken2/..."
             
             # Remove o diretório ou link 'kraken2' existente dentro de resources
             # Atenção: Isso substitui a pasta local pelo link para a externa
-            rm -rf "$RES_DIR/kraken2"
+            rm -rf "$RES_DIR/kraken2_db"
             
             # Cria o link simbólico do diretório inteiro
-            ln -sfn "$kraken2" "$RES_DIR/kraken2"
+            ln -sfn "$kraken2_db" "$RES_DIR/kraken2"
         else
-            echo -e "${red}[ERROR]${nc} Kraken2 directory not found: $kraken2"
+            echo -e "${red}[ERROR]${nc} Kraken2 directory not found: $kraken2_db"
             exit 1
         fi
     fi
@@ -296,7 +296,7 @@ while [[ $# -gt 0 ]]; do
         
         ## Database Overrides
         --diamond_db) diamond_db="$2"; shift 2 ;;
-        --kraken2) kraken2="$2"; shift 2 ;;
+        --kraken2_db) kraken2_db="$2"; shift 2 ;;
 
 
         # --- Module Toggles ---
