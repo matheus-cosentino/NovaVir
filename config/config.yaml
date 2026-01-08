@@ -120,7 +120,12 @@ diamond:
     #- 1
     - 50
     #- 10
-  evalue: 0.00001
+  #evalue: 
+    #- 0.00001
+    #- 0.0001
+    #- 0.001
+    #- 0.01
+
   sensitivity: 
      #- "--ultra-sensitive"
      - "--very-sensitive" #(default)

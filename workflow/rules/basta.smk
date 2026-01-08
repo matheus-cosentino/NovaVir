@@ -62,6 +62,6 @@ rule basta_search:
         basta sequence {input.query} {output.lca} {params.db_type} \
             -v {output.lca_summary} \
             -d {params.tax_dir} \
-            -p {params.algo} \
+            -m 1 \
             > {log} 2>&1
         """
