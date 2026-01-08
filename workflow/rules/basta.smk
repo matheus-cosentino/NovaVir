@@ -51,7 +51,8 @@ rule basta_search:
         lca_summary=os.path.join(OUT_DIR, "{sample}", "basta_{source}", "{sample}_{source}_lca_summary.tsv")
     params:
         db_type="prot",
-        tax_dir=os.path.join(BASTA_DB_DIR[0])
+        tax_dir=os.path.join(BASTA_DB_DIR[0]),
+        algo=config["basta"]["classification"]
     conda: 
         BASTA
     log:
@@ -61,6 +62,6 @@ rule basta_search:
         basta sequence {input.query} {output.lca} {params.db_type} \
             -v {params.lca_summary} \
             -d {params.tax_dir} \
-            -p 75 \
+            -p {params.algo} \
             > {log} 2>&1
         """

@@ -119,6 +119,7 @@ diamond:
   max_target_seqs: 
     #- 1
     - 50
+    #- 10
   evalue: 0.00001
   sensitivity: 
      #- "--ultra-sensitive"
@@ -127,7 +128,15 @@ diamond:
      #- "--more-sensitive"
      #- "--sensitive"
 
-
+#LCA algorythim
+basta:
+  classification:
+    #values between 51 and 99 BASTA returns the taxonomy that is shared by at least the given percentage of hits. 
+    #- 51    #percentage of best hits 51 (minimum)
+    - 75
+    #- 99    
+    #- 100   #BASTA reads 3 best hits for each query sequence and returns the LCA of all sequences
+  
 # Taxonomy by k-mer iddentification
 kraken2:
   confidence: 0.0 #   confidence score threshold (default: 0.0); must be in [0,1]
