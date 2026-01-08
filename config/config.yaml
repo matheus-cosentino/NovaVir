@@ -138,9 +138,9 @@ basta:
   classification:
     #values between 51 and 99 BASTA returns the taxonomy that is shared by at least the given percentage of hits. 
     #- 51    #percentage of best hits 51 (minimum)
-    - 75
+    #- 75
     #- 99    
-    #- 100   #BASTA reads 3 best hits for each query sequence and returns the LCA of all sequences
+    - 100   #BASTA reads 3 best hits for each query sequence and returns the LCA of all sequences
   
 # Taxonomy by k-mer iddentification
 kraken2:

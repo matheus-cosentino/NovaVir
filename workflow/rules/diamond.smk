@@ -27,6 +27,7 @@ rule diamond_blastx_contigs:
     db = get_diamond_db_name,
     outfmt = config["diamond"]["outfmt"],
     max_target_seqs = config["diamond"]["max_target_seqs"],
+    sensitivity=config["diamond"]["sensitivity"],
     #evalue = config["diamond"]["evalue"]
   log:
     # FIXED: Log path now also matches the {tool} wildcard
@@ -42,7 +43,7 @@ rule diamond_blastx_contigs:
     --threads {resources.threads} \
     --outfmt {params.outfmt} \
     --max-target-seqs {params.max_target_seqs} \
-    --ultra-sensitive \
+    {params.sensitivity} \
     --log \
     &> {log}
 
@@ -62,6 +63,7 @@ rule diamond_blastx_reads:
     db = get_diamond_db_name,
     outfmt = config["diamond"]["outfmt"],
     max_target_seqs = config["diamond"]["max_target_seqs"],
+    sensitivity=config["diamond"]["sensitivity"]
     #evalue = config["diamond"]["evalue"]
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "diamond_reads_{sample}.log")
@@ -78,7 +80,7 @@ rule diamond_blastx_reads:
       --threads {resources.threads} \
       --outfmt {params.outfmt} \
       --max-target-seqs {params.max_target_seqs} \
-      --ultra-sensitive \
+      {params.sensitivity} \
       --log \
       &> {log}
 
