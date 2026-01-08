@@ -77,7 +77,7 @@ rule append_lineage:
         lineages=os.path.join(OUT_DIR, "{sample}", "diamond_{source}",  "{sample}_{source}_hits_with_lineage.tsv")
     params:
         base_header="qseqid\tsseqid\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore\tTaxid",
-        lineage_header="Lineage\tCelular\tAcelular\tRealm\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies"
+        lineage_header="Lineage\tCelular\tAcelular\tRealm\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies",
         nodes=os.path.join(BASTA_DB_DIR[0], "nodes.dmp"),
         names=os.path.join(BASTA_DB_DIR[0], "names.dmp")
     log:
