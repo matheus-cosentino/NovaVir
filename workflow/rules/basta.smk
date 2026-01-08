@@ -60,7 +60,7 @@ rule basta_search:
     shell:
         """
         basta sequence {input.query} {output.lca} {params.db_type} \
-            -v {params.lca_summary} \
+            -v {output.lca_summary} \
             -d {params.tax_dir} \
             -p {params.algo} \
             > {log} 2>&1
