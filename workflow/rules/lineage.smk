@@ -73,7 +73,7 @@ rule split_hits_by_taxid:
 rule append_lineage:
     input:
         valid_hits= rules.split_hits_by_taxid.output.valid_hits
-     output:
+    output:
         lineages=os.path.join(OUT_DIR, "{sample}", "diamond_{source}",  "{sample}_{source}_hits_with_lineage.tsv")
     params:
         base_header="qseqid\tsseqid\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore\tTaxid",
