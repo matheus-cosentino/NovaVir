@@ -47,7 +47,8 @@ rule basta_search:
         query=os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt"),
         taxonomy=os.path.join(BASTA_DB_DIR[0], "complete_taxa.db")
     output:
-        lca=os.path.join(OUT_DIR, "{sample}", "basta_{source}", "{sample}_{source}_lca.tsv")
+        lca=os.path.join(OUT_DIR, "{sample}", "basta_{source}", "{sample}_{source}_lca.tsv"),
+        lca_summary=os.path.join(OUT_DIR, "{sample}", "basta_{source}", "{sample}_{source}_lca_summary.tsv")
     params:
         db_type="prot",
         tax_dir=os.path.join(BASTA_DB_DIR[0])
@@ -58,6 +59,8 @@ rule basta_search:
     shell:
         """
         basta sequence {input.query} {output.lca} {params.db_type} \
+            -v {params.lca_summary} \
             -d {params.tax_dir} \
+            -p 75 \
             > {log} 2>&1
         """

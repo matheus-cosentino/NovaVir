@@ -26,7 +26,7 @@ rule map_accession_to_taxid:
     """
     input:
         hit_file = os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt"),
-        taxid_map = rules.basta_download_mapping.output
+        taxid_map = rules.basta_download_mapping.output.gz
     output:
         ids = os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_hits_with_taxid.tmp")
     shadow: 
