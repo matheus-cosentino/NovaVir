@@ -3,6 +3,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
 #SBATCH --output=logs_slurm/DiscoVir_%j.out
+#SBATCH --constraint infiniband
 
 echo "
 #####M#A#C#C##2#0#2#5###############I#R#D##&##U#F#R#J#####

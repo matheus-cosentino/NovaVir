@@ -32,7 +32,6 @@ rerun-incomplete: True
 use-conda: True
 show-failed-logs: True
 
-
 #######################################
 # --- 2. Slurm Default Resources --- #
 ######################################
@@ -44,7 +43,7 @@ default-resources:
   threads: 2
   mem_mb: 8000
   runtime: 4320
-  #constraint: infiniband
+  constraint: infiniband
 
 
 #######################################
