@@ -21,7 +21,7 @@
 ###########################
 
 # cluster params, number of jobs to be ran simullteniously
-jobs: 15
+jobs: 20
 
 #snakemake params
 executor: slurm

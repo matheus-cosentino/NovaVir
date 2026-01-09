@@ -387,12 +387,33 @@ mkdir -p "$SHADOW_DIR" "$CONDA_DIR"
 echo -e "${blu}[INFO]${nc} Shadow directory set to: ${ylo}$SHADOW_DIR${nc}"
 
 # --- MODIFIED COMMAND ---
+GROUPS_CMD="--groups download_sra_data_paired=pipeline \
+fastp_paired=pipeline \
+spades=pipeline \
+diamond_blastx_reads=pipeline \
+diamond_blastx_contigs=pipeline \
+kraken2_reads_paired=pipeline \
+kraken2_contigs=pipeline \
+basta_search=pipeline \
+map_accession_to_taxid=pipeline \
+split_hits_by_taxid=pipeline \
+append_lineage=pipeline \
+get_nohit_fasta=pipeline \
+find_orfs=pipeline \
+cd_hit=pipeline \
+palm_annot=pipeline \
+fev2tsv_single=pipeline \
+report_summarize=pipeline"
+
+echo -e "\n${green}> Snakemake: Starting Distributed Grouped execution...${nc}"
+
 snakemake --profile $profile \
     --jobs $jobs \
     --use-conda \
     --conda-prefix "$CONDA_DIR" \
-    --configfile "$main_config" "$run_overrides" \
     --shadow-prefix "$SHADOW_DIR" \
+    --configfile "$main_config" "$run_overrides" \
+    $GROUPS_CMD \
     --keep-going
 
 echo -e "\n${green}> Snakemake: Creating DAG & Report...${nc}"
