@@ -41,6 +41,7 @@ rsync -av --exclude '.snakemake' \
     "$SUBMIT_DIR/workflow" \
     "$SUBMIT_DIR/resources" \
     "$SUBMIT_DIR/DiscoVir.sh" \
+    "$SUBMIT_DIR/profile_slurm" \
     "$SUBMIT_DIR/accessions.txt" \
     "$SCRATCH_DIR/"
 
