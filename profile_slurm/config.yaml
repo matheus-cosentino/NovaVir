@@ -25,7 +25,7 @@ jobs: 15
 
 #snakemake params
 executor: slurm
-restart-times: 0
+restart-times: 2
 latency-wait: 60
 keep-going: True
 rerun-incomplete: True
@@ -43,6 +43,7 @@ default-resources:
   tmpdir: /scratch
   threads: 2
   mem_mb: 8000
+  runtime: 4320
   #constraint: infiniband
 
 

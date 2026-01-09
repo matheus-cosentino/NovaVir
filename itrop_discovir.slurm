@@ -20,7 +20,7 @@ echo "
 #####M#A#C#C##2#0#2#5###############I#R#D##&##U#F#R#J#####
 "
 
-# --- Definições de Diretórios ---
+# --- Dir Definitions ---
 SUBMIT_DIR=$SLURM_SUBMIT_DIR
 SCRATCH_DIR="/scratch/$USER/DiscoVir_${SLURM_JOB_ID}"
 
@@ -53,11 +53,14 @@ ln -sfn "$SUBMIT_DIR/data" "$SCRATCH_DIR/data"
 source /usr/local/bioinfo/Miniforge3-24.9.2-0/etc/profile.d/conda.sh
 
 # --- 3. Executar o Pipeline no Scratch ---
+
+echo "[INFO] Changing to Scratch Work Dir..."
 cd "$SCRATCH_DIR"
 
 echo "[INFO] Starting DiscoVir..."
 
 # Running DiscoVir. 
+#### This part must be adjusted to add the corresponding directories within the local HPC Clusters 
 bash DiscoVir.sh \
     --input data \
     --output results \
