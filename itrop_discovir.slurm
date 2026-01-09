@@ -20,50 +20,34 @@ echo "
 #####M#A#C#C##2#0#2#5###############I#R#D##&##U#F#R#J#####
 "
 
-# --- Dir Definitions ---
-SUBMIT_DIR=$SLURM_SUBMIT_DIR
-SCRATCH_DIR="/scratch/$USER/DiscoVir_${SLURM_JOB_ID}"
+echo "##### DiscoVir SLURM Wrapper - Split Storage Mode #####"
 
-echo "----------------------------------------------------------------"
-echo "Job ID: $SLURM_JOB_ID"
-echo "Submit Dir: $SUBMIT_DIR"
-echo "Scratch Dir: $SCRATCH_DIR"
-echo "----------------------------------------------------------------"
+# --- 1. DEFINE PATHS ---
+# PROJECT_HOME: Where your Snakefile and Config live (MUST be shared/home)
+PROJECT_HOME="$SLURM_SUBMIT_DIR"
 
-# --- 1. Setting Scratch ---
+# SCRATCH_OUT: Where the final results go. 
+# WARNING: If scratch is local, you might lose results unless this path is shared.
+# If your /home is full, try to output to a shared /data or /projects folder if available.
+# For now, we will output to /scratch but you must check if results persist.
+SCRATCH_DIR="/scratch/$USER/DiscoVir_Results_$SLURM_JOB_ID"
 mkdir -p "$SCRATCH_DIR"
-mkdir -p "$SCRATCH_DIR/logs_slurm"
 
-echo "[INFO] Sending Files to Scratch with rsync..."
-
-rsync -av --exclude '.snakemake' \
-    "$SUBMIT_DIR/config" \
-    "$SUBMIT_DIR/workflow" \
-    "$SUBMIT_DIR/resources" \
-    "$SUBMIT_DIR/DiscoVir.sh" \
-    "$SUBMIT_DIR/profile_slurm" \
-    "$SUBMIT_DIR/accessions.txt" \
-    "$SCRATCH_DIR/"
-
-# Link simbólico para os dados (evita copiar gigabytes de dados brutos)
-# O script assume que seus dados estão em 'data' no diretório de submissão
-ln -sfn "$SUBMIT_DIR/data" "$SCRATCH_DIR/data"
-
-# --- 2. Configurar Ambiente ---
+# --- 2. ACTIVATE ENVIRONMENT ---
 source /usr/local/bioinfo/Miniforge3-24.9.2-0/etc/profile.d/conda.sh
+conda activate DiscoVir
 
-# --- 3. Executar o Pipeline no Scratch ---
+# --- 3. EXECUTE FROM HOME (The Fix) ---
+cd "$PROJECT_HOME" || { echo "Error: Could not find $PROJECT_HOME"; exit 1; }
 
-echo "[INFO] Changing to Scratch Work Dir..."
-cd "$SCRATCH_DIR"
+echo "[INFO] Running from Shared Path: $(pwd)"
+echo "[INFO] Heavy Data will be written to: $SCRATCH_DIR"
 
-echo "[INFO] Starting DiscoVir..."
-
-# Running DiscoVir. 
-#### This part must be adjusted to add the corresponding directories within the local HPC Clusters 
+# --- 4. RUN PIPELINE ---
+# We pass the SCRATCH_DIR to the script
 bash DiscoVir.sh \
     --input data \
-    --output results \
+    --output "$SCRATCH_DIR" \
     --sra accessions.txt \
     --assembly \
     --diamond \
@@ -74,35 +58,12 @@ bash DiscoVir.sh \
     --diamond_db /share/banks/diamond/nr/21-09/diamond_nr.dmnd \
     --kraken2_db /share/banks/kraken2/nt/21-09/nt/
 
-EXIT_CODE=$?
+# --- 5. RETRIEVE RESULTS ---
+# Move results from Scratch back to Home (or a safe place) before the job ends
+FINAL_HOME_DIR="$PROJECT_HOME/results_$SLURM_JOB_ID"
+mkdir -p "$FINAL_HOME_DIR"
 
-# --- 4. Retrieving Data ---
-echo "[INFO] Trazendo resultados de volta para o Home com rsync..."
+echo "[INFO] Retrieving results from Scratch..."
+rsync -av "$SCRATCH_DIR/" "$FINAL_HOME_DIR/"
 
-# Define onde os resultados finais ficarão no seu Home
-FINAL_OUTPUT_DIR="$SUBMIT_DIR/results_job_${SLURM_JOB_ID}"
-mkdir -p "$FINAL_OUTPUT_DIR"
-
-# O rsync aqui é crucial.
-# -a: archive mode (preserva permissões, donos, grupos, tempos)
-# -v: verbose
-# Copiamos apenas a pasta 'results'. 
-# NÃO trazemos a pasta '.snakemake' (que contém os temp files pesados do spades que causaram o erro 28),
-# a menos que você precise debugar logs específicos.
-rsync -av "$SCRATCH_DIR/results/" "$FINAL_OUTPUT_DIR/"
-
-# Opcional: Trazer logs do snakemake para debug se falhar
-if [ $EXIT_CODE -ne 0 ]; then
-    echo "[WARN] O Job falhou. Trazendo logs do Snakemake para análise."
-    mkdir -p "$FINAL_OUTPUT_DIR/snakemake_logs"
-    rsync -av "$SCRATCH_DIR/.snakemake/log/" "$FINAL_OUTPUT_DIR/snakemake_logs/"
-fi
-
-# Limpeza do Scratch
-# echo "[INFO] Limpando Scratch..."
-# rm -rf "$SCRATCH_DIR"
-
-echo "----------------------------------------------------------------"
-echo "Job finalizado com código: $EXIT_CODE"
-echo "Resultados em: $FINAL_OUTPUT_DIR"
-exit $EXIT_CODE
+echo "[INFO] Done."
