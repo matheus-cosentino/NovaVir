@@ -31,7 +31,7 @@ PROJECT_HOME="$SLURM_SUBMIT_DIR"
 # WARNING: If scratch is local, you might lose results unless this path is shared.
 # If your /home is full, try to output to a shared /data or /projects folder if available.
 # For now, we will output to /scratch but you must check if results persist.
-SCRATCH_DIR="/scratch-ib/$USER/DiscoVir_Results_$SLURM_JOB_ID"
+SCRATCH_DIR="/scratch/$USER/DiscoVir_Results_$SLURM_JOB_ID"
 mkdir -p "$SCRATCH_DIR"
 
 # --- 2. ACTIVATE ENVIRONMENT ---
