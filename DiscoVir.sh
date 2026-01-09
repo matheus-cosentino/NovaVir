@@ -267,8 +267,9 @@ generate_sample_list(){
 ###########################
 # --- Main Execution --- #
 ###########################
-
+# Whole path of WORDDIR
 workdir=$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd)
+cd "$workdir"
 set -e -o pipefail
 
 # Defaults
@@ -329,7 +330,7 @@ generate_sample_list
 echo -e "${blu}[INFO]${nc} Initializing DiscoVir Workflow..."
 
 # 1. Locate the STATIC Main Config
-main_config="config/config.yaml"
+main_config="$workdir/config/config.yaml"
 if [[ ! -f "$main_config" ]]; then
     # Fallback check if it's in root
     if [[ -f "config.yaml" ]]; then
@@ -342,7 +343,8 @@ fi
 
 # 2. Generate the DYNAMIC Override Config
 # This file only contains what changes per run (inputs, outputs, modules)
-run_overrides="$output/run_overrides.yaml"
+run_overrides="$workdir/run_overrides.yaml"
+
 echo -e "${blu}[INFO]${nc} Generating run overrides: ${ylo}$run_overrides${nc}"
 
 cat <<EOF > "$run_overrides"
@@ -364,7 +366,6 @@ EOF
 # --- Workflow Execution Steps ---
 # We pass BOTH config files. Snakemake loads them in order.
 # The second file (overrides) updates the values of the first (main).
-
 echo -e "\n${green}> Snakemake: Unlocking working directory...${nc}"
 snakemake --profile $profile --configfile "$main_config" "$run_overrides" --unlock --quiet
 
@@ -376,15 +377,20 @@ snakemake --profile $profile --jobs $jobs --use-conda --configfile "$main_config
 echo "---------------------------------------------------"
 
 echo -e "\n${green}> Snakemake: Starting main execution...${nc}"
+
+#SHADOW DIR within the node of submission, avoiding pipeline killed by lack of IO
 # This forces Snakemake to write its heavy temporary shadow files to /scratch
-SHADOW_DIR="/scratch/${USER}/discovir_shadow"
-mkdir -p "$SHADOW_DIR"
+SHADOW_DIR="/scratch/${USER}/discovir_shadow/${SLURM_JOB_ID}"
+CONDA_DIR="$workdir/.snakemake/conda"
+mkdir -p "$SHADOW_DIR" "$CONDA_DIR"
+
 echo -e "${blu}[INFO]${nc} Shadow directory set to: ${ylo}$SHADOW_DIR${nc}"
 
 # --- MODIFIED COMMAND ---
 snakemake --profile $profile \
     --jobs $jobs \
     --use-conda \
+    --conda-prefix "$CONDA_DIR" \
     --configfile "$main_config" "$run_overrides" \
     --shadow-prefix "$SHADOW_DIR" \
     --keep-going
