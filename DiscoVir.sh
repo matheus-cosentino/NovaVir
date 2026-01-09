@@ -361,7 +361,6 @@ modules:
   reads_diamond: $mod_reads_diamond
 EOF
 
-
 # --- Workflow Execution Steps ---
 # We pass BOTH config files. Snakemake loads them in order.
 # The second file (overrides) updates the values of the first (main).
@@ -377,11 +376,18 @@ snakemake --profile $profile --jobs $jobs --use-conda --configfile "$main_config
 echo "---------------------------------------------------"
 
 echo -e "\n${green}> Snakemake: Starting main execution...${nc}"
+# This forces Snakemake to write its heavy temporary shadow files to /scratch
+SHADOW_DIR="/scratch/${USER}/discovir_shadow"
+mkdir -p "$SHADOW_DIR"
+echo -e "${blu}[INFO]${nc} Shadow directory set to: ${ylo}$SHADOW_DIR${nc}"
+
+# --- MODIFIED COMMAND ---
 snakemake --profile $profile \
     --jobs $jobs \
     --use-conda \
     --configfile "$main_config" "$run_overrides" \
-    --keep-going 
+    --shadow-prefix "$SHADOW_DIR" \
+    --keep-going
 
 echo -e "\n${green}> Snakemake: Creating DAG & Report...${nc}"
 
