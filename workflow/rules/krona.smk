@@ -24,7 +24,7 @@ rule krona_update_taxonomy:
         names = os.path.join(BASTA_DB_DIR[0], "names.dmp"),
         nodes = os.path.join(BASTA_DB_DIR[0], "nodes.dmp")
     conda:
-        "KRONA"
+        KRONA
     log:
         os.path.join(OUT_DIR, "log", "krona_update_taxonomy.log")
     shell:
