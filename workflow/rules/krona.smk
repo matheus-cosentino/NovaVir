@@ -15,26 +15,28 @@
 #                              version: 12.2025                                   #
 ###################################################################################
 
+# workflow/rules/krona.smk
+
 rule krona_update_taxonomy:
     output:
         db_dir = directory(os.path.join("resources", "krona", "taxonomy"))
     input:
-        # Use the BASTA DB files you already have to save download time
         names = os.path.join(BASTA_DB_DIR[0], "names.dmp"),
         nodes = os.path.join(BASTA_DB_DIR[0], "nodes.dmp")
     conda:
-        KRONA
+        "KRONA"
     log:
         os.path.join(OUT_DIR, "log", "krona_update_taxonomy.log")
     shell:
         """
+        # Ensure directory exists
         mkdir -p {output.db_dir}
 
-        # Link the existing dump files to the krona folder to skip downloading
-        ln -sf {input.names} {output.db_dir}/names.dmp
-        ln -sf {input.nodes} {output.db_dir}/nodes.dmp
+        # FIX: Copy files instead of symlinking to avoid relative path errors
+        cp {input.names} {output.db_dir}/names.dmp
+        cp {input.nodes} {output.db_dir}/nodes.dmp
         
-        # Run Krona update with --only-build (skips download, uses linked .dmp files)
+        # Run Krona update using the local files we just copied
         ktUpdateTaxonomy.sh --only-build {output.db_dir} > {log} 2>&1
         """
 
