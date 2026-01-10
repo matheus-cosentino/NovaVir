@@ -1,0 +1,107 @@
+###################################################################################
+#                         workflow/rules/krona.smk                                #
+#                           MSc. Matheus Cosentino                                #
+###################################################################################
+#                                                                                 #
+# oooooooooo.    o8o                               oooooo     oooo  o8o           #
+# `888'   `Y8b   `"'                                `888.     .8'   `"'           #
+#  888      888 oooo   .oooo.o  .ooooo.   .ooooo.    `888.   .8'   oooo  oooo d8b #
+#  888      888 `888  d88(  "8 d88' `"Y8 d88' `88b    `888. .8'    `888  `888""8P #
+#  888      888  888  `"Y88b.  888       888   888     `888.8'      888   888     #
+#  888     d88'  888  o.  )88b 888   .o8 888   888      `888'       888   888     #
+# o888bood8P'   o888o 8""888P' `Y8bod8P' `Y8bod8P'       `8'       o888o d888b    #
+#                                                                                 #
+###################################################################################
+#                              version: 12.2025                                   #
+###################################################################################
+
+rule krona_update_taxonomy:
+    output:
+        db_dir = directory(os.path.join("resources", "krona", "taxonomy"))
+    input:
+        # Use the BASTA DB files you already have to save download time
+        names = os.path.join(BASTA_DB_DIR[0], "names.dmp"),
+        nodes = os.path.join(BASTA_DB_DIR[0], "nodes.dmp")
+    conda:
+        KRONA
+    log:
+        os.path.join(OUT_DIR, "log", "krona_update_taxonomy.log")
+    shell:
+        """
+        mkdir -p {output.db_dir}
+
+        # Link the existing dump files to the krona folder to skip downloading
+        ln -sf {input.names} {output.db_dir}/names.dmp
+        ln -sf {input.nodes} {output.db_dir}/nodes.dmp
+        
+        # Run Krona update with --only-build (skips download, uses linked .dmp files)
+        ktUpdateTaxonomy.sh --only-build {output.db_dir} > {log} 2>&1
+        """
+
+rule krona_kraken2:
+    input:
+        report = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_report.txt"),
+        tax_db = "resources/krona/taxonomy"
+    output:
+        html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_krona.html")
+    conda:
+        KRONA
+    log:
+        os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken2_{tool}_{sample}.log")
+    shell:
+        """
+        # ktImportTaxonomy imports the report (Column 3 = TaxID, Column 2 = Count)
+        ktImportTaxonomy \
+            -t 3 -m 2 \
+            -tax {input.tax_db} \
+            -o {output.html} \
+            {input.report} \
+            > {log} 2>&1
+        """
+
+rule krona_basta:
+    input:
+        lca = os.path.join(OUT_DIR, "{sample}", "basta_{source}", "{sample}_{source}_lca.tsv")
+    output:
+        html = os.path.join(OUT_DIR, "{sample}", "krona_{source}", "{sample}_{source}_basta_krona.html")
+    conda:
+        KRONA
+    log:
+        os.path.join(OUT_DIR, "{sample}", "log", "krona_basta_{source}_{sample}.log")
+    shell:
+        """
+        # Preprocess BASTA output for Krona:
+        # 1. Cut column 2 (The lineage string)
+        # 2. Replace semicolon separators ('; ') with tabs for ktImportText
+        
+        cut -f 2 {input.lca} | \
+        sed 's/; /\\t/g' | \
+        ktImportText -o {output.html} - \
+        > {log} 2>&1
+        """
+
+rule krona_reads_kraken:
+    wildcard_constraints:
+        read_type="paired|unpaired"
+    input:
+        report = os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_{read_type}_reads_report.txt"),
+        tax_db = "resources/krona/taxonomy"
+    output:
+        html = os.path.join(OUT_DIR, "{sample}", "krona_reads", "{sample}_{read_type}_kraken.html")
+    conda:
+        KRONA
+    log:
+        os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken_reads_{read_type}_{sample}.log")
+    shell:
+        """
+        # ktImportTaxonomy for Reads
+        # -t 3: Column containing TaxID (Kraken2 standard)
+        # -m 2: Column containing Magnitude/Count (Kraken2 standard)
+        
+        ktImportTaxonomy \
+            -t 3 -m 2 \
+            -tax {input.tax_db} \
+            -o {output.html} \
+            {input.report} \
+            > {log} 2>&1
+        """

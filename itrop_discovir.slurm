@@ -57,7 +57,7 @@ bash DiscoVir.sh \
     --kraken2 \
     --darkmatter \
     --diamond_db /share/banks/diamond/nr/21-09/diamond_nr.dmnd \
-    --kraken2_db /share/banks/kraken2/nt/21-09/nt/
+    --kraken2_db /databases/tools/kraken2/k2_standard_20250714
 
 # --- 5. RETRIEVE RESULTS ---
 # Move results from Scratch back to Home (or a safe place) before the job ends

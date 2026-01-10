@@ -60,6 +60,8 @@ envs:
   multiqc: "envs/multiqc.yaml"
   spades: "envs/spades.yaml"
   basta: "envs/basta.yaml"
+  krona: "envs/krona.yaml"
+  "
 
 ### databases and resources for the workflow
 resources:

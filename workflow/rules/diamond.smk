@@ -44,10 +44,11 @@ rule diamond_blastx_contigs:
     --outfmt {params.outfmt} \
     --max-target-seqs {params.max_target_seqs} \
     {params.sensitivity} \
-    --log \
     &> {log}
 
-    mv diamond.log {output.log}
+    # 2. Copy the log to the destination MultiQC expects
+    # This prevents the "Missing output files" error
+    cp {log} {output.log}
     """
 
 rule diamond_blastx_reads:
@@ -81,9 +82,9 @@ rule diamond_blastx_reads:
       --outfmt {params.outfmt} \
       --max-target-seqs {params.max_target_seqs} \
       {params.sensitivity} \
-      --log \
       &> {log}
 
     rm -rf {params.seqs}      
-    mv diamond.log {output.log}
+    cp {log} {output.log}
+
     """

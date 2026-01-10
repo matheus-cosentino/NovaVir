@@ -113,6 +113,8 @@ PALM = workflow.source_path(config["envs"]["palm_annot"])
 MULTIQC = workflow.source_path(config["envs"]["multiqc"])
 SPADES_ENV = workflow.source_path(config["envs"]["spades"])
 BASTA = workflow.source_path(config["envs"]["basta"])
+KRONA = workflow.source_path(config["envs"]["krona"])
+
 
 #######################################
 # --- 6. Load the Workflow Rules --- #

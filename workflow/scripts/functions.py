@@ -44,6 +44,9 @@ SINGLE_SRA = []
 ##########################################################
 # --- 2. Function to obtain final outputs per module --- #
 ##########################################################
+##########################################################
+# --- 2. Function to obtain final outputs per module --- #
+##########################################################
 ## list to generate all output
 def get_final_outputs():
   final_outputs = []
@@ -61,7 +64,6 @@ def get_final_outputs():
         file_name = TOOL_OUTPUT_MAP.get(tool_name)
         if not file_name:
                 raise ValueError(f"Output filename not defined for tool: {tool_name}")
-        # Aqui usamos sample=SAMPLE (A lista global)
         final_outputs.extend(expand("{output_dir}/{sample}/{tool}/{filename}", 
                                     sample=SAMPLE, tool=tool_name, filename=file_name, output_dir=OUT_DIR))
 
@@ -77,9 +79,8 @@ def get_final_outputs():
             final_outputs.extend(expand("{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Report_Diversity.html", 
                     out_dir=OUT_DIR, sample=sample, tool=assembler_list))
 
-  # 4. Reads (CORRIGIDO)
+  # 4. Reads
   if MODULES["reads_diamond"]:
-    # CORREÇÃO: sample=SAMPLE
     final_outputs.extend(expand(
                     "{out_dir}/{sample}/basta_reads/{sample}_reads_lca.tsv",
                     out_dir=OUT_DIR,
@@ -88,39 +89,48 @@ def get_final_outputs():
                     "{out_dir}/{sample}/diamond_reads/{sample}_reads_hits_with_lineage.tsv",
                     out_dir=OUT_DIR,
                     sample=SAMPLE))
+    # NEW: Add Krona Plot for Reads (Basta)
+    final_outputs.extend(expand(
+                    "{out_dir}/{sample}/krona_reads/{sample}_reads_basta_krona.html",
+                    out_dir=OUT_DIR,
+                    sample=SAMPLE))
 
   if MODULES["reads_kraken2"]:
-    # Iterate through samples to determine if they are paired or unpaired
     for sample in SAMPLE:
         meta = SAMPLE_META.get(sample)
-        
-        # Check if Paired (SRA with 2 files OR Local Paired)
+        # Logic to determine if we look for 'paired' or 'unpaired' files
         is_paired = (meta['mode'] == 'PAIRED') or (meta['mode'] == 'SRA' and len(meta['files']) == 2)
-        
-        # Define the label used in kraken2.smk
         label = "paired" if is_paired else "unpaired"
         
-        # Append the specific file path
+        # Original BIOM output
         final_outputs.append(f"{OUT_DIR}/{sample}/kraken2_reads/{sample}_{label}_reads_biom.txt")
+        
+        # NEW: Add Krona Plot for Reads (Kraken2)
+        final_outputs.append(f"{OUT_DIR}/{sample}/krona_reads/{sample}_{label}_kraken.html")
 
   # 5. Kraken2 Contigs
   if MODULES["kraken2"]:
         assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
         for sample, meta in SAMPLE_META.items():
             if meta['mode'] == 'CONTIGS':
-                # Aqui usamos sample=sample (singular) pois ESTAMOS dentro de um loop 'for sample...'
                 final_outputs.extend(expand(
                     "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_biom.txt",
-                    out_dir=OUT_DIR,
-                    sample=sample,
-                    tool=PRE_ASSEMBLED_LABEL
+                    out_dir=OUT_DIR, sample=sample, tool=PRE_ASSEMBLED_LABEL
+                ))
+                # NEW: Add Krona Plot for Kraken2 Contigs
+                final_outputs.extend(expand(
+                    "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_krona.html",
+                    out_dir=OUT_DIR, sample=sample, tool=PRE_ASSEMBLED_LABEL
                 ))
             else:
                 final_outputs.extend(expand(
                     "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_biom.txt",
-                    out_dir=OUT_DIR,
-                    sample=sample,
-                    tool=assembler_list
+                    out_dir=OUT_DIR, sample=sample, tool=assembler_list
+                ))
+                # NEW: Add Krona Plot for Kraken2 Contigs
+                final_outputs.extend(expand(
+                    "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_krona.html",
+                    out_dir=OUT_DIR, sample=sample, tool=assembler_list
                 ))
 
   # 6. Diamond Contigs
@@ -130,28 +140,30 @@ def get_final_outputs():
             if meta['mode'] == 'CONTIGS':
                 final_outputs.extend(expand(
                     "{out_dir}/{sample}/basta_{tool}/{sample}_{tool}_lca.tsv",
-                    out_dir=OUT_DIR,
-                    sample=sample,
-                    tool=PRE_ASSEMBLED_LABEL 
+                    out_dir=OUT_DIR, sample=sample, tool=PRE_ASSEMBLED_LABEL 
                 ))
                 final_outputs.extend(expand(
                     "{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_hits_with_lineage.tsv",
-                    out_dir=OUT_DIR,
-                    sample=sample,
-                    tool=PRE_ASSEMBLED_LABEL 
+                    out_dir=OUT_DIR, sample=sample, tool=PRE_ASSEMBLED_LABEL 
+                ))
+                # NEW: Add Krona Plot for Diamond/Basta Contigs
+                final_outputs.extend(expand(
+                    "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_basta_krona.html",
+                    out_dir=OUT_DIR, sample=sample, tool=PRE_ASSEMBLED_LABEL 
                 ))
             else:
                 final_outputs.extend(expand(
                     "{out_dir}/{sample}/basta_{tool}/{sample}_{tool}_lca.tsv",
-                    out_dir=OUT_DIR,
-                    sample=sample,
-                    tool=assembler_list
+                    out_dir=OUT_DIR, sample=sample, tool=assembler_list
                 ))
                 final_outputs.extend(expand(
                     "{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_hits_with_lineage.tsv",
-                    out_dir=OUT_DIR,
-                    sample=sample,
-                    tool=assembler_list 
+                    out_dir=OUT_DIR, sample=sample, tool=assembler_list 
+                ))
+                # NEW: Add Krona Plot for Diamond/Basta Contigs
+                final_outputs.extend(expand(
+                    "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_basta_krona.html",
+                    out_dir=OUT_DIR, sample=sample, tool=assembler_list 
                 ))
 
   return final_outputs
