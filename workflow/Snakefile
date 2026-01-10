@@ -129,6 +129,7 @@ include: "rules/basta.smk"
 include: "rules/lineage.smk"
 include: "rules/duskmatter.smk"
 include: "rules/reporting.smk"
+include: "rules/krona.smk"
 
 
 ###############################################################
