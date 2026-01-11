@@ -31,7 +31,7 @@ PROJECT_HOME="$SLURM_SUBMIT_DIR"
 # WARNING: If scratch is local, you might lose results unless this path is shared.
 # If your /home is full, try to output to a shared /data or /projects folder if available.
 # For now, we will output to /scratch but you must check if results persist.
-SCRATCH_DIR="/scratch-ib/$USER/DiscoVir_Results"
+SCRATCH_DIR="/scratch-ib/$USER/DiscoVir_Results_$SLURM_JOB_ID"
 mkdir -p "$SCRATCH_DIR"
 
 # --- 2. ACTIVATE ENVIRONMENT ---
@@ -56,12 +56,12 @@ bash DiscoVir.sh \
     --reads-kraken \
     --kraken2 \
     --darkmatter \
-    --diamond_db /databases/tools/diamond/ncbi-nr.taxonomy.2.1.13.dmnd \
+    --diamond_db /share/banks/diamond/nr/21-09/diamond_nr.dmnd \
     --kraken2_db /databases/tools/kraken2/k2_standard_20250714
 
 # --- 5. RETRIEVE RESULTS ---
 # Move results from Scratch back to Home (or a safe place) before the job ends
-FINAL_HOME_DIR="$PROJECT_HOME/DiscoVir_Results"
+FINAL_HOME_DIR="$PROJECT_HOME/results_$SLURM_JOB_ID"
 mkdir -p "$FINAL_HOME_DIR"
 
 echo "[INFO] Retrieving results from Scratch..."
