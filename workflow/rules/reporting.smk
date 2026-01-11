@@ -14,28 +14,6 @@
 ###################################################################################
 #                              version: 12.2025                                   #
 ###################################################################################
-#
-#rule snakemake_report:
-    # Aim: generates a workflow report in HTML format
-    # Use: snakemake --report [OPTIONS] [REPORT]
-#    message:
-#        """
-#        Generate a workflow report in HTML format 
-#        """
-#    conda:
-#        CORE
-#    input:
-#        final_outputs = get_final_outputs()
-#    output:
-#        html_report = os.path.join(OUT_DIR, "{sample}", "reporting", "{sample}_reporting.html")
-#    log:
-#        os.path.join(OUT_DIR, "{sample}", "log", "reporting_{sample}.log")
-#    shell:
-#        "snakemake "            # Snakemake
-#        "--report "              # Create an HTML report with results and statistics
-#        " {output.html_report} " # Output report
-#        "2> {log}"               # Log redirection
-
 
 rule multiqc_aggregate:
     message:
