@@ -30,15 +30,22 @@ rule basta_download_mapping:
 
 rule basta_download_taxonomy:
     output:
-        gz=directory(os.path.join(BASTA_DB_DIR[0], "complete_taxa.db"))
+        # The main BASTA database
+        db = directory(os.path.join(BASTA_DB_DIR[0], "complete_taxa.db")),
+        # The raw taxonomy files Krona also needs
+        names = os.path.join(BASTA_DB_DIR[0], "names.dmp"),
+        nodes = os.path.join(BASTA_DB_DIR[0], "nodes.dmp")
     params:
-        tax_dir=os.path.join(BASTA_DB_DIR[0])
+        tax_dir = os.path.join(BASTA_DB_DIR[0])
     conda:
         BASTA
     log:
         os.path.join(OUT_DIR, "log", "basta_download_taxonomy.log")
     shell:
-        "basta taxonomy -d {params.tax_dir} > {log} 2>&1"
+        """
+        # Run BASTA taxonomy download/build
+        basta taxonomy -d {params.tax_dir} > {log} 2>&1
+        """
 
 
 rule basta_search:
