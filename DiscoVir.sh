@@ -129,10 +129,11 @@ version(){
 
 manage_environment(){
     echo -e "${blu}[INFO]${nc} Checking Conda environment '${ylo}${ENV_NAME}${nc}'..."
+    
+    # 1. Try to run conda hook directly
     if __conda_setup="$('conda' 'shell.bash' 'hook' 2> /dev/null)"; then
         eval "$__conda_setup"
-    if [ $? -eq 0 ]; then
-        eval "$__conda_setup"
+    # 2. If that fails (else), use the fallback paths
     else
         if [ -f "${HOME}/miniconda3/etc/profile.d/conda.sh" ]; then
             . "${HOME}/miniconda3/etc/profile.d/conda.sh"
