@@ -61,7 +61,7 @@ bash DiscoVir.sh \
 
 # --- 5. RETRIEVE RESULTS ---
 # Move results from Scratch back to Home (or a safe place) before the job ends
-FINAL_HOME_DIR="$PROJECT_HOME/results_$SLURM_JOB_ID"
+FINAL_HOME_DIR="$PROJECT_HOME/DiscoVir_Results"
 mkdir -p "$FINAL_HOME_DIR"
 
 echo "[INFO] Retrieving results from Scratch..."
