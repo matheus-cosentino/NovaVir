@@ -137,6 +137,8 @@ manage_environment(){
             . "${HOME}/miniconda3/etc/profile.d/conda.sh"
         elif [ -f "${HOME}/anaconda3/etc/profile.d/conda.sh" ]; then
             . "${HOME}/anaconda3/etc/profile.d/conda.sh"
+        elif [ -f "/usr/local/bioinfo/Miniforge3-24.9.2-0/etc/profile.d/conda.sh" ]; then
+            . "/usr/local/bioinfo/Miniforge3-24.9.2-0/etc/profile.d/conda.sh"
         else
             echo -e "${red}[ERROR]${nc} Could not find conda.sh. Ensure Conda is installed."
             exit 1
