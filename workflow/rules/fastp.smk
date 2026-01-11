@@ -30,7 +30,7 @@ rule fastp_paired:
         # Define all possible output files explicitly and statically.
         r1= temp(os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_1.fastq.gz")),
         r2= temp(os.path.join(OUT_DIR, "{sample}", "trimmed" , "{sample}_2.fastq.gz")),
-        orphans=temp(os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_orphans.fastq.gz"))
+        orphans=temp(os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_orphans.fastq.gz")),
         html = os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_paired.html"),
         json= os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_paired.json")
     log:

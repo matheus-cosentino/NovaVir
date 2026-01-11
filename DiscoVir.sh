@@ -277,7 +277,7 @@ generate_sample_list(){
 # Whole path of WORDDIR
 workdir=$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd)
 cd "$workdir"
-set -ex -o pipefail
+set -e -o pipefail
 
 # Defaults
 input="data"
