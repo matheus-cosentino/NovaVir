@@ -129,7 +129,8 @@ version(){
 
 manage_environment(){
     echo -e "${blu}[INFO]${nc} Checking Conda environment '${ylo}${ENV_NAME}${nc}'..."
-    __conda_setup="$('conda' 'shell.bash' 'hook' 2> /dev/null)"
+    if __conda_setup="$('conda' 'shell.bash' 'hook' 2> /dev/null)"; then
+        eval "$__conda_setup"
     if [ $? -eq 0 ]; then
         eval "$__conda_setup"
     else
