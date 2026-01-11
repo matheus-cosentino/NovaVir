@@ -32,6 +32,7 @@ ENV_FILE="workflow/envs/DiscoVir.yaml"
 #####################
 
 # --- Spinner --- #
+# --- Spinner (Safe Version) --- #
 run_with_spinner() {
     local pid
     ("$@" > /dev/null 2>&1) &
@@ -42,8 +43,8 @@ run_with_spinner() {
     local width=15
     local pos=0
     
-    # Hide cursor
-    tput civis
+    # REMOVED: tput civis (caused the crash)
+
     local cA="\033[1;32m"
     local cT="\033[1;31m"
     local cC="\033[1;34m"
@@ -69,7 +70,9 @@ run_with_spinner() {
     done
     wait $pid
     local exit_code=$?
-    tput cnorm
+    
+    # REMOVED: tput cnorm (caused the crash)
+    
     printf "\r\033[K"
     if [ $exit_code -eq 0 ]; then
         echo -e "${green}✔ Job done!${nc}"
