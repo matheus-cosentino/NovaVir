@@ -61,7 +61,6 @@ rule kraken_biom_contig:
         --max {params.maximun} \
         --min {params.minimum} \
         --fmt {params.out_format} \
-        --memory-mapping \
         -o {output.biom} \
         > {log} 2>&1
         """

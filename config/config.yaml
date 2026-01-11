@@ -150,8 +150,8 @@ kraken2:
 
 kraken_biom:
   format:
-    - "tsv"
-    #- "hdf5"
+    #- "tsv"
+    - "hdf5"
     #- "json"
   max:
     - "D"
