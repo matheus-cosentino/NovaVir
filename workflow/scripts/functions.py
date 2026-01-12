@@ -711,9 +711,10 @@ def get_all_kraken_reports(wildcards):
 
 def get_all_basta_read_outputs(wildcards):
     paths = []
-    # Check if 'reads_diamond' module is active (which triggers BASTA reads)
-    if config["modules"]["reads_diamond"]:
-        for s in SAMPLE:
-            # We construct the path based on your existing rules
-            paths.append(os.path.join(OUT_DIR, s, "basta_reads", f"{s}_reads_lca.tsv"))
+    for s in SAMPLE:
+        meta = SAMPLE_META.get(s)
+        if meta:
+             is_paired = (meta['mode'] == 'PAIRED') or (meta['mode'] == 'SRA' and len(meta['files']) == 2)
+             label = "paired" if is_paired else "unpaired"
+             paths.append(os.path.join(OUT_DIR, s, "basta_reads", f"{s}_reads_lca.tsv"))
     return paths
