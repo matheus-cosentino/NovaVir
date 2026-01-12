@@ -142,3 +142,33 @@ rule kraken_biom_reads:
         -o {output.biom} \
         > {log} 2>&1
         """
+        
+rule kraken_biom_merge_all:
+    input:
+        reports = get_all_kraken_reports
+    output:
+        biom = os.path.join(OUT_DIR, "kraken2_all", "all_samples.biom")
+    params:
+        fmt = "json"
+    conda:
+        R_RAREFACTION
+    log:
+        os.path.join(OUT_DIR, "log", "kraken_biom_merge_all.log")
+    shell:
+        """
+        kraken-biom {input.reports} --fmt {params.fmt} -o {output.biom} > {log} 2>&1
+        """
+
+# Rule 2: Run the R Script
+rule kraken_rarefaction_plot:
+    input:
+        biom = os.path.join(OUT_DIR, "kraken2_all", "all_samples.biom")
+    output:
+        pdf = os.path.join(OUT_DIR, "kraken2_all", "CurvaRarefacaoGeral.pdf"),
+        table = os.path.join(OUT_DIR, "kraken2_all", "OTU_table_ingridv3.tab")
+    conda:
+        R_RAREFACTION
+    log:
+        os.path.join(OUT_DIR, "log", "kraken_rarefaction_plot.log")
+    script:
+        "../scripts/plot_rarefaction.R"

@@ -1,0 +1,12 @@
+name: r_rarefaction
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - r-base=4.4
+  - bioconductor-biomformat
+  - r-stringr
+  - r-gunifrac
+  - r-vegan
+  - kraken-biom

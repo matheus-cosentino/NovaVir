@@ -44,9 +44,6 @@ SINGLE_SRA = []
 ##########################################################
 # --- 2. Function to obtain final outputs per module --- #
 ##########################################################
-##########################################################
-# --- 2. Function to obtain final outputs per module --- #
-##########################################################
 ## list to generate all output
 def get_final_outputs():
   final_outputs = []
@@ -89,11 +86,13 @@ def get_final_outputs():
                     "{out_dir}/{sample}/diamond_reads/{sample}_reads_hits_with_lineage.tsv",
                     out_dir=OUT_DIR,
                     sample=SAMPLE))
-    # NEW: Add Krona Plot for Reads (Basta)
+    # Add Krona Plot for Reads (Basta)
     final_outputs.extend(expand(
                     "{out_dir}/{sample}/krona_reads/{sample}_reads_basta_krona.html",
                     out_dir=OUT_DIR,
-                    sample=SAMPLE))
+                    sample=SAMPLE)),
+    # Add rarefaction curve
+    final_outputs.append(expand("{out_dir}/basta_all/Basta_Rarefaction_Curve.pdf", out_dir=OUT_DIR))
 
   if MODULES["reads_kraken2"]:
     for sample in SAMPLE:
@@ -105,8 +104,12 @@ def get_final_outputs():
         # Original BIOM output
         final_outputs.append(f"{OUT_DIR}/{sample}/kraken2_reads/{sample}_{label}_reads_biom.txt")
         
-        # NEW: Add Krona Plot for Reads (Kraken2)
+        # Add Krona Plot for Reads (Kraken2)
         final_outputs.append(f"{OUT_DIR}/{sample}/krona_reads/{sample}_{label}_kraken.html")
+        
+        #Add Rarefaction Curve of all Samples
+        final_outputs.append(f"{OUT_DIR}/kraken2_all/CurvaRarefacaoGeral.pdf")
+
 
   # 5. Kraken2 Contigs
   if MODULES["kraken2"]:
@@ -685,3 +688,25 @@ def get_header_check(hit_file_path):
     except Exception as e:
         print(f"[ERROR] Could not read hit file header check: {e}", file=sys.stderr)
         return 0
+
+####################################################
+# --- 13. Get Taxonomy reports of all samples --- #
+###################################################
+def get_all_kraken_reports(wildcards):
+    paths = []
+    for s in SAMPLE:
+        meta = SAMPLE_META.get(s)
+        if meta:
+             is_paired = (meta['mode'] == 'PAIRED') or (meta['mode'] == 'SRA' and len(meta['files']) == 2)
+             label = "paired" if is_paired else "unpaired"
+             paths.append(os.path.join(OUT_DIR, s, "kraken2_reads", f"{s}_{label}_reads_report.txt"))
+    return paths
+
+def get_all_basta_read_outputs(wildcards):
+    paths = []
+    # Check if 'reads_diamond' module is active (which triggers BASTA reads)
+    if config["modules"]["reads_diamond"]:
+        for s in SAMPLE:
+            # We construct the path based on your existing rules
+            paths.append(os.path.join(OUT_DIR, s, "basta_reads", f"{s}_reads_lca.tsv"))
+    return paths

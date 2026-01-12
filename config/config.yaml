@@ -61,6 +61,7 @@ envs:
   spades: "envs/spades.yaml"
   basta: "envs/basta.yaml"
   krona: "envs/krona.yaml"
+  r_rarefaction: "envs/r_rarefaction.yaml"
 
 
 ### databases and resources for the workflow

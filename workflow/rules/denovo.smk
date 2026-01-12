@@ -38,15 +38,28 @@ rule spades:
         "minimal"
     shell:
         """
+        # 1. Define Local Temp Directory
+        # This uses the node's local disk (fast & no network lag)
+        # If SLURM_TMPDIR isn't defined, it falls back to /tmp
+        LOCAL_TMP=${{SLURM_TMPDIR:-/tmp}}
         
+        #where spades temp data will be written
+        echo "[INFO] SPAdes Local TMP is set to: $LOCAL_TMP" > {log}
+        
+        # Check how much space is available there (crucial for SPAdes)
+        df -h "$LOCAL_TMP" >> {log}
+        
+        #define memory use within spades 
         mem_gb=$(({resources.mem_mb} / 1024))
 
+        # 2. Run SPAdes with --tmp-dir pointing to LOCAL storage
         spades.py \
             {params.extra} \
             --threads {resources.threads} \
             --memory $mem_gb \
             {params.input_args} \
             -o {params.outdir} \
+            --tmp-dir "$LOCAL_TMP" \
             > {log} 2>&1
         """
 
