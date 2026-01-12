@@ -755,14 +755,16 @@ for (i in 1:nrow(fev)) {
 ## Considerations
 To ensure the high confidence and biological relevance of the identified VDM contigs, a dual-strategy validation approach must be further implemented to characterize their origin and potential function.
 
-#### 1. RNA Virosphere Characterization (Serratus)
+#### 1. Host Transcript 
 
-Validation within the **Serratus Webpage** (serratus.io/palmid) to comprehensively screen contig sequences against its vast database of RNA viral sequences. This step is critical for **robustly confirming the viral provenance** of the VDM contigs, specifically by identifying conserved viral protein signatures within the global RNA virosphere.
+Validation within the **Blastn* (https://blast.ncbi.nlm.nih.gov/Blast.cgi) to comprehensively screen the putative VDM contig sequences against the vast database of Genbank hostranscripts. This step is critical for **robustly confirming** the viral provenance of the VDM contigs, specifically by identifying missassembled contigs as VDM whereas its true nature may be a non translatable host transcript, absent in blastx approachs.
 
-* **Tool:** Serratus (Serratus.io/palmid)
-* **Purpose:** Confirmation of **viral origin** within the RNA virosphere.
+* **Tool:** Blastn (https://blast.ncbi.nlm.nih.gov/Blast.cgi)
+* **Purpose:** Confirmation of **viral origin** within the contig.
+* **Expectations:** No hits with hosts transcripts within Blastn clustered database.
 
-#### 2. Host Protein Model Filtering (Phyre2)
+
+#### 2. Protein Model Filtering (Phyre2)
 
 To mitigate the risk of **false positives** arising from misidentified **Host Protein Models**, subsequent analysis employed the **Phyre2** server. Phyre2 was used to perform **homology modeling and remote structural homology detection** on the translations of the VDM contigs. Any contigs showing high confidence structural similarity (e.g., >90% confidence score) to known cellular/host proteins must be **disconsered**.
 
