@@ -398,11 +398,14 @@ def identify_data_type(sample_list, data_dir):
         p_r2 = os.path.join(data_dir, f"{sample}_R2.fastq.gz")
         p_1  = os.path.join(data_dir, f"{sample}_1.fastq.gz")
         p_2  = os.path.join(data_dir, f"{sample}_2.fastq.gz")
+        p_01  = os.path.join(data_dir, f"{sample}_R1_001.fastq.gz")
+        p_02  = os.path.join(data_dir, f"{sample}_R2_001.fastq.gz")
         
         # C. Unpaired FastQ
         p_unpR1 = os.path.join(data_dir, f"{sample}_R1.fastq.gz")
         p_unp1  = os.path.join(data_dir, f"{sample}_1.fastq.gz")
         p_unp  = os.path.join(data_dir, f"{sample}.fastq.gz")
+        p_unp01  = os.path.join(data_dir, f"{sample}_R1_001.fastq.gz")
 
         # 1. Contig?
         if os.path.exists(path_fasta):
@@ -417,7 +420,9 @@ def identify_data_type(sample_list, data_dir):
             sample_meta[sample] = {'mode': 'PAIRED', 'files': [p_r1, p_r2]}
         elif os.path.exists(p_1) and os.path.exists(p_2):
             sample_meta[sample] = {'mode': 'PAIRED', 'files': [p_1, p_2]}
-            
+        elif os.path.exists(p_01) and os.path.exists(p_02):
+            sample_meta[sample] = {'mode': 'PAIRED', 'files': [p_01, p_02]}
+
         # 3. Unpaired?
         elif os.path.exists(p_unpR1):
             sample_meta[sample] = {'mode': 'UNPAIRED', 'files': [p_unpR1]}
@@ -425,6 +430,8 @@ def identify_data_type(sample_list, data_dir):
             sample_meta[sample] = {'mode': 'UNPAIRED', 'files': [p_unp1]}
         elif os.path.exists(p_unp):
             sample_meta[sample] = {'mode': 'UNPAIRED', 'files': [p_unp]}
+        elif os.path.exists(p_unp01):
+            sample_meta[sample] = {'mode': 'UNPAIRED', 'files': [p_unp01]}
             
         # 4. None? Download (SRA)
         else:
