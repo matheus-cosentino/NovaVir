@@ -92,7 +92,13 @@ def get_final_outputs():
                     out_dir=OUT_DIR,
                     sample=SAMPLE)),
     # Add rarefaction curve
-    final_outputs.append(expand("{out_dir}/basta_all/Basta_Rarefaction_Curve.pdf", out_dir=OUT_DIR))
+    final_outputs.append(expand("{out_dir}/basta_all/Basta_Rarefaction_Curve.pdf", out_dir=OUT_DIR)),
+    
+    # Add Krona Plot for Reads (Diamond)
+    final_outputs.extend(expand(
+                    "{out_dir}/{sample}/krona_reads/{sample}_reads_diamond_krona.html",
+                    out_dir=OUT_DIR,
+                    sample=SAMPLE))
 
   if MODULES["reads_kraken2"]:
     for sample in SAMPLE:
@@ -108,7 +114,7 @@ def get_final_outputs():
         final_outputs.append(f"{OUT_DIR}/{sample}/krona_reads/{sample}_{label}_kraken.html")
         
         #Add Rarefaction Curve of all Samples
-        final_outputs.append(f"{OUT_DIR}/kraken2_all/CurvaRarefacaoGeral.pdf")
+        final_outputs.append(f"{OUT_DIR}/kraken2_all/Rarefaction_Curve.pdf")
 
 
   # 5. Kraken2 Contigs
@@ -154,6 +160,9 @@ def get_final_outputs():
                     "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_basta_krona.html",
                     out_dir=OUT_DIR, sample=sample, tool=PRE_ASSEMBLED_LABEL 
                 ))
+                final_outputs.extend(expand(
+                    "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_diamond_krona.html",
+                    out_dir=OUT_DIR, sample=sample, tool=tools))
             else:
                 final_outputs.extend(expand(
                     "{out_dir}/{sample}/basta_{tool}/{sample}_{tool}_lca.tsv",
@@ -168,6 +177,9 @@ def get_final_outputs():
                     "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_basta_krona.html",
                     out_dir=OUT_DIR, sample=sample, tool=assembler_list 
                 ))
+                final_outputs.extend(expand(
+                    "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_diamond_krona.html",
+                    out_dir=OUT_DIR, sample=sample, tool=tools))
 
   return final_outputs
 

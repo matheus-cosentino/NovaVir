@@ -38,7 +38,7 @@ rule kraken2_contigs:
       --threads {resources.threads} \
       --memory-mapping \
       --output {output.out} \
-      {input.contigs} \      
+      {input.contigs} \
       > {log} 2>&1
       """
 
