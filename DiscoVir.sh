@@ -283,6 +283,7 @@ set -e -o pipefail
 input="data"
 jobs=15
 profile="profile_slurm"
+temp_dir="/tmp"
 
 # Module Defaults (Must match the keys in your config.yaml)
 mod_keep_download="true"   # lowercase for yaml
@@ -306,6 +307,8 @@ while [[ $# -gt 0 ]]; do
         --diamond_db) diamond_db="$2"; shift 2 ;;
         --kraken2_db) kraken2_db="$2"; shift 2 ;;
 
+        ## Temp dir
+        --temp-dir) temp_dir="$2"; shift 2 ;;
 
         # --- Module Toggles ---
         --assembly) mod_assembly="true"; shift ;;
@@ -360,6 +363,9 @@ output_dir: "$output"
 data_dir: "$input"
 sample_list: "$sample_list"
 
+default-resources:
+  tmpdir: "$temp_dir"
+  
 modules:
   keep_download: $mod_keep_download
   assembly: $mod_assembly
@@ -388,11 +394,12 @@ echo -e "\n${green}> Snakemake: Starting main execution...${nc}"
 #SHADOW DIR within the node of submission, avoiding pipeline killed by lack of IO
 # This forces Snakemake to write its heavy temporary shadow files to /scratch
 #SHADOW_DIR="/scratch-ib/${USER}/discovir_shadow/${SLURM_JOB_ID}"
-SHADOW_DIR="/home/${USER}/discovir_shadow"
 CONDA_DIR="$workdir/.snakemake/conda"
-#mkdir -p "$CONDA_DIR"
+SHADOW_DIR="${temp_dir}/discovir_shadow/${SLURM_JOB_ID}"
+#mkdir -p "$SHADOW_DIR" # Tenta criar (vai funcionar no Orchestrator, e nos jobs o Snakemake cria)
 
 echo -e "${blu}[INFO]${nc} Shadow directory set to: ${ylo}$SHADOW_DIR${nc}"
+echo -e "${blu}[INFO]${nc} Tool temp directory set to: ${ylo}$temp_dir${nc}"
 
 # --- MODIFIED COMMAND ---
 snakemake --profile $profile \
