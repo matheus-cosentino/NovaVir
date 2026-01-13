@@ -138,7 +138,7 @@ def get_final_outputs():
                 ))
                 # NEW: Add Krona Plot for Kraken2 Contigs
                 final_outputs.extend(expand(
-                    "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}__kraken2_krona.html",
+                    "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_kraken2_krona.html",
                     out_dir=OUT_DIR, sample=sample, tool=assembler_list
                 ))
 
