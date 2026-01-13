@@ -390,7 +390,7 @@ echo -e "\n${green}> Snakemake: Starting main execution...${nc}"
 #SHADOW_DIR="/scratch-ib/${USER}/discovir_shadow/${SLURM_JOB_ID}"
 SHADOW_DIR="/scratch/${USER}/discovir_shadow/${SLURM_JOB_ID}"
 CONDA_DIR="$workdir/.snakemake/conda"
-mkdir -p "$SHADOW_DIR" "$CONDA_DIR"
+#mkdir -p "$CONDA_DIR"
 
 echo -e "${blu}[INFO]${nc} Shadow directory set to: ${ylo}$SHADOW_DIR${nc}"
 
