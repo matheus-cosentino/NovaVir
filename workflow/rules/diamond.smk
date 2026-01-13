@@ -60,7 +60,6 @@ rule diamond_blastx_reads:
     hits = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads_report.txt"),
     log  = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "diamond.log")
   params:
-    seqs = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads.fastq.gz"),
     db = get_diamond_db_name,
     outfmt = config["diamond_reads"]["outfmt"],
     max_target_seqs = config["diamond_reads"]["max_target_seqs"],
@@ -72,19 +71,33 @@ rule diamond_blastx_reads:
     DIAMOND
   shell:
     """
-    cat {input.r1} {input.r2} {input.extra} > {params.seqs}
+    # 1. Define Temp Dir (Better perfomance)
+    LOCAL_TMP=${{SLURM_TMPDIR:-/tmp}}
+    MERGED_QUERY="$LOCAL_TMP/{wildcards.sample}_merged_query.fastq.gz"
 
+    echo "[INFO] Using temp dir: $LOCAL_TMP" > {log}
+
+    # 2. Concat in the disk
+    echo "[INFO] Concatecating reads..." >> {log}
+    cat {input.r1} {input.r2} {input.extra} > "$MERGED_QUERY"
+
+    # 3. Run DIAMOND
+    echo "[INFO] Diamond BlastX Reads..." >> {log}
+    
     diamond blastx \
-      --query {params.seqs} \
+      --query "$MERGED_QUERY" \
       --db resources/diamond/{params.db} \
       --out {output.hits} \
       --threads {resources.threads} \
       --outfmt {params.outfmt} \
       --max-target-seqs {params.max_target_seqs} \
       {params.sensitivity} \
-      &> {log}
+      --tmpdir "$LOCAL_TMP" \
+      >> {log} 2>&1
 
-    rm -rf {params.seqs}      
+    # 4. Limpeza do disco local
+    rm -f "$MERGED_QUERY"
+    
+    # Copia o log final para o output esperado
     cp {log} {output.log}
-
     """
