@@ -19,8 +19,8 @@ rule kraken2_contigs:
     input:
       contigs= get_contigs_path
     output:
-      report= "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_report.txt"
-      #out="{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_output.txt"
+      report= "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_report.txt",
+      out="{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_output.txt"
     params:
       #db=f"{workflow.basedir}/{config["resources"]["kraken2"]}",
       db=config["resources"]["kraken2"],        
@@ -37,7 +37,8 @@ rule kraken2_contigs:
       --report {output.report} \
       --threads {resources.threads} \
       --memory-mapping \
-      {input.contigs} \
+      --output {output.out} \
+      {input.contigs} \      
       > {log} 2>&1
       """
 
@@ -71,8 +72,8 @@ rule kraken2_reads_paired:
      r2 = os.path.join(OUT_DIR, "{sample}", "trimmed" , "{sample}_2.fastq.gz"),
      extra = os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_orphans.fastq.gz")
     output:
-      report= "{out_dir}/{sample}/kraken2_reads/{sample}_paired_reads_report.txt"
-      #out="{out_dir}/{sample}/kraken2_reads/{sample}_paired_reads_output.txt"
+      report= "{out_dir}/{sample}/kraken2_reads/{sample}_paired_reads_report.txt",
+      out="{out_dir}/{sample}/kraken2_reads/{sample}_paired_reads_output.txt"
     params:
       #db=f"{workflow.basedir}/{config["resources"]["kraken2"]}",
       db=config["resources"]["kraken2"],        
@@ -89,6 +90,7 @@ rule kraken2_reads_paired:
       --report {output.report} \
       --threads {resources.threads} \
       --memory-mapping \
+      --output {output.out} \
       {input.r1} {input.r2} {input.extra} \
       > {log} 2>&1
       """
@@ -97,8 +99,8 @@ rule kraken2_reads_unpaired:
     input:   
       r1= os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_unp.fastq.gz")
     output:
-      report= "{out_dir}/{sample}/kraken2_reads/{sample}_unpaired_reads_report.txt"
-      #out="{out_dir}/{sample}/kraken2_reads/{sample}_unpared_reads_output.txt"
+      report= "{out_dir}/{sample}/kraken2_reads/{sample}_unpaired_reads_report.txt",
+      out="{out_dir}/{sample}/kraken2_reads/{sample}_unpaired_reads_output.txt"
     params:
       #db=f"{workflow.basedir}/{config["resources"]["kraken2"]}",
       db=config["resources"]["kraken2"],        
@@ -115,6 +117,7 @@ rule kraken2_reads_unpaired:
       --report {output.report} \
       --threads {resources.threads} \
       --memory-mapping \
+      --output {output.out} \
       {input.r1} \
       > {log} 2>&1
       """
@@ -164,7 +167,7 @@ rule kraken_rarefaction_plot:
     input:
         biom = os.path.join(OUT_DIR, "kraken2_all", "all_samples.biom")
     output:
-        pdf = os.path.join(OUT_DIR, "kraken2_all", "CurvaRarefacaoGeral.pdf"),
+        pdf = os.path.join(OUT_DIR, "kraken2_all", "Rarefaction_Curve.pdf"),
         table = os.path.join(OUT_DIR, "kraken2_all", "OTU_table.tab")
     conda:
         R_RAREFACTION

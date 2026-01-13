@@ -42,7 +42,7 @@ rule krona_update_taxonomy:
 
 rule krona_kraken2:
     input:
-        report = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_report.txt"),
+        report = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_output.txt"),
         tax_db = "resources/krona/taxonomy"
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_kraken2_krona.html")
@@ -52,14 +52,34 @@ rule krona_kraken2:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken2_{tool}_{sample}.log")
     shell:
         """
-        # ktImportTaxonomy imports the report (Column 3 = TaxID, Column 2 = Count)
         ktImportTaxonomy \
-            -t 3 -m 2 \
             -tax {input.tax_db} \
             -o {output.html} \
             {input.report} \
             > {log} 2>&1
         """
+
+rule krona_reads_kraken:
+    wildcard_constraints:
+        read_type="paired|unpaired"
+    input:
+        report = os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_{read_type}_reads_output.txt"),
+        tax_db = "resources/krona/taxonomy"
+    output:
+        html = os.path.join(OUT_DIR, "{sample}", "krona_reads", "{sample}_{read_type}_kraken2_krona.html")
+    conda:
+        KRONA
+    log:
+        os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken_reads_{read_type}_{sample}.log")
+    shell:
+        """
+        ktImportTaxonomy \
+            -tax {input.tax_db} \
+            -o {output.html} \
+            {input.report} \
+            > {log} 2>&1
+        """
+
 
 rule krona_basta:
     input:
@@ -82,28 +102,40 @@ rule krona_basta:
         > {log} 2>&1
         """
 
-rule krona_reads_kraken:
-    wildcard_constraints:
-        read_type="paired|unpaired"
+rule krona_diamond_reads:
     input:
-        report = os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_{read_type}_reads_report.txt"),
+        report = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads_report.txt"),
         tax_db = "resources/krona/taxonomy"
     output:
-        html = os.path.join(OUT_DIR, "{sample}", "krona_reads", "{sample}_{read_type}_kraken2_krona.html")
+        html = os.path.join(OUT_DIR, "{sample}", "krona_reads", "{sample}_reads_diamond_krona.html")
     conda:
         KRONA
     log:
-        os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken_reads_{read_type}_{sample}.log")
+        os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_reads_{sample}.log")
     shell:
         """
-        # ktImportTaxonomy for Reads
-        # -t 3: Column containing TaxID (Kraken2 standard)
-        # -m 2: Column containing Magnitude/Count (Kraken2 standard)
-        
-        ktImportTaxonomy \
-            -t 3 -m 2 \
+        ktImportBLAST \
+            {input.report} \
             -tax {input.tax_db} \
             -o {output.html} \
+            > {log} 2>&1
+        """
+
+rule krona_diamond_contigs:
+    input:
+        report = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
+        tax_db = "resources/krona/taxonomy"
+    output:
+        html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_diamond_krona.html")
+    conda:
+        KRONA
+    log:
+        os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_contigs_{tool}_{sample}.log")
+    shell:
+        """
+        ktImportBLAST \
             {input.report} \
+            -tax {input.tax_db} \
+            -o {output.html} \
             > {log} 2>&1
         """
