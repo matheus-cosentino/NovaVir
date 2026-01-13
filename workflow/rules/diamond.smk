@@ -25,9 +25,9 @@ rule diamond_blastx_contigs:
     log  = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "diamond.log")
   params:
     db = get_diamond_db_name,
-    outfmt = config["diamond"]["outfmt"],
-    max_target_seqs = config["diamond"]["max_target_seqs"],
-    sensitivity=config["diamond"]["sensitivity"],
+    outfmt = config["diamond_contig"]["outfmt"],
+    max_target_seqs = config["diamond_contig"]["max_target_seqs"],
+    sensitivity=config["diamond_contig"]["sensitivity"],
     #evalue = config["diamond"]["evalue"]
   log:
     # FIXED: Log path now also matches the {tool} wildcard
@@ -62,9 +62,9 @@ rule diamond_blastx_reads:
   params:
     seqs = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads.fastq.gz"),
     db = get_diamond_db_name,
-    outfmt = config["diamond"]["outfmt"],
-    max_target_seqs = config["diamond"]["max_target_seqs"],
-    sensitivity=config["diamond"]["sensitivity"]
+    outfmt = config["diamond_reads"]["outfmt"],
+    max_target_seqs = config["diamond_reads"]["max_target_seqs"],
+    sensitivity=config["diamond_reads"]["sensitivity"]
     #evalue = config["diamond"]["evalue"]
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "diamond_reads_{sample}.log")

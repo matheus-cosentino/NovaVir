@@ -109,7 +109,7 @@ flye:
   #type: "nano-hq" #ONT high-quality reads: Guppy5+ SUP or Q20 (<5% error)
 
 # Taxonomy by local alignment
-diamond:
+diamond_contig:
   outfmt: 
     #- 0 #BLAST pairwise
     #- 5 #BLAST XML
@@ -119,10 +119,11 @@ diamond:
     #- 102 #Taxonomic classification
     #- 103 #PAF
     #- 104 #JSON (flat)
+
   max_target_seqs: 
     #- 1
-    - 50
-    #- 10
+    #- 50
+    - 10
   #evalue: 
     #- 0.00001
     #- 0.0001
@@ -135,6 +136,34 @@ diamond:
      #- "--mid-sensitive"
      #- "--more-sensitive"
      #- "--sensitive"
+
+# Taxonomy by local alignment
+diamond_reads:
+  outfmt: 
+    #- 0 #BLAST pairwise
+    #- 5 #BLAST XML
+    - 6 #BLAST tabular (default)
+    #- 100 #DIAMOND alignment archive (DAA)
+    #- 101 #SAM
+    #- 102 #Taxonomic classification
+    #- 103 #PAF
+    #- 104 #JSON (flat)
+  max_target_seqs: 
+    #- 1
+    #- 50
+    - 10
+  #evalue: 
+    #- 0.00001
+    #- 0.0001
+    #- 0.001
+    #- 0.01
+
+  sensitivity: 
+     #- "--ultra-sensitive"
+     #- "--very-sensitive" 
+     #- "--mid-sensitive"
+     #- "--more-sensitive"
+     - "--sensitive" #(default)
 
 #LCA algorythim
 basta:
