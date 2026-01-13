@@ -118,8 +118,8 @@ def get_final_outputs():
         # [FIXED] Updated suffix to match krona.smk output
         final_outputs.append(f"{OUT_DIR}/{sample}/krona_reads/{sample}_{label}_kraken2_krona.html")
         
-    # Rarefaction Curve
-    final_outputs.append(f"{OUT_DIR}/kraken2_all/CurvaRarefacaoGeral.pdf")
+        # Rarefaction Curve
+        final_outputs.append(f"{OUT_DIR}/kraken2_all/Rarefaction_Curve.pdf")
 
   # 6. Contigs (Kraken2)
   if MODULES["kraken2"]:
