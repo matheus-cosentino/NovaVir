@@ -29,7 +29,7 @@ cd "$PROJECT_HOME" || { echo "Error: Failed to access $PROJECT_HOME"; exit 1; }
 
 # Adicionamos a flag --temp-dir
 bash DiscoVir.sh \
-    --input "$PROJECT_HOME/data" \
+    --input /home/cosentino/Hanta \
     --output "$RESULTS_DIR" \
     --temp-dir "$NODE_TMP" \
     --assembly \
