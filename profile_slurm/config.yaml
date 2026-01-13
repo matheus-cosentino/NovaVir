@@ -63,12 +63,12 @@ set-resources:
     threads: 12
     #slurm_partition: normal
   diamond_blastx_contigs:
-    mem_mb: 60000
-    threads: 12
+    mem_mb: 120000
+    threads: 24
     #slurm_partition: normal
   diamond_blastx_reads:
-    mem_mb: 60000
-    threads: 12
+    mem_mb: 120000
+    threads: 24
     #slurm_partition: normal
   kraken2_contigs:
     mem_mb: 80000
