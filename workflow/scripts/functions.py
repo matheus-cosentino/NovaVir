@@ -179,7 +179,8 @@ def get_final_outputs():
                 ))
                 final_outputs.extend(expand(
                     "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_diamond_krona.html",
-                    out_dir=OUT_DIR, sample=sample, tool=assembler_list))
+                    out_dir=OUT_DIR, sample=sample, tool=assembler_list
+                ))
 
   return final_outputs
 
