@@ -165,7 +165,7 @@ rule kraken_rarefaction_plot:
         biom = os.path.join(OUT_DIR, "kraken2_all", "all_samples.biom")
     output:
         pdf = os.path.join(OUT_DIR, "kraken2_all", "CurvaRarefacaoGeral.pdf"),
-        table = os.path.join(OUT_DIR, "kraken2_all", "OTU_table_ingridv3.tab")
+        table = os.path.join(OUT_DIR, "kraken2_all", "OTU_table.tab")
     conda:
         R_RAREFACTION
     log:
