@@ -66,13 +66,17 @@ write.table(df_max, file = table_out, sep = "\t", quote = F, row.names = TRUE, c
 # --- Normalization & Rarefaction Logic ---
 # Prepare numeric matrix for analysis (Remove ID and Taxonomy)
 numeric_cols <- names(df_max)[!names(df_max) %in% c("OTU_id", "taxonomy")]
-otu_table <- df_max[, numeric_cols]
+
+#avoid errors within 1 sample runs
+otu_table <- df_max[, numeric_cols, drop = FALSE]
 rownames(otu_table) <- df_max$OTU_id
-otu_table <- as.data.frame(sapply(otu_table, as.numeric))
+
+# Convert to numeric
+otu_table[] <- lapply(otu_table, as.numeric)
 rownames(otu_table) <- df_max$OTU_id
 
 # Clean empty rows
-otu_table <- otu_table[!apply(is.na(otu_table) | otu_table=="" | otu_table==0, 1, all),]
+otu_table <- otu_table[rowSums(otu_table) > 0, , drop=FALSE]
 
 # Normalization Settings (Defaulting to Method 1 as in your script)
 method <- 1

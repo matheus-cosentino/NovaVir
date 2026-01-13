@@ -26,10 +26,23 @@ otu_table <- as.data.frame(t(otu_table_raw))
 otu_table[] <- lapply(otu_table, as.numeric)
 
 # Filter out empty samples (row sums > 0)
-otu_table <- otu_table[rowSums(otu_table) > 0, ]
+otu_table <- otu_table[rowSums(otu_table) > 0, , drop = FALSE]
 
-message("Samples found: ", nrow(otu_table))
-message("Taxa found: ", ncol(otu_table))
+# Check dimensions
+n_samples <- nrow(otu_table)
+n_taxa <- ncol(otu_table)
+
+message("Samples found (non-empty): ", n_samples)
+message("Taxa found: ", n_taxa)
+
+if (n_samples == 0) {
+    message("WARNING: No samples with valid BASTA hits found. Creating empty PDF.")
+    pdf(file = pdf_out)
+    plot(1, 1, type = "n", axes = FALSE, xlab = "", ylab = "", main = "No BASTA hits found")
+    text(1, 1, "No taxa identified in any sample.")
+    dev.off()
+    quit(save = "no")
+}
 
 # --- Plotting ---
 message("Generating Rarefaction Curve...")
