@@ -388,7 +388,7 @@ echo -e "\n${green}> Snakemake: Starting main execution...${nc}"
 #SHADOW DIR within the node of submission, avoiding pipeline killed by lack of IO
 # This forces Snakemake to write its heavy temporary shadow files to /scratch
 #SHADOW_DIR="/scratch-ib/${USER}/discovir_shadow/${SLURM_JOB_ID}"
-SHADOW_DIR="/temp/${USER}/discovir_shadow/${SLURM_JOB_ID}"
+SHADOW_DIR="/home/${USER}/discovir_shadow"
 CONDA_DIR="$workdir/.snakemake/conda"
 #mkdir -p "$CONDA_DIR"
 
