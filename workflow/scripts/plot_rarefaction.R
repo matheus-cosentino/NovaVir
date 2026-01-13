@@ -78,28 +78,6 @@ rownames(otu_table) <- df_max$OTU_id
 # Clean empty rows
 otu_table <- otu_table[rowSums(otu_table) > 0, , drop=FALSE]
 
-# Normalization Settings (Defaulting to Method 1 as in your script)
-method <- 1
-level <- 0
-normCutoff <- 1000 
-
-if (level == 0) {
-  min_sum <- min(colSums(otu_table))
-} else {
-  min_sum <- normCutoff
-}
-
-message("Normalizing with depth: ", min_sum)
-
-if (method == 0) {
-  norm_otu_table <- t(min_sum * t(otu_table) / colSums(otu_table))
-} else {
-  # Rarefy
-  # Transpose because GUniFrac expects Rows=Samples, Cols=OTUs
-  norm_otu_table <- Rarefy(t(otu_table), depth = min_sum)
-  norm_otu_table <- t(as.data.frame(norm_otu_table$otu.tab.rff))
-}
-
 # --- Plotting ---
 message("Generating Rarefaction Curve...")
 pdf(file = pdf_out)

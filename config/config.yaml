@@ -132,10 +132,10 @@ diamond_contig:
 
   sensitivity: 
      #- "--ultra-sensitive"
-     - "--very-sensitive" #(default)
+     #- "--very-sensitive" #(default)
      #- "--mid-sensitive"
      #- "--more-sensitive"
-     #- "--sensitive"
+     - "--sensitive"
 
 # Taxonomy by local alignment
 diamond_reads:
