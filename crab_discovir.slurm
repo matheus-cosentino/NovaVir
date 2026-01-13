@@ -42,6 +42,18 @@ echo "[INFO] Heavy Data will be written to: $SCRATCH_DIR"
 
 # --- 4. RUN PIPELINE ---
 # We pass the SCRATCH_DIR to the script
+#bash DiscoVir.sh \
+#    --input /home/cosentino/Hanta \
+#    --output "$SCRATCH_DIR" \
+#    --assembly \
+#    --diamond \
+#    --reads-diamond \
+#    --reads-kraken \
+#    --kraken2 \
+#    --darkmatter \
+#    --diamond_db /databases/tools/diamond/ncbi-nr.taxonomy.2.1.13.dmnd \
+#    --kraken2_db /databases/tools/kraken2/k2_standard_20250714 || exit 1
+
 bash DiscoVir.sh \
     --input /home/cosentino/Hanta \
     --output "$SCRATCH_DIR" \
