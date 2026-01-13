@@ -17,6 +17,6 @@ data/
 
 # ignore paper folder
 paper/
-accessions.txt
+slurm_scripts/
 itrop_discovir.slurm
 crab_discovir.slurm

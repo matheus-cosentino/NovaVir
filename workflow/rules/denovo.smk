@@ -60,7 +60,7 @@ rule spades:
             {params.input_args} \
             -o {params.outdir} \
             --tmp-dir "$LOCAL_TMP" \
-            --assembly-only \
+            --only-assembler \
             > {log} 2>&1
         """
 
