@@ -3,7 +3,6 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
 #SBATCH --output=logs_slurm/DiscoVir_%j.out
-#SBATCH --constraint infiniband
 
 echo "
 #####M#A#C#C##2#0#2#5###############I#R#D##&##U#F#R#J#####
@@ -28,7 +27,7 @@ echo "##### DiscoVir SLURM Wrapper - Split Storage Mode #####"
 PROJECT_HOME="$SLURM_SUBMIT_DIR"
 
 # SCRATCH_OUT: Where the final results go. 
-SCRATCH_DIR="/scratch-ib/$USER/DiscoVir_Results"
+SCRATCH_DIR="/scratch/$USER/DiscoVir_Results"
 mkdir -p "$SCRATCH_DIR"
 
 # --- 2. ACTIVATE ENVIRONMENT ---
