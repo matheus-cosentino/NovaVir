@@ -45,7 +45,7 @@ rule krona_kraken2:
         report = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_report.txt"),
         tax_db = "resources/krona/taxonomy"
     output:
-        html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_krona.html")
+        html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_kraken2_krona.html")
     conda:
         KRONA
     log:
@@ -89,7 +89,7 @@ rule krona_reads_kraken:
         report = os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_{read_type}_reads_report.txt"),
         tax_db = "resources/krona/taxonomy"
     output:
-        html = os.path.join(OUT_DIR, "{sample}", "krona_reads", "{sample}_{read_type}_kraken.html")
+        html = os.path.join(OUT_DIR, "{sample}", "krona_reads", "{sample}_{read_type}_kraken2_krona.html")
     conda:
         KRONA
     log:
