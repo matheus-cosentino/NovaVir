@@ -162,7 +162,7 @@ def get_final_outputs():
                 ))
                 final_outputs.extend(expand(
                     "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_diamond_krona.html",
-                    out_dir=OUT_DIR, sample=sample, tool=tools))
+                    out_dir=OUT_DIR, sample=sample, tool=PRE_ASSEMBLED_LABEL))
             else:
                 final_outputs.extend(expand(
                     "{out_dir}/{sample}/basta_{tool}/{sample}_{tool}_lca.tsv",
@@ -179,7 +179,7 @@ def get_final_outputs():
                 ))
                 final_outputs.extend(expand(
                     "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_diamond_krona.html",
-                    out_dir=OUT_DIR, sample=sample, tool=tools))
+                    out_dir=OUT_DIR, sample=sample, tool=assembler_list))
 
   return final_outputs
 
