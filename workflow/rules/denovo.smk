@@ -32,7 +32,8 @@ rule spades:
         outdir = "{out_dir}/{sample}/spades/kmer_{kmer_val}",
         input_args = get_spades_params,
         extra = config["spades"]["algorithm"],
-        kmer = lambda wildcards: wildcards.kmer_val
+        #kmer = lambda wildcards: wildcards.kmer_val
+        kmer = lambda wildcards: wildcards.kmer_val.replace("_", ",")
     conda:
         SPADES_ENV
     shadow:
