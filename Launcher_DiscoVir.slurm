@@ -1,7 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=DiscoVir_Orch
 #SBATCH --output=logs_slurm/orchestrator_%j.log
-#SBATCH --error=logs_slurm/orchestrator_%j.err
 #SBATCH --time=7-00:00:00        
 #SBATCH --mem=2G                 
 #SBATCH --cpus-per-task=1

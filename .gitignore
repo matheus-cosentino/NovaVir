@@ -17,4 +17,4 @@ data/
 
 # ignore paper folder
 paper/
-#slurm_scripts/
+slurm_scripts/
