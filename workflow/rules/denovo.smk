@@ -31,6 +31,7 @@ rule spades:
     params:
         outdir = "{out_dir}/{sample}/spades",
         input_args = get_spades_params,
+        kmer = config["spades"]["kmer"],
         extra = config["spades"]["algorithm"]
     conda:
         SPADES_ENV
@@ -59,6 +60,7 @@ rule spades:
             --memory $mem_gb \
             {params.input_args} \
             -o {params.outdir} \
+            -k {params.kmer} \
             --tmp-dir "$LOCAL_TMP" \
             --only-assembler \
             > {log} 2>&1

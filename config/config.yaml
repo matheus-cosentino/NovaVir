@@ -95,11 +95,28 @@ fastp:
   
 # De Novo Assembly for Illumina reads
 spades:
-  #algorithm : "--rnaviral" #low resources and correction of RNA artifacts assembly
-  #algorithm: "--coronaspades" #indicate for genomic de novo assembly of CoV/RNA Virus genomes by HMM guides of genome structure
-  algorithm: "--meta" #high resources and identification of low coverage/presence virus
-  #algorithm: "--rna" #use for transcriptomes assembly
-  #algorithm: "" #use for traditional spades
+  algorithm:
+   #- '--isolate'     # Highly recommended for high-coverage isolate and multi-cell data
+   #- '--sc'          # Required for MDA (single-cell) data
+   - '--meta'        # Required for metagenomic data. Currently metaSPAdes supports only a single short-read library which has to be paired-end
+   #- '--bio'         # Required for biosyntheticSPAdes mode
+   #- '--corona'      # Required for coronaSPAdes mode, a special mode of rnaviralSPAdes specifically aimed for SARS-CoV-2 de novo assembly
+   #- '--rna'         # Required for RNA-Seq data
+   #- '--plasmid'     # Runs plasmidSPAdes, a pipeline for extracting and assembling plasmids from WGS data sets
+   #- '--metaviral'   # Runs metaviralSPAdes pipeline for virus detection.
+                      # These options works specially for extracting extrachromosomal elements from metagenomic assemblies.
+                      # They run similar pipelines that slightly differ in the simplification step.
+                      # Another difference is that for metaviral mode we output linear putative extrachromosomal contigs (unlike for metaplasmid mode).
+   #- '--metaplasmid' # Runs metaplasmidSPAdes pipeline for plasmid detection in metagenomic datasets (equivalent for --meta --plasmid)
+   #- '--rnaviral'    # Enables virus assembly with a de novo assembler tailored for RNA viral datasets (transcriptome, metatranscriptome and metavirome) 
+
+  kmer:               # list of k-mer sizes, must be odd and less than 128 (Default: 21,33,55)
+    #- 'auto'          # SPAdes works by building de Bruijngraphs for several values of k. Let its “machine learning” choose the best values to use.
+    #- '21,33,55,77'   # If you have enough coverage (+50x), then you may want to try to set this k-mer lengths
+    #- '21'            # Minimum value
+    #- '127'           # Maximum value
+    #- '111'           # Custom or your choice (https://www.chilimath.com/lessons/introductory-algebra/list-of-odd-numbers)
+    - '21,33,55,77,99,111,127'
 
 
 #De novo for long reads assembly data
