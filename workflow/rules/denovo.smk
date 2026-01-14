@@ -31,8 +31,8 @@ rule spades:
     params:
         outdir = "{out_dir}/{sample}/spades",
         input_args = get_spades_params,
-        kmer = config["spades"]["kmer"],
-        extra = config["spades"]["algorithm"]
+        extra = config["spades"]["algorithm"],
+        kmer = lambda wildcards: wildcards.kmer_val
     conda:
         SPADES_ENV
     shadow:

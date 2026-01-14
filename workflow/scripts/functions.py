@@ -59,13 +59,35 @@ def get_final_outputs():
   # 2. Assembly
   if MODULES["assembly"]:  
     tools_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
+    
     for tool_name in tools_list:
         file_name = TOOL_OUTPUT_MAP.get(tool_name)
         if not file_name:
                 raise ValueError(f"Output filename not defined for tool: {tool_name}")
-        final_outputs.extend(expand("{output_dir}/{sample}/{tool}/{filename}", 
-                                    sample=SAMPLE, tool=tool_name, filename=file_name, output_dir=OUT_DIR))
-
+        
+        # --- CONDICIONAL PARA O SPADES (COM K-MERS) ---
+        if tool_name == "spades":
+            # Pega a lista de kmers do config
+            # Nota: Certifique-se de que 'config' está acessível aqui ou foi passado do Snakefile
+            kmer_list = config["spades"]["kmer"] 
+            
+            final_outputs.extend(expand(
+                "{output_dir}/{sample}/spades/kmer_{kmer_val}/{filename}", 
+                output_dir=OUT_DIR,
+                sample=SAMPLE, 
+                filename=file_name,
+                kmer_val=kmer_list
+            ))
+            
+        # --- CONDICIONAL PARA OUTRAS FERRAMENTAS (Megahit, Flye, Raven, etc) ---
+        else:
+            final_outputs.extend(expand(
+                "{output_dir}/{sample}/{tool}/{filename}", 
+                output_dir=OUT_DIR,
+                sample=SAMPLE, 
+                tool=tool_name, 
+                filename=file_name
+            ))
   # 3. Darkmatter
   if MODULES["darkmatter"]:
     assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
