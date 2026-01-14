@@ -34,7 +34,7 @@ rule spades:
         extra = config["spades"]["algorithm"],
         kmer = lambda wildcards: wildcards.kmer_val
     conda:
-        SPADES_ENV
+        DENOVO
     shadow:
         "minimal"
     shell:
