@@ -99,6 +99,8 @@ spades:
   #algorithm: "--coronaspades" #indicate for genomic de novo assembly of CoV/RNA Virus genomes by HMM guides of genome structure
   #algorithm: "--meta" #high resources and identification of low coverage/presence virus
   algorithm: "--rna" #use for transcriptomes assembly
+  #algorithm: "" #use for traditional spades
+
 
 #De novo for long reads assembly data
 flye: 

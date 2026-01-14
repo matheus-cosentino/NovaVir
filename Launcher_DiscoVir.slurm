@@ -31,14 +31,14 @@ bash DiscoVir.sh \
     --input /home/cosentino/Hanta \
     --output "$RESULTS_DIR" \
     --temp-dir "$NODE_TMP" \
-    --assembly \
-    --diamond \
-    --reads-diamond \
-    --reads-kraken \
-    --kraken2 \
-    --darkmatter \
-    --diamond_db /databases/tools/diamond/ncbi-nr.taxonomy.2.1.13.dmnd \
-    --kraken2_db /databases/tools/kraken2/k2_standard_20250714
+    --assembly 
+#    --diamond \
+#    --reads-diamond \
+#    --reads-kraken \
+#    --kraken2 \
+#    --darkmatter \
+#    --diamond_db /databases/tools/diamond/ncbi-nr.taxonomy.2.1.13.dmnd \
+#    --kraken2_db /databases/tools/kraken2/k2_standard_20250714
 
 if [ $? -eq 0 ]; then
     echo "✅ Pipeline Finished Successfully. Results in: $RESULTS_DIR"
