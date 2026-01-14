@@ -111,13 +111,15 @@ spades:
    #- '--rnaviral'    # Enables virus assembly with a de novo assembler tailored for RNA viral datasets (transcriptome, metatranscriptome and metavirome) 
 
   kmer:               # list of k-mer sizes, must be odd and less than 128 (Default: 21,33,55)
-    #- 'auto'          # SPAdes works by building de Bruijngraphs for several values of k. Let its “machine learning” choose the best values to use.
-    #- '21,33,55,77'   # If you have enough coverage (+50x), then you may want to try to set this k-mer lengths
-    #- '21'            # Minimum value
-    #- '127'           # Maximum value
-    #- '111'           # Custom or your choice (https://www.chilimath.com/lessons/introductory-algebra/list-of-odd-numbers)
+    - 'auto'          # SPAdes works by building de Bruijngraphs for several values of k. Let its “machine learning” choose the best values to use.
+    - '21'            # Minimum value
+    - '33'
+    - '127'           # Maximum value
+    - '111'           # Custom or your choice (https://www.chilimath.com/lessons/introductory-algebra/list-of-odd-numbers)
+    - '21,33,55,77'   # If you have enough coverage (+50x), then you may want to try to set this k-mer lengths
+    - '21,33,55,77,99'
+    - '21,33,55,77,99,111'
     - '21,33,55,77,99,111,127'
-
 
 #De novo for long reads assembly data
 flye: 
