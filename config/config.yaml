@@ -122,9 +122,9 @@ diamond_contig:
     #- 104 #JSON (flat)
 
   max_target_seqs: 
-    #- 1
+    - 1
     #- 50
-    - 10
+    #- 10
   #evalue: 
     #- 0.00001
     #- 0.0001
