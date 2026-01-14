@@ -2,7 +2,7 @@
 
 [![Snakemake](https://img.shields.io/badge/snakemake-≥9.0.0-brightgreen.svg)](https://snakemake.readthedocs.io)
 [![Conda-Env](https://img.shields.io/badge/conda-env-green.svg)](workflow/envs/DiscoVir.yaml)
-[![License: GNU](https://img.shields.io/badge/License-GNU-yellow.svg)](https://opensource.org/licenses/GNU)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-yellow.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 <p align="center">
   <img src="resources/logo/DiscoVir_Logo.png" width="300" alt="DiscoVir Logo">
@@ -23,22 +23,22 @@
 
 ## Introduction
 
-DiscoVir is a comprehensive and scalable Snakemake workflow for the detection of novel viruses within HTS data. The pipeline is designed to work with both short-read (Illumina) and long-read (Nanopore/PacBio) metagenomic and transcriptomic data.
+DiscoVir is a comprehensive and scalable Snakemake workflow for the detection of novel viruses within High-Throughput Sequencing (HTS) data. The pipeline is designed to work with both short-read (Illumina) and long-read (Nanopore/PacBio) metagenomic and transcriptomic data.
 
 ## Requirements
 
 ### Conda Installation
-The pipeline uses Conda to manage its dependencies. We recommend the presence of any version running within the machine. If no version is available, follown the conda installation within miniforge, [conda](https://forge.ird.fr/transvihmi/nfernandez/install_conda_with_miniforge).
+The pipeline uses Conda to manage its dependencies. We recommend having any version of Conda running on your machine. If you don't have Conda installed, you can follow the installation guide for Miniforge at [conda-forge](https://github.com/conda-forge/miniforge).
 
 ### Databases
-Due the large size of databases used, and its common presence within HPC clusters, databases path must be prior present to run the pipeline and its download does not make part of this pipeline. In case of doubts, open an issue or get in touch within your HPC support team to proper intallation.
+Due to the large size of the databases used and their common presence within HPC clusters, the paths to the databases must be provided before running the pipeline. Their download is not part of this pipeline. If you have any doubts, please open an issue or get in touch with your HPC support team for proper installation.
  - [nr](https://ftp.ncbi.nlm.nih.gov/blast/db/v5/)
  - [Kraken2](https://benlangmead.github.io/aws-indexes/k2)
 
 The `prot.accession2taxid.gz` file, which is used for taxonomic classification, is downloaded automatically by the workflow.
 
 ## Installation
-The DiscoVir.sh script is responsible to manage the run, automatically downloading and creating the necessary Conda environments, as well as manage conda versions for the pipeline to work.
+The `DiscoVir.sh` script is responsible for managing the run, automatically downloading and creating the necessary Conda environments, as well as managing Conda versions for the pipeline to work.
 
 1.  **Clone the repository:**
 
@@ -53,7 +53,7 @@ The DiscoVir.sh script is responsible to manage the run, automatically downloadi
  bash DiscoVir.sh --help 
 ```
 
-The following must appear within your screen.
+The following must appear on your screen:
 
  ```yaml
  DiscoVir: Viral Metagenomics & 'Dark Matter' Discovery
@@ -72,19 +72,22 @@ The following must appear within your screen.
    --sra <FILE>         Text file containing SRA Accession IDs for download.
    --jobs <INT>         Number of jobs (default: 15)
    --profile <STR>      Snakemake profile (default: profile_slurm)
+   --temp-dir <DIR>     Temporary directory (default: /tmp)
 
  Database Overrides (Use external DBs):
    --diamond_db <FILE>  External Diamond database (.dmnd).
    --kraken2 <DIR>      External Kraken2 database directory (Must contain hash.k2d, opts.k2d, taxo.k2d)
 
  Module Toggles (Enable/Disable Analysis):
-   --assembly           Enable De Novo Assembly (Default: False)
-   --kraken2            Enable Kraken2 Taxonomy (Default: False)
-   --diamond            Enable Diamond Taxonomy (Default: False)
-   --darkmatter         Enable Palm Annot / Dark Matter (Default: False)
-   --remove-download    Revome downloaded SRA files (Default: Keep)
-   --reads-kraken       Enable Kraken2 analysis on reads (Default: Disabled)
-   --reads-diamond      Enable Diamond analysis on reads (Default: Disabled)
+   
+- **`--reads-kraken`** <font size="2">*(Default: `False`)*</font>: Enables taxonomic classification of raw reads using Kraken2. This is useful for getting a quick overview of the taxonomic composition of your samples.
+- **`--reads-diamond`** <font size="2">*(Default: `False`)*</font>: Enables taxonomic classification of raw reads using DIAMOND. This is a more sensitive alternative to Kraken2, but it is also more computationally intensive.
+- **`--assembly`** <font size="2">*(Default: `False`)*</font>: Enable *de novo* assembly of reads into contigs. This is a core step for viral discovery.
+- **`--kraken2`** <font size="2">*(Default: `False`)*</font>: Enable taxonomic classification of assembled contigs using Kraken2.
+- **`--diamond`** <font size="2">*(Default: `False`)*</font>: Enable taxonomic classification of assembled contigs using DIAMOND. This is the main approach for identifying viral contigs.
+- **`--darkmatter`** <font size="2">*(Default: `False`)*</font>: Enable the "dark matter" discovery module, which searches for novel viruses in the contigs that were not identified by DIAMOND. This module uses the `palm_annot` tool to search for RdRp signatures.
+- **`--remove-download`** <font size="2">*(Default: `False`)*</font>: Remove the SRA files after they are downloaded. This is useful for saving disk space.
+
  
  Flags:
    -h, --help           Show this help message
@@ -92,23 +95,23 @@ The following must appear within your screen.
 ```
 
 ## Usage
-- Kraken2 & Diamond Reads Iddentfication
+- Kraken2 & Diamond Reads Identification
 ```shell
 bash DiscoVir.sh --input <DIR> --output <DIR> --kraken2 <DIR> --diamond_db <FILE> --reads-kraken --reads-diamond
 ```
 
-- Kraken2 Only Reads Iddentfication
+- Kraken2 Only Reads Identification
 ```shell
 bash DiscoVir.sh --input <DIR> --output <DIR>  --kraken2 <DIR> --reads-kraken
 ```
 
-- Diamond Only Reads Iddentfication
+- Diamond Only Reads Identification
 ```shell
 bash DiscoVir.sh --input <DIR> --output <DIR> --diamond_db <FILE> --reads-diamond
 ```
 
-### DiscoVir Core Pipelline
-After a first round of analysis that the sequencing data demonstrates an overall satisfatory quality, the following command can be used to a further viral discovery pipelline. This process consists in a contig assembly within spades viralrna aalgorythim (or any other tag or assembler of your preference among options in the config.yaml file), followed by taxonomic identification within diamond. Contigs without diamond hits are filtered by size and Aminoacid generated by ORFs within distinct genetic codes pass though the [palm_annot](https://github.com/rcedgar/palm_annot.git) RdRp scan scripts. Total Virus contigs iddentified by viral family are reported within a Rmarkdom script.
+### DiscoVir Core Pipeline
+After a first round of analysis where the sequencing data demonstrates a satisfactory overall quality, the following command can be used for a further viral discovery pipeline. This process consists of a contig assembly with the spades `viralrna` algorithm (or any other tag or assembler of your preference among the options in the `config.yaml` file), followed by taxonomic identification with Diamond. Contigs without Diamond hits are filtered by size, and Amino Acids generated by ORFs within distinct genetic codes are passed through the [palm_annot](https://github.com/rcedgar/palm_annot.git) RdRp scan scripts. Total virus contigs identified by viral family are reported within an R Markdown script.
 
 ```shell
 bash DiscoVir.sh --input <DIR> --output <DIR> --diamond --duskmatter 
@@ -117,9 +120,9 @@ bash DiscoVir.sh --input <DIR> --output <DIR> --diamond --duskmatter
 ## Features
 ### Working with Public Data
 
-One of the advantages within the DiscoVir pipeline, is the possibility to easily incorporate public available data within the discovery pipeline, allowing an easy process in discovering novel viruses within public [SRA](https://www.ncbi.nlm.nih.gov/sra/).
+One of the advantages of the DiscoVir pipeline is the possibility to easily incorporate publicly available data into the discovery pipeline, allowing for an easy process of discovering novel viruses within the public [SRA](https://www.ncbi.nlm.nih.gov/sra/).
 
-For it, an line separated file (accession.txt) file must be provided, where each line corresponds to a Run iddentifier within SRA.
+For this, a line-separated file (e.g., `accession.txt`) must be provided, where each line corresponds to a Run identifier within SRA.
 
 ```yaml
 SRR25008973
@@ -129,14 +132,14 @@ SRR25008976
 SRR25008977
 ```
 
-Once librarys of interest are givenn, run the following command to download the files.
+Once the libraries of interest are given, run the following command to download the files.
 
 ```shell
 bash DiscoVir.sh --input <DIR> --output <DIR> --sra <FILE> 
 ```
 
 **Caution**:
-After the whole workflow is finished, data will be keepted. In case of interested in deleting the data after the run, use the following command:
+After the whole workflow is finished, the data will be kept. If you are interested in deleting the data after the run, use the following command:
 
 ```shell
 bash DiscoVir.sh --input <DIR> --output <DIR> --sra <FILE> --remove-download 
@@ -144,56 +147,56 @@ bash DiscoVir.sh --input <DIR> --output <DIR> --sra <FILE> --remove-download
 
 ### Oxford Nanopore Sequencing Data
 
-The proposed workflow is capable of dealing with long-read data, such as the HTS files generated by ONP. However, editions to configuration file must be made due the variation within the type of Reads.
+The proposed workflow is capable of dealing with long-read data, such as the HTS files generated by ONP. However, edits to the configuration file must be made due to the variation within the type of reads.
 
-- Adjust the overall quality and size filtering criteria, modify the relevant parameters for fastp inside the config/config.yaml file.
+- Adjust the overall quality and size filtering criteria by modifying the relevant parameters for `fastp` inside the `config/config.yaml` file.
 
 ```yaml
 # QC
 fastp:
   length_required: 
-    #- 15 #illlumina adapters expected
-    - 500 #nanopore conservative size for low reads
+    #- 15 # Illumina adapters expected
+    - 500 # Nanopore conservative size for low reads
   qualified_quality_phred: 
-    #- 30 #illumina paired end
-    - 10 #long read
+    #- 30 # Illumina paired-end
+    - 10 # Long read
 ```
 
-After edition, run the commands expected for read analysis according to your interest.
+After editing, run the commands expected for read analysis according to your interest.
 
-- Kraken2 & Diamond Reads Iddentfication
+- Kraken2 & Diamond Reads Identification
 ```shell
 bash DiscoVir.sh --input <DIR> --output <DIR> --kraken2 <DIR> --diamond_db <FILE> --reads-kraken --reads-diamond
 ```
 
-- Kraken2 Only Reads Iddentfication
+- Kraken2 Only Reads Identification
 ```shell
 bash DiscoVir.sh --input <DIR> --output <DIR>  --kraken2 <DIR> --reads-kraken
 ```
 
-- Diamond Only Reads Iddentfication
+- Diamond Only Reads Identification
 ```shell
 bash DiscoVir.sh --input <DIR> --output <DIR> --diamond_db <FILE> --reads-diamond
 ```
 
 ### ONP De Novo Assembly
 
-In scenarios where de novo assembly is necessary for ONP data, the following alterations within the config must be done:
- - Activate the tools of interest. Medaka contigs correction is recommended, but models of correction varys according to flowncell and sequencer used.
+In scenarios where de novo assembly is necessary for ONP data, the following alterations within the `config.yaml` must be done:
+ - Activate the tools of interest. Medaka for contig correction is recommended, but correction models vary according to the flowcell and sequencer used.
 
 ```yaml
 tool:
-  denovo: #select your favorite de novo tools
-  # options: 
-   # - 'spades'    # more resourcers needed, but algorythis to better deal with RNA seq data of Illumina short reads(default)
-   # - 'megahit'    # indicated for llumina short reads. Faster, but more error proner
-    - 'flye'       #indicated for nanopore sequencing long reads (>1000 bp per reads)
-   # - 'raven'      #indicated for nanopore sequencing. Faster, but more error proner
-    - 'medaka_flye'   #correction to ONP flye assembly
-   # - 'medaka_raven'  #correction to ONP raven assembly
+  denovo: # Select your favorite de novo tools
+  # Options: 
+   # - 'spades'    # More resources needed, but algorithms to better deal with RNA-seq data of Illumina short reads (default)
+   # - 'megahit'    # Indicated for Illumina short reads. Faster, but more error-prone
+    - 'flye'       # Indicated for Nanopore sequencing long reads (>1000 bp per read)
+   # - 'raven'      # Indicated for Nanopore sequencing. Faster, but more error-prone
+    - 'medaka_flye'   # Correction for ONP flye assembly
+   # - 'medaka_raven'  # Correction for ONP raven assembly
 ```
 
-The same process can be made to use the raven assemby software and medaka correction, also available. Nevertheless, is worth mentioning that overall contig assembly within ONP reads overall generate very low number of contigs.
+The same process can be made to use the Raven assembly software and Medaka correction, which are also available. Nevertheless, it is worth mentioning that overall contig assembly with ONP reads generates a very low number of contigs.
 
 
 # Contributing
@@ -204,6 +207,7 @@ This project is licensed under the GNU General Public License v3.0.
 
 # Author
 MSc. Matheus Cosentino
+
 
 ---
 <div align="center">
