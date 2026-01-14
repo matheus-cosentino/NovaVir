@@ -25,7 +25,7 @@ rule spades:
         r2 = get_denovo_r2,
         extra = get_denovo_unpaired
     output:
-        contigs = "{out_dir}/{sample}/spades/contigs.fasta"
+        contigs = "{out_dir}/{sample}/spades/kmer_{kmer_val}/contigs.fasta"
     log:
         "{out_dir}/{sample}/log/spades_assembly.log"
     params:
