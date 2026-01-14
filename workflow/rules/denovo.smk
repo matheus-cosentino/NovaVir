@@ -29,7 +29,7 @@ rule spades:
     log:
         "{out_dir}/{sample}/log/kmer_{kmer_val}_spades_assembly.log"
     params:
-        outdir = "{out_dir}/{sample}/spades",
+        outdir = "{out_dir}/{sample}/spades/kmer_{kmer_val}",
         input_args = get_spades_params,
         extra = config["spades"]["algorithm"],
         kmer = lambda wildcards: wildcards.kmer_val
