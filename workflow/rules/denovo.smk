@@ -27,7 +27,7 @@ rule spades:
     output:
         contigs = "{out_dir}/{sample}/spades/kmer_{kmer_val}/contigs.fasta"
     log:
-        "{out_dir}/{sample}/log/spades_assembly.log"
+        "{out_dir}/{sample}/log/kmer_{kmer_val}_spades_assembly.log"
     params:
         outdir = "{out_dir}/{sample}/spades",
         input_args = get_spades_params,
