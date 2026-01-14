@@ -48,6 +48,7 @@ from scripts.functions import get_header_check
 from scripts.functions import get_multiqc_inputs
 from scripts.functions import get_all_kraken_reports
 from scripts.functions import get_all_basta_read_outputs
+
 ###########################################################
 # --- 3. Define workflown directory and local infos  --- #
 ##########################################################
@@ -97,6 +98,8 @@ functions.get_header_check = get_header_check
 functions.get_multiqc_inputs = get_multiqc_inputs 
 functions.get_all_kraken_reports = get_all_kraken_reports
 functions.get_all_basta_read_outputs = get_all_basta_read_outputs
+functions.config = config
+
 ##############################################
 # --- 5. Define Conda Environment Paths --- #
 #############################################
