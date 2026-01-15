@@ -17,7 +17,7 @@
 
 rule diamond_blastx_contigs:
   wildcard_constraints:
-    tool = "spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
+    tool = "spades/kmer_[a-zA-Z0-9_]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"  
   input:
     contigs = get_contigs_path
   output:

@@ -48,7 +48,21 @@ SINGLE_SRA = []
 # workflow/scripts/functions.py
 
 def get_final_outputs():
-  final_outputs = []
+    raw_tools = MAPPER if isinstance(MAPPER, list) else [MAPPER]
+    assembler_list = []
+    
+    for t in raw_tools:
+        if t == 'spades':
+            # Pega k-mers do config (ex: ['auto', '21'])
+            kmers = config.get("spades", {}).get("kmer", ["auto"])
+            if isinstance(kmers, str): kmers = [kmers]
+            
+            # Adiciona cada variação como uma ferramenta distinta
+            for k in kmers:
+                assembler_list.append(f"spades/kmer_{k}")
+        else:
+            assembler_list.append(t)
+
 
   # 1. Keep Download
   if MODULES["keep_download"]: 
@@ -89,23 +103,12 @@ def get_final_outputs():
                 filename=file_name
             ))
   # 3. Darkmatter
-  if MODULES["darkmatter"]:
-    assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
-    for sample, meta in SAMPLE_META.items():
-        tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
-        
-        for tool_name in tools:
-            if tool_name == "spades":
-                kmer_list = config["spades"]["kmer"]
-                final_outputs.extend(expand(
-                    "{out_dir}/{sample}/duskmatter_report_{tool}/kmer_{kmer}/{sample}_{tool}/kmer_{kmer}_Report_Diversity.html", 
-                    out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
-                ))
-            else:
-                final_outputs.extend(expand(
-                    "{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Report_Diversity.html", 
-                    out_dir=OUT_DIR, sample=sample, tool=tool_name
-                ))
+  # 3. Darkmatter
+    if MODULES["darkmatter"]:
+        for sample, meta in SAMPLE_META.items():
+            current_tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
+            final_outputs.extend(expand("{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Report_Diversity.html", 
+                    out_dir=OUT_DIR, sample=sample, tool=current_tools))
 
   # 4. Reads (Diamond & Basta)
   if MODULES["reads_diamond"]:
@@ -140,89 +143,28 @@ def get_final_outputs():
     for sample in SAMPLE:
         meta = SAMPLE_META.get(sample)
         is_paired = (meta['mode'] == 'PAIRED') or (meta['mode'] == 'SRA' and len(meta['files']) == 2)
-        label = "paired" if is_paired else "unpaired"
-        
-        # BIOM output
+        label = "paired" if is_paired else "unpaired"      
         final_outputs.append(f"{OUT_DIR}/{sample}/kraken2_reads/{sample}_{label}_reads_biom.txt")
-        
-        # [FIXED] Updated suffix to match krona.smk output
         final_outputs.append(f"{OUT_DIR}/{sample}/krona_reads/{sample}_{label}_kraken2_krona.html")
-        
-        # Rarefaction Curve
         final_outputs.append(f"{OUT_DIR}/kraken2_all/Rarefaction_Curve.pdf")
 
   # 6. Contigs (Kraken2)
   if MODULES["kraken2"]:
-        assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
         for sample, meta in SAMPLE_META.items():
             tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
-            
-            for tool_name in tools:
-                if tool_name == "spades":
-                    kmer_list = config["spades"]["kmer"]
-                    final_outputs.extend(expand(
-                        "{out_dir}/{sample}/kraken2_{tool}/kmer_{kmer}/{sample}_{tool}/kmer_{kmer}_contig_biom.txt",
-                        out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
-                    ))
-                    final_outputs.extend(expand(
-                        "{out_dir}/{sample}/krona_{tool}/kmer_{kmer}/{sample}_{tool}/kmer_{kmer}_kraken2_krona.html",
-                        out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
-                    ))
-                else:
-                    final_outputs.extend(expand(
-                        "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_biom.txt",
-                        out_dir=OUT_DIR, sample=sample, tool=tool_name
-                    ))
-                    final_outputs.extend(expand(
-                        "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_kraken2_krona.html",
-                        out_dir=OUT_DIR, sample=sample, tool=tool_name
-                    ))
+            final_outputs.extend(expand("{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_biom.txt", out_dir=OUT_DIR, sample=sample, tool=tools))
+            final_outputs.extend(expand("{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_kraken2_krona.html", out_dir=OUT_DIR, sample=sample, tool=tools))
 
   # 7. Contigs (Diamond)
   if MODULES["diamond"]:
-        assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
         for sample, meta in SAMPLE_META.items():
             tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
-
-            for tool_name in tools:
-                if tool_name == "spades":
-                    kmer_list = config["spades"]["kmer"]
-                    # BASTA & Diamond TSVs (Spades)
-                    final_outputs.extend(expand(
-                        "{out_dir}/{sample}/basta_{tool}/kmer_{kmer}/{sample}_{tool}/kmer_{kmer}_lca.tsv",
-                        out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
-                    ))
-                    final_outputs.extend(expand(
-                        "{out_dir}/{sample}/diamond_{tool}/kmer_{kmer}/{sample}_{tool}/kmer_{kmer}_hits_with_lineage.tsv",
-                        out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
-                    ))
-                    # Krona Plots (Spades)
-                    final_outputs.extend(expand(
-                        "{out_dir}/{sample}/krona_{tool}/kmer_{kmer}/{sample}_{tool}/kmer_{kmer}_basta_krona.html",
-                        out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
-                    ))
-                    final_outputs.extend(expand(
-                        "{out_dir}/{sample}/krona_{tool}/kmer_{kmer}/{sample}_{tool}/kmer_{kmer}_diamond_krona.html",
-                        out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
-                    ))
-                else:
-                    # Standard Logic
-                    final_outputs.extend(expand(
-                        "{out_dir}/{sample}/basta_{tool}/{sample}_{tool}_lca.tsv",
-                        out_dir=OUT_DIR, sample=sample, tool=tool_name
-                    ))
-                    final_outputs.extend(expand(
-                        "{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_hits_with_lineage.tsv",
-                        out_dir=OUT_DIR, sample=sample, tool=tool_name
-                    ))
-                    final_outputs.extend(expand(
-                        "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_basta_krona.html",
-                        out_dir=OUT_DIR, sample=sample, tool=tool_name
-                    ))
-                    final_outputs.extend(expand(
-                        "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_diamond_krona.html",
-                        out_dir=OUT_DIR, sample=sample, tool=tool_name
-                    ))
+            
+            # Basta & Diamond & Krona
+            final_outputs.extend(expand("{out_dir}/{sample}/basta_{tool}/{sample}_{tool}_lca.tsv", out_dir=OUT_DIR, sample=sample, tool=tools))
+            final_outputs.extend(expand("{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_hits_with_lineage.tsv", out_dir=OUT_DIR, sample=sample, tool=tools))
+            final_outputs.extend(expand("{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_basta_krona.html", out_dir=OUT_DIR, sample=sample, tool=tools))
+            final_outputs.extend(expand("{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_diamond_krona.html", out_dir=OUT_DIR, sample=sample, tool=tools))
 
   return final_outputs
 
@@ -549,33 +491,34 @@ def get_input_unp(wildcards):
 def get_contigs_path(wildcards):
     """
     Determines input file based on the wildcard label.
-    FIX: Uses os.path.join to ensure path consistency with Snakemake rules.
+    Adapts to handle 'spades/kmer_val' as a composite tool name.
     """
     tool_name = wildcards.tool
     sample = wildcards.sample
     meta = SAMPLE_META.get(sample)
     
-    # Handle case where tool wildcard captures subdirectories (e.g. "spades/kmer_auto")
-    real_tool_name = tool_name.split('/')[0] if '/' in tool_name else tool_name
-
     if not meta:
         raise ValueError(f"Metadata missing for {sample}")
 
-    if real_tool_name == PRE_ASSEMBLED_LABEL:
+    if tool_name == PRE_ASSEMBLED_LABEL:
         if meta['mode'] != 'CONTIGS':
             raise ValueError(f"Sample '{sample}' is marked as {meta['mode']}, but '{PRE_ASSEMBLED_LABEL}' was requested.")
         return meta['files'][0]
 
-    else:
-        filename = TOOL_OUTPUT_MAP.get(real_tool_name)
-        if not filename:
-            raise ValueError(f"Tool '{real_tool_name}' not recognized in TOOL_OUTPUT_MAP.")
-        
-        # Se a ferramenta for spades e houver um wildcard 'kmer', ajusta o caminho para a subpasta
-        if real_tool_name == "spades" and hasattr(wildcards, 'kmer'):
-            return os.path.join(OUT_DIR, sample, real_tool_name, f"kmer_{wildcards.kmer}", filename)
-
+    # --- Lógica para Múltiplos K-mers do SPAdes ---
+    # Se o nome da ferramenta começar com "spades/kmer_", extraímos o caminho direto.
+    if tool_name.startswith("spades/kmer_"):
+        # O wildcard 'tool' já é algo como "spades/kmer_auto"
+        # O arquivo esperado é results/{sample}/spades/kmer_auto/contigs.fasta
+        filename = TOOL_OUTPUT_MAP.get("spades")
         return os.path.join(OUT_DIR, sample, tool_name, filename)
+
+    # Lógica Padrão para outras ferramentas
+    filename = TOOL_OUTPUT_MAP.get(tool_name)
+    if not filename:
+        raise ValueError(f"Tool '{tool_name}' not recognized in TOOL_OUTPUT_MAP.")
+        
+    return os.path.join(OUT_DIR, sample, tool_name, filename)
 
 
 #####################################################
