@@ -48,6 +48,7 @@ SINGLE_SRA = []
 # workflow/scripts/functions.py
 
 def get_final_outputs():
+    final_outputs = []
     raw_tools = MAPPER if isinstance(MAPPER, list) else [MAPPER]
     assembler_list = []
     
@@ -63,100 +64,99 @@ def get_final_outputs():
         else:
             assembler_list.append(t)
 
-
-  # 1. Keep Download
-  if MODULES["keep_download"]: 
-    for sample, meta in SAMPLE_META.items():         
-          if meta['mode'] == 'SRA':
-            final_outputs.extend(meta['files'])
+    # 1. Keep Download
+    if MODULES["keep_download"]: 
+        for sample, meta in SAMPLE_META.items():         
+            if meta['mode'] == 'SRA':
+                final_outputs.extend(meta['files'])
   
-  # 2. Assembly
-  if MODULES["assembly"]:  
-    tools_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
-    
-    for tool_name in tools_list:
-        file_name = TOOL_OUTPUT_MAP.get(tool_name)
-        if not file_name:
-                raise ValueError(f"Output filename not defined for tool: {tool_name}")
+    # 2. Assembly
+    if MODULES["assembly"]:  
+        tools_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
         
-        # --- CONDICIONAL PARA O SPADES (COM K-MERS) ---
-        if tool_name == "spades":
-            # Pega a lista de kmers do config
-            # Nota: Certifique-se de que 'config' está acessível aqui ou foi passado do Snakefile
-            kmer_list = config["spades"]["kmer"] 
+        for tool_name in tools_list:
+            file_name = TOOL_OUTPUT_MAP.get(tool_name)
+            if not file_name:
+                raise ValueError(f"Output filename not defined for tool: {tool_name}")
             
-            final_outputs.extend(expand(
-                "{output_dir}/{sample}/spades/kmer_{kmer_val}/{filename}", 
-                output_dir=OUT_DIR,
-                sample=SAMPLE, 
-                filename=file_name,
-                kmer_val=kmer_list
-            ))
-            
-        # --- CONDICIONAL PARA OUTRAS FERRAMENTAS (Megahit, Flye, Raven, etc) ---
-        else:
-            final_outputs.extend(expand(
-                "{output_dir}/{sample}/{tool}/{filename}", 
-                output_dir=OUT_DIR,
-                sample=SAMPLE, 
-                tool=tool_name, 
-                filename=file_name
-            ))
-  # 3. Darkmatter
-  # 3. Darkmatter
+            # --- CONDICIONAL PARA O SPADES (COM K-MERS) ---
+            if tool_name == "spades":
+                # Pega a lista de kmers do config
+                # Nota: Certifique-se de que 'config' está acessível aqui ou foi passado do Snakefile
+                kmer_list = config["spades"]["kmer"] 
+                
+                final_outputs.extend(expand(
+                    "{output_dir}/{sample}/spades/kmer_{kmer_val}/{filename}", 
+                    output_dir=OUT_DIR,
+                    sample=SAMPLE, 
+                    filename=file_name,
+                    kmer_val=kmer_list
+                ))
+                
+            # --- CONDICIONAL PARA OUTRAS FERRAMENTAS (Megahit, Flye, Raven, etc) ---
+            else:
+                final_outputs.extend(expand(
+                    "{output_dir}/{sample}/{tool}/{filename}", 
+                    output_dir=OUT_DIR,
+                    sample=SAMPLE, 
+                    tool=tool_name, 
+                    filename=file_name
+                ))
+
+    # 3. Darkmatter
     if MODULES["darkmatter"]:
         for sample, meta in SAMPLE_META.items():
             current_tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
             final_outputs.extend(expand("{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Report_Diversity.html", 
                     out_dir=OUT_DIR, sample=sample, tool=current_tools))
 
-  # 4. Reads (Diamond & Basta)
-  if MODULES["reads_diamond"]:
-    # BASTA Output
-    final_outputs.extend(expand(
+    # 4. Reads (Diamond & Basta)
+    if MODULES["reads_diamond"]:
+        # BASTA Output
+        final_outputs.extend(expand(
                     "{out_dir}/{sample}/basta_reads/{sample}_reads_lca.tsv",
                     out_dir=OUT_DIR,
                     sample=SAMPLE))
-    # Diamond Hits
-    final_outputs.extend(expand(
+        # Diamond Hits
+        final_outputs.extend(expand(
                     "{out_dir}/{sample}/diamond_reads/{sample}_reads_hits_with_lineage.tsv",
                     out_dir=OUT_DIR,
                     sample=SAMPLE))
     
-    # Krona Plots (BASTA - Taxonomy)
-    final_outputs.extend(expand(
+        # Krona Plots (BASTA - Taxonomy)
+        final_outputs.extend(expand(
                     "{out_dir}/{sample}/krona_reads/{sample}_reads_basta_krona.html",
                     out_dir=OUT_DIR,
                     sample=SAMPLE))
     
-    # Krona Plots (DIAMOND - Raw Homology)
-    final_outputs.extend(expand(
+        # Krona Plots (DIAMOND - Raw Homology)
+        final_outputs.extend(expand(
                     "{out_dir}/{sample}/krona_reads/{sample}_reads_diamond_krona.html",
                     out_dir=OUT_DIR,
                     sample=SAMPLE))
 
-    # Rarefaction curve
-    final_outputs.append(expand("{out_dir}/basta_all/Basta_Rarefaction_Curve.pdf", out_dir=OUT_DIR))
+        # Rarefaction curve
+        final_outputs.append(expand("{out_dir}/basta_all/Basta_Rarefaction_Curve.pdf", out_dir=OUT_DIR))
 
-  # 5. Reads (Kraken2)
-  if MODULES["reads_kraken2"]:
-    for sample in SAMPLE:
-        meta = SAMPLE_META.get(sample)
-        is_paired = (meta['mode'] == 'PAIRED') or (meta['mode'] == 'SRA' and len(meta['files']) == 2)
-        label = "paired" if is_paired else "unpaired"      
-        final_outputs.append(f"{OUT_DIR}/{sample}/kraken2_reads/{sample}_{label}_reads_biom.txt")
-        final_outputs.append(f"{OUT_DIR}/{sample}/krona_reads/{sample}_{label}_kraken2_krona.html")
-        final_outputs.append(f"{OUT_DIR}/kraken2_all/Rarefaction_Curve.pdf")
+    # 5. Reads (Kraken2)
+    if MODULES["reads_kraken2"]:
+        for sample in SAMPLE:
+            meta = SAMPLE_META.get(sample)
+            is_paired = (meta['mode'] == 'PAIRED') or (meta['mode'] == 'SRA' and len(meta['files']) == 2)
+            label = "paired" if is_paired else "unpaired"      
+            final_outputs.append(f"{OUT_DIR}/{sample}/kraken2_reads/{sample}_{label}_reads_biom.txt")
+            final_outputs.append(f"{OUT_DIR}/{sample}/krona_reads/{sample}_{label}_kraken2_krona.html")
+            final_outputs.append(f"{OUT_DIR}/kraken2_all/Rarefaction_Curve.pdf")
 
-  # 6. Contigs (Kraken2)
-  if MODULES["kraken2"]:
+    # 6. Contigs (Kraken2)
+    if MODULES["kraken2"]:
         for sample, meta in SAMPLE_META.items():
             tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
             final_outputs.extend(expand("{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_biom.txt", out_dir=OUT_DIR, sample=sample, tool=tools))
             final_outputs.extend(expand("{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_kraken2_krona.html", out_dir=OUT_DIR, sample=sample, tool=tools))
 
-  # 7. Contigs (Diamond)
-  if MODULES["diamond"]:
+    # 7. Contigs (Diamond)
+    if MODULES["diamond"]:
         for sample, meta in SAMPLE_META.items():
             tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
             
@@ -166,7 +166,7 @@ def get_final_outputs():
             final_outputs.extend(expand("{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_basta_krona.html", out_dir=OUT_DIR, sample=sample, tool=tools))
             final_outputs.extend(expand("{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_diamond_krona.html", out_dir=OUT_DIR, sample=sample, tool=tools))
 
-  return final_outputs
+    return final_outputs
 
 ## in process
 # list of all expected inputs of multiqc
