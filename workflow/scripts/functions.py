@@ -92,12 +92,20 @@ def get_final_outputs():
   if MODULES["darkmatter"]:
     assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
     for sample, meta in SAMPLE_META.items():
-        if meta['mode'] == 'CONTIGS':
-            final_outputs.extend(expand("{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Report_Diversity.html", 
-                    out_dir=OUT_DIR, sample=sample, tool=PRE_ASSEMBLED_LABEL))
-        else:
-            final_outputs.extend(expand("{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Report_Diversity.html", 
-                    out_dir=OUT_DIR, sample=sample, tool=assembler_list))
+        tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
+        
+        for tool_name in tools:
+            if tool_name == "spades":
+                kmer_list = config["spades"]["kmer"]
+                final_outputs.extend(expand(
+                    "{out_dir}/{sample}/duskmatter_report_{tool}/kmer_{kmer}/{sample}_Report_Diversity.html", 
+                    out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
+                ))
+            else:
+                final_outputs.extend(expand(
+                    "{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Report_Diversity.html", 
+                    out_dir=OUT_DIR, sample=sample, tool=tool_name
+                ))
 
   # 4. Reads (Diamond & Basta)
   if MODULES["reads_diamond"]:
@@ -149,16 +157,26 @@ def get_final_outputs():
         for sample, meta in SAMPLE_META.items():
             tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
             
-            final_outputs.extend(expand(
-                "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_biom.txt",
-                out_dir=OUT_DIR, sample=sample, tool=tools
-            ))
-            
-            # [FIXED] Removed double underscore typo (was __kraken2_krona.html)
-            final_outputs.extend(expand(
-                "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_kraken2_krona.html",
-                out_dir=OUT_DIR, sample=sample, tool=tools
-            ))
+            for tool_name in tools:
+                if tool_name == "spades":
+                    kmer_list = config["spades"]["kmer"]
+                    final_outputs.extend(expand(
+                        "{out_dir}/{sample}/kraken2_{tool}/kmer_{kmer}/{sample}_{tool}_contig_biom.txt",
+                        out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
+                    ))
+                    final_outputs.extend(expand(
+                        "{out_dir}/{sample}/krona_{tool}/kmer_{kmer}/{sample}_{tool}_kraken2_krona.html",
+                        out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
+                    ))
+                else:
+                    final_outputs.extend(expand(
+                        "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_biom.txt",
+                        out_dir=OUT_DIR, sample=sample, tool=tool_name
+                    ))
+                    final_outputs.extend(expand(
+                        "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_kraken2_krona.html",
+                        out_dir=OUT_DIR, sample=sample, tool=tool_name
+                    ))
 
   # 7. Contigs (Diamond)
   if MODULES["diamond"]:
@@ -166,27 +184,45 @@ def get_final_outputs():
         for sample, meta in SAMPLE_META.items():
             tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
 
-            # BASTA & Diamond TSVs
-            final_outputs.extend(expand(
-                "{out_dir}/{sample}/basta_{tool}/{sample}_{tool}_lca.tsv",
-                out_dir=OUT_DIR, sample=sample, tool=tools
-            ))
-            final_outputs.extend(expand(
-                "{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_hits_with_lineage.tsv",
-                out_dir=OUT_DIR, sample=sample, tool=tools
-            ))
-            
-            # Krona Plot (BASTA)
-            final_outputs.extend(expand(
-                "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_basta_krona.html",
-                out_dir=OUT_DIR, sample=sample, tool=tools
-            ))
-            
-            # Krona Plot (DIAMOND Raw)
-            final_outputs.extend(expand(
-                "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_diamond_krona.html",
-                out_dir=OUT_DIR, sample=sample, tool=tools
-            ))
+            for tool_name in tools:
+                if tool_name == "spades":
+                    kmer_list = config["spades"]["kmer"]
+                    # BASTA & Diamond TSVs (Spades)
+                    final_outputs.extend(expand(
+                        "{out_dir}/{sample}/basta_{tool}/kmer_{kmer}/{sample}_{tool}_lca.tsv",
+                        out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
+                    ))
+                    final_outputs.extend(expand(
+                        "{out_dir}/{sample}/diamond_{tool}/kmer_{kmer}/{sample}_{tool}_hits_with_lineage.tsv",
+                        out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
+                    ))
+                    # Krona Plots (Spades)
+                    final_outputs.extend(expand(
+                        "{out_dir}/{sample}/krona_{tool}/kmer_{kmer}/{sample}_{tool}_basta_krona.html",
+                        out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
+                    ))
+                    final_outputs.extend(expand(
+                        "{out_dir}/{sample}/krona_{tool}/kmer_{kmer}/{sample}_{tool}_diamond_krona.html",
+                        out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
+                    ))
+                else:
+                    # Standard Logic
+                    final_outputs.extend(expand(
+                        "{out_dir}/{sample}/basta_{tool}/{sample}_{tool}_lca.tsv",
+                        out_dir=OUT_DIR, sample=sample, tool=tool_name
+                    ))
+                    final_outputs.extend(expand(
+                        "{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_hits_with_lineage.tsv",
+                        out_dir=OUT_DIR, sample=sample, tool=tool_name
+                    ))
+                    final_outputs.extend(expand(
+                        "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_basta_krona.html",
+                        out_dir=OUT_DIR, sample=sample, tool=tool_name
+                    ))
+                    final_outputs.extend(expand(
+                        "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_diamond_krona.html",
+                        out_dir=OUT_DIR, sample=sample, tool=tool_name
+                    ))
 
   return final_outputs
 
@@ -240,10 +276,15 @@ def get_multiqc_inputs(wildcards=None, sample=None):
         # If input is already contigs, we use PRE_ASSEMBLED_LABEL
         tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
         
-        mqc_inputs.extend(expand(
-            "{out_dir}/{sample}/diamond_{tool}/diamond.log",
-            out_dir=OUT_DIR, sample=sample_id, tool=tools
-        ))
+        for tool_name in tools:
+            if tool_name == "spades":
+                kmer_list = config["spades"]["kmer"]
+                mqc_inputs.extend(expand(
+                    "{out_dir}/{sample}/diamond_{tool}/kmer_{kmer}/diamond.log",
+                    out_dir=OUT_DIR, sample=sample_id, tool=tool_name, kmer=kmer_list
+                ))
+            else:
+                mqc_inputs.append(os.path.join(OUT_DIR, sample_id, f"diamond_{tool_name}", "diamond.log"))
 
     # --- 5. Kraken2 (Contigs) ---
     if MODULES.get("kraken2", False):
@@ -252,10 +293,15 @@ def get_multiqc_inputs(wildcards=None, sample=None):
         
         tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
         
-        mqc_inputs.extend(expand(
-            "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_report.txt",
-            out_dir=OUT_DIR, sample=sample_id, tool=tools
-        ))
+        for tool_name in tools:
+            if tool_name == "spades":
+                kmer_list = config["spades"]["kmer"]
+                mqc_inputs.extend(expand(
+                    "{out_dir}/{sample}/kraken2_{tool}/kmer_{kmer}/{sample}_{tool}_contig_report.txt",
+                    out_dir=OUT_DIR, sample=sample_id, tool=tool_name, kmer=kmer_list
+                ))
+            else:
+                mqc_inputs.append(os.path.join(OUT_DIR, sample_id, f"kraken2_{tool_name}", f"{sample_id}_{tool_name}_contig_report.txt"))
 
     return mqc_inputs
 
@@ -521,7 +567,11 @@ def get_contigs_path(wildcards):
         filename = TOOL_OUTPUT_MAP.get(tool_name)
         if not filename:
             raise ValueError(f"Tool '{tool_name}' not recognized in TOOL_OUTPUT_MAP.")
-            
+        
+        # Se a ferramenta for spades e houver um wildcard 'kmer', ajusta o caminho para a subpasta
+        if tool_name == "spades" and hasattr(wildcards, 'kmer'):
+            return os.path.join(OUT_DIR, sample, tool_name, f"kmer_{wildcards.kmer}", filename)
+
         return os.path.join(OUT_DIR, sample, tool_name, filename)
 
 
