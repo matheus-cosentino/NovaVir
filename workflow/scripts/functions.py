@@ -161,11 +161,11 @@ def get_final_outputs():
                 if tool_name == "spades":
                     kmer_list = config["spades"]["kmer"]
                     final_outputs.extend(expand(
-                        "{out_dir}/{sample}/kraken2_{tool}/kmer_{kmer}/{sample}_{tool}_contig_biom.txt",
+                        "{out_dir}/{sample}/kraken2_{tool}/kmer_{kmer}/{sample}_{tool}/kmer_{kmer}_contig_biom.txt",
                         out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
                     ))
                     final_outputs.extend(expand(
-                        "{out_dir}/{sample}/krona_{tool}/kmer_{kmer}/{sample}_{tool}_kraken2_krona.html",
+                        "{out_dir}/{sample}/krona_{tool}/kmer_{kmer}/{sample}_{tool}/kmer_{kmer}_kraken2_krona.html",
                         out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
                     ))
                 else:
@@ -189,20 +189,20 @@ def get_final_outputs():
                     kmer_list = config["spades"]["kmer"]
                     # BASTA & Diamond TSVs (Spades)
                     final_outputs.extend(expand(
-                        "{out_dir}/{sample}/basta_{tool}/kmer_{kmer}/{sample}_{tool}_lca.tsv",
+                        "{out_dir}/{sample}/basta_{tool}/kmer_{kmer}/{sample}_{tool}/kmer_{kmer}_lca.tsv",
                         out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
                     ))
                     final_outputs.extend(expand(
-                        "{out_dir}/{sample}/diamond_{tool}/kmer_{kmer}/{sample}_{tool}_hits_with_lineage.tsv",
+                        "{out_dir}/{sample}/diamond_{tool}/kmer_{kmer}/{sample}_{tool}/kmer_{kmer}_hits_with_lineage.tsv",
                         out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
                     ))
                     # Krona Plots (Spades)
                     final_outputs.extend(expand(
-                        "{out_dir}/{sample}/krona_{tool}/kmer_{kmer}/{sample}_{tool}_basta_krona.html",
+                        "{out_dir}/{sample}/krona_{tool}/kmer_{kmer}/{sample}_{tool}/kmer_{kmer}_basta_krona.html",
                         out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
                     ))
                     final_outputs.extend(expand(
-                        "{out_dir}/{sample}/krona_{tool}/kmer_{kmer}/{sample}_{tool}_diamond_krona.html",
+                        "{out_dir}/{sample}/krona_{tool}/kmer_{kmer}/{sample}_{tool}/kmer_{kmer}_diamond_krona.html",
                         out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
                     ))
                 else:
@@ -297,7 +297,7 @@ def get_multiqc_inputs(wildcards=None, sample=None):
             if tool_name == "spades":
                 kmer_list = config["spades"]["kmer"]
                 mqc_inputs.extend(expand(
-                    "{out_dir}/{sample}/kraken2_{tool}/kmer_{kmer}/{sample}_{tool}_contig_report.txt",
+                    "{out_dir}/{sample}/kraken2_{tool}/kmer_{kmer}/{sample}_{tool}/kmer_{kmer}_contig_report.txt",
                     out_dir=OUT_DIR, sample=sample_id, tool=tool_name, kmer=kmer_list
                 ))
             else:
