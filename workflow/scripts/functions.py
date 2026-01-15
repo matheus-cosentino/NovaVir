@@ -280,11 +280,11 @@ def get_multiqc_inputs(wildcards=None, sample=None):
             if tool_name == "spades":
                 kmer_list = config["spades"]["kmer"]
                 mqc_inputs.extend(expand(
-                    "{out_dir}/{sample}/diamond_{tool}/kmer_{kmer}/{sample}_{tool}/kmer_{kmer}_diamond.log",
+                    "{out_dir}/{sample}/diamond_{tool}/kmer_{kmer}/{sample}_{tool}/kmer_{kmer}_report.txt",
                     out_dir=OUT_DIR, sample=sample_id, tool=tool_name, kmer=kmer_list
                 ))
             else:
-                mqc_inputs.append(os.path.join(OUT_DIR, sample_id, f"diamond_{tool_name}", "diamond.log"))
+                mqc_inputs.append(os.path.join(OUT_DIR, sample_id, f"diamond_{tool_name}", f"{sample_id}_{tool_name}_report.txt"))
 
     # --- 5. Kraken2 (Contigs) ---
     if MODULES.get("kraken2", False):
