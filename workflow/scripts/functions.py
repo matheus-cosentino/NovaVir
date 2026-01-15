@@ -98,7 +98,7 @@ def get_final_outputs():
             if tool_name == "spades":
                 kmer_list = config["spades"]["kmer"]
                 final_outputs.extend(expand(
-                    "{out_dir}/{sample}/duskmatter_report_{tool}/kmer_{kmer}/{sample}_Report_Diversity.html", 
+                    "{out_dir}/{sample}/duskmatter_report_{tool}/kmer_{kmer}/{sample}_{tool}/kmer_{kmer}_Report_Diversity.html", 
                     out_dir=OUT_DIR, sample=sample, tool=tool_name, kmer=kmer_list
                 ))
             else:
@@ -280,7 +280,7 @@ def get_multiqc_inputs(wildcards=None, sample=None):
             if tool_name == "spades":
                 kmer_list = config["spades"]["kmer"]
                 mqc_inputs.extend(expand(
-                    "{out_dir}/{sample}/diamond_{tool}/kmer_{kmer}/diamond.log",
+                    "{out_dir}/{sample}/diamond_{tool}/kmer_{kmer}/{sample}_{tool}/kmer_{kmer}_diamond.log",
                     out_dir=OUT_DIR, sample=sample_id, tool=tool_name, kmer=kmer_list
                 ))
             else:
