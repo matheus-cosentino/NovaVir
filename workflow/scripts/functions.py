@@ -555,22 +555,25 @@ def get_contigs_path(wildcards):
     sample = wildcards.sample
     meta = SAMPLE_META.get(sample)
     
+    # Handle case where tool wildcard captures subdirectories (e.g. "spades/kmer_auto")
+    real_tool_name = tool_name.split('/')[0] if '/' in tool_name else tool_name
+
     if not meta:
         raise ValueError(f"Metadata missing for {sample}")
 
-    if tool_name == PRE_ASSEMBLED_LABEL:
+    if real_tool_name == PRE_ASSEMBLED_LABEL:
         if meta['mode'] != 'CONTIGS':
             raise ValueError(f"Sample '{sample}' is marked as {meta['mode']}, but '{PRE_ASSEMBLED_LABEL}' was requested.")
         return meta['files'][0]
 
     else:
-        filename = TOOL_OUTPUT_MAP.get(tool_name)
+        filename = TOOL_OUTPUT_MAP.get(real_tool_name)
         if not filename:
-            raise ValueError(f"Tool '{tool_name}' not recognized in TOOL_OUTPUT_MAP.")
+            raise ValueError(f"Tool '{real_tool_name}' not recognized in TOOL_OUTPUT_MAP.")
         
         # Se a ferramenta for spades e houver um wildcard 'kmer', ajusta o caminho para a subpasta
-        if tool_name == "spades" and hasattr(wildcards, 'kmer'):
-            return os.path.join(OUT_DIR, sample, tool_name, f"kmer_{wildcards.kmer}", filename)
+        if real_tool_name == "spades" and hasattr(wildcards, 'kmer'):
+            return os.path.join(OUT_DIR, sample, real_tool_name, f"kmer_{wildcards.kmer}", filename)
 
         return os.path.join(OUT_DIR, sample, tool_name, filename)
 
