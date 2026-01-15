@@ -261,8 +261,8 @@ def get_multiqc_inputs(wildcards=None, sample=None):
 
     # --- 2. Diamond (Reads) ---
     if MODULES.get("reads_diamond", False):
-        # Path: results/{sample}/diamond_reads/diamond.log
-        mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "diamond_reads", "diamond.log"))
+        # Path: results/{sample}/diamond_reads/{sample}_reads_report.txt
+        mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "diamond_reads", f"{sample_id}_reads_report.txt"))
 
     # --- 3. Kraken2 (Reads) ---
     if MODULES.get("reads_kraken2", False):
