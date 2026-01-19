@@ -17,47 +17,36 @@
 
 rule basta_download_mapping:
     output:
-        # Diretório do banco SQLite
-        db = directory(os.path.join(BASTA_DB_DIR[0], "prot_mapping.db")),
-        # Arquivo GZ necessário para o lineage.smk (RESTAURADO)
-        gz = os.path.join(BASTA_DB_DIR[0], "prot.accession2taxid.gz")
+        # Removido directory(), adicionado protected()
+        db = protected(os.path.join(BASTA_DB_DIR[0], "prot_mapping.db")),
+        gz = protected(os.path.join(BASTA_DB_DIR[0], "prot.accession2taxid.gz"))
     params:
-        tax_dir=os.path.join(BASTA_DB_DIR[0])
+        tax_dir=BASTA_DB_DIR[0]
     conda:
         BASTA
     log:
         os.path.join(OUT_DIR, "log", "basta_download_mapping.log")
     shell:
         """
-        # Verifica se AMBOS (DB e GZ) existem. Se sim, pula.
-        if [ -d "{output.db}" ] && [ -f "{output.gz}" ]; then
-            echo "[INFO] Mapping DB and GZ file already exist. Skipping download." > {log}
-        else
-            # O basta download baixa o GZ e cria o DB
-            basta download prot -d {params.tax_dir} > {log} 2>&1
-        fi
+        # O comando basta download cria os arquivos automaticamente.
+        # Se os arquivos output.db e output.gz já existirem, o Snakemake nem entra aqui.
+        basta download prot -d {params.tax_dir} > {log} 2>&1
         """
 
 rule basta_download_taxonomy:
     output:
-        # The main BASTA database
-        db = directory(os.path.join(BASTA_DB_DIR[0], "complete_taxa.db")),
-        # The raw taxonomy files Krona also needs
-        names = os.path.join(BASTA_DB_DIR[0], "names.dmp"),
-        nodes = os.path.join(BASTA_DB_DIR[0], "nodes.dmp")
+        db    = protected(os.path.join(BASTA_DB_DIR[0], "complete_taxa.db")),
+        names = protected(os.path.join(BASTA_DB_DIR[0], "names.dmp")),
+        nodes = protected(os.path.join(BASTA_DB_DIR[0], "nodes.dmp"))
     params:
-        tax_dir = os.path.join(BASTA_DB_DIR[0])
+        tax_dir = BASTA_DB_DIR[0]
     conda:
         BASTA
     log:
         os.path.join(OUT_DIR, "log", "basta_download_taxonomy.log")
     shell:
         """
-        if [ -d "{output.db}" ] && [ -f "{output.names}" ]; then
-            echo "[INFO] Taxonomy DB already exists. Skipping download." > {log}
-        else
-            basta taxonomy -d {params.tax_dir} > {log} 2>&1
-        fi
+        basta taxonomy -d {params.tax_dir} > {log} 2>&1
         """
 
 
