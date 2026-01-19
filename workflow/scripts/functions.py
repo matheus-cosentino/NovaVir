@@ -209,7 +209,6 @@ def get_multiqc_inputs(wildcards=None, sample=None):
     """
     Get MultiQC inputs. Can be called with 'wildcards' (for single sample rules)
     or with 'sample' string (for aggregate rules).
-    Handles virtual tools (spades_k21, etc).
     """
     # 1. Determine the sample name
     if wildcards is not None:
@@ -221,15 +220,15 @@ def get_multiqc_inputs(wildcards=None, sample=None):
 
     mqc_inputs = []
     
-    # Retrieve metadata
+    # Retrieve metadata to determine if Paired or Unpaired
     meta = SAMPLE_META.get(sample_id)
     if not meta:
-        return []
+        return [] 
 
     # Logic: SRA with 2 files OR explicit PAIRED mode = Paired
     is_paired = (meta['mode'] == 'PAIRED') or (meta['mode'] == 'SRA' and len(meta['files']) == 2)
-    label_reads = "paired" if is_paired else "unpaired"
-    fastp_suffix = "paired" if is_paired else "unp"
+    label_reads = "paired" if is_paired else "unpaired" 
+    fastp_suffix = "paired" if is_paired else "unp"    
 
     # --- 1. Fastp (JSON) ---
     mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "trimmed", f"{sample_id}_{fastp_suffix}.json"))
@@ -242,35 +241,35 @@ def get_multiqc_inputs(wildcards=None, sample=None):
     if MODULES.get("reads_kraken2", False):
         mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "kraken2_reads", f"{sample_id}_{label_reads}_reads_report.txt"))
 
-    # --- Lógica de Expansão de Ferramentas (K-mers) ---
-    # Necessária para Diamond Contigs e Kraken2 Contigs
+    # --- PREPARE TOOL LIST (EXPANDING K-MERS) ---
+    # Essa parte garante que o MultiQC procure por 'spades_k21' e nao 'spades' genérico
     assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
-    tools_expanded = []
+    expanded_tools = []
     
     if meta['mode'] == 'CONTIGS':
-        tools_expanded = [PRE_ASSEMBLED_LABEL]
+        expanded_tools = [PRE_ASSEMBLED_LABEL]
     else:
         for tool in assembler_list:
             if tool == "spades":
                 # Expande para as ferramentas virtuais
                 kmer_list = config["spades"]["kmer"]
                 for k in kmer_list:
-                    tools_expanded.append(f"spades_k{k}")
+                    expanded_tools.append(f"spades_k{k}")
             else:
-                tools_expanded.append(tool)
+                expanded_tools.append(tool)
 
     # --- 4. Diamond (Contigs) ---
     if MODULES.get("diamond", False):
         mqc_inputs.extend(expand(
             "{out_dir}/{sample}/diamond_{tool}/diamond.log",
-            out_dir=OUT_DIR, sample=sample_id, tool=tools_expanded
+            out_dir=OUT_DIR, sample=sample_id, tool=expanded_tools
         ))
 
     # --- 5. Kraken2 (Contigs) ---
     if MODULES.get("kraken2", False):
         mqc_inputs.extend(expand(
             "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_report.txt",
-            out_dir=OUT_DIR, sample=sample_id, tool=tools_expanded
+            out_dir=OUT_DIR, sample=sample_id, tool=expanded_tools
         ))
 
     return mqc_inputs
