@@ -23,6 +23,9 @@ rule get_nohit_fasta:
   """
     Get contigs within no hits against the nr Diamond database
   """
+  # ADICIONAR ESTA CONSTRAINT
+  wildcard_constraints:
+    tool = r"spades_k\d+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
   input:
     fasta = get_contigs_path,
     diamond = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_lineage.tsv")  
@@ -138,6 +141,9 @@ rule report_summarize:
   """
   Executes an R script to generate a primary HTML report.
   """
+  # ADICIONAR ESTA CONSTRAINT TAMBÉM
+  wildcard_constraints:
+    tool = r"spades_k\d+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
   input:
     fasta = get_contigs_path,
     diamond = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_lineage.tsv"),
@@ -170,5 +176,4 @@ rule report_summarize:
       --logos {params.logo_dirs} \
       --input workflow/rules/scripts/Report_Model.Rmd \
       2>&1 > {log}
-        
      """

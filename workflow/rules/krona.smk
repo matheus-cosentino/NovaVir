@@ -121,9 +121,10 @@ rule krona_diamond_reads:
             > {log} 2>&1
         """
 
+
 rule krona_diamond_contigs:
     wildcard_constraints:
-        tool = "spades/kmer_[a-zA-Z0-9_]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
+        tool = r"spades_k\d+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
         report = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
         tax_db = "resources/krona/taxonomy"
