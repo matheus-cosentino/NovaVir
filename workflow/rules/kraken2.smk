@@ -18,7 +18,7 @@
 rule kraken2_contigs:
     # Permite ferramentas normais E ferramentas virtuais de k-mer (ex: spades_k33)
     wildcard_constraints:
-        tool = r"spades_k\d+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
+        tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
         contigs = get_contigs_path
     output:
@@ -48,7 +48,7 @@ rule kraken2_contigs:
 rule kraken_biom_contig:
     # A mesma constraint deve ser aplicada aqui para o Snakemake "linkar" as regras
     wildcard_constraints:
-        tool = r"spades_k\d+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
+        tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
         report = "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_report.txt",
     output:

@@ -25,7 +25,7 @@ rule get_nohit_fasta:
   """
   # ADICIONAR ESTA CONSTRAINT
   wildcard_constraints:
-    tool = r"spades_k\d+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
+    tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
   input:
     fasta = get_contigs_path,
     diamond = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_lineage.tsv")  
@@ -143,7 +143,7 @@ rule report_summarize:
   """
   # ADICIONAR ESTA CONSTRAINT TAMBÉM
   wildcard_constraints:
-    tool = r"spades_k\d+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
+    tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"  input:
   input:
     fasta = get_contigs_path,
     diamond = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_lineage.tsv"),
