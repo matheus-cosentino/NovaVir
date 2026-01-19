@@ -17,8 +17,10 @@
 
 rule basta_download_mapping:
     output:
-        # Removemos o .gz da saída para evitar reexecução se o BASTA deletar/modificar o arquivo
-        db = directory(os.path.join(BASTA_DB_DIR[0], "prot_mapping.db"))
+        # Diretório do banco SQLite
+        db = directory(os.path.join(BASTA_DB_DIR[0], "prot_mapping.db")),
+        # Arquivo GZ necessário para o lineage.smk (RESTAURADO)
+        gz = os.path.join(BASTA_DB_DIR[0], "prot.accession2taxid.gz")
     params:
         tax_dir=os.path.join(BASTA_DB_DIR[0])
     conda:
@@ -26,11 +28,12 @@ rule basta_download_mapping:
     log:
         os.path.join(OUT_DIR, "log", "basta_download_mapping.log")
     shell:
-        # Se o diretório já existir, não faz nada (evita erro de overwrite)
         """
-        if [ -d "{output.db}" ]; then
-            echo "[INFO] Mapping DB already exists at {output.db}. Skipping download." > {log}
+        # Verifica se AMBOS (DB e GZ) existem. Se sim, pula.
+        if [ -d "{output.db}" ] && [ -f "{output.gz}" ]; then
+            echo "[INFO] Mapping DB and GZ file already exist. Skipping download." > {log}
         else
+            # O basta download baixa o GZ e cria o DB
             basta download prot -d {params.tax_dir} > {log} 2>&1
         fi
         """
@@ -50,16 +53,17 @@ rule basta_download_taxonomy:
         os.path.join(OUT_DIR, "log", "basta_download_taxonomy.log")
     shell:
         """
-        if [ -d "{output.db}" ]; then
+        if [ -d "{output.db}" ] && [ -f "{output.names}" ]; then
             echo "[INFO] Taxonomy DB already exists. Skipping download." > {log}
         else
             basta taxonomy -d {params.tax_dir} > {log} 2>&1
         fi
         """
 
+
 rule basta_search:
     input:
-        # USO DO ancient(): Protege contra reexecução se os bancos já existirem
+        # ancient() evita que pequenas mudanças de data re-disparem essa regra
         mapping_db = ancient(os.path.join(BASTA_DB_DIR[0], "prot_mapping.db")),
         taxonomy   = ancient(os.path.join(BASTA_DB_DIR[0], "complete_taxa.db")),
         query      = os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt")
