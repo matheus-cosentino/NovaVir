@@ -162,31 +162,42 @@ def get_final_outputs():
 
   # 7. Contigs (Diamond)
   if MODULES["diamond"]:
-        assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
-        for sample, meta in SAMPLE_META.items():
-            tools = [PRE_ASSEMBLED_LABEL] if meta['mode'] == 'CONTIGS' else assembler_list
-
-            # BASTA & Diamond TSVs
-            final_outputs.extend(expand(
+      assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
+        
+      for sample, meta in SAMPLE_META.items():
+            # Define a lista de "tools" virtuais
+        current_tools = []
+            
+          if meta['mode'] == 'CONTIGS':
+            current_tools = [PRE_ASSEMBLED_LABEL]
+          else:
+            for tool in assembler_list:
+               if tool == "spades":
+               # Cria "ferramentas virtuais" para cada k-mer
+               # Ex: spades_k21, spades_k33
+                 kmer_list = config["spades"]["kmer"]
+                 for k in kmer_list:
+                    current_tools.append(f"spades_k{k}")
+               else:
+                    current_tools.append(tool) 
+          final_outputs.extend(expand(
                 "{out_dir}/{sample}/basta_{tool}/{sample}_{tool}_lca.tsv",
-                out_dir=OUT_DIR, sample=sample, tool=tools
+                out_dir=OUT_DIR, sample=sample, tool=current_tools
             ))
-            final_outputs.extend(expand(
+          final_outputs.extend(expand(
                 "{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_hits_with_lineage.tsv",
-                out_dir=OUT_DIR, sample=sample, tool=tools
+                out_dir=OUT_DIR, sample=sample, tool=current_tools
             ))
             
-            # Krona Plot (BASTA)
-            final_outputs.extend(expand(
+            # Krona Plots
+          final_outputs.extend(expand(
                 "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_basta_krona.html",
-                out_dir=OUT_DIR, sample=sample, tool=tools
+                out_dir=OUT_DIR, sample=sample, tool=current_tools
             ))
-            
-            # Krona Plot (DIAMOND Raw)
-            final_outputs.extend(expand(
+          final_outputs.extend(expand(
                 "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_diamond_krona.html",
-                out_dir=OUT_DIR, sample=sample, tool=tools
-            ))
+                out_dir=OUT_DIR, sample=sample, tool=current_tools
+            ))       
 
   return final_outputs
 
@@ -502,8 +513,8 @@ def get_input_unp(wildcards):
 ########################################################################
 def get_contigs_path(wildcards):
     """
-    Determines input file based on the wildcard label.
-    FIX: Uses os.path.join to ensure path consistency with Snakemake rules.
+    Retorna o caminho do contig. 
+    Lida com nomes normais (megahit) e nomes virtuais (spades_k21).
     """
     tool_name = wildcards.tool
     sample = wildcards.sample
@@ -512,19 +523,33 @@ def get_contigs_path(wildcards):
     if not meta:
         raise ValueError(f"Metadata missing for {sample}")
 
+    # 1. Caso Pre-assembled
     if tool_name == PRE_ASSEMBLED_LABEL:
         if meta['mode'] != 'CONTIGS':
-            raise ValueError(f"Sample '{sample}' is marked as {meta['mode']}, but '{PRE_ASSEMBLED_LABEL}' was requested.")
+            raise ValueError(f"Sample is not CONTIGS but requested pre_assembled")
         return meta['files'][0]
 
+    # 2. Caso SPAdes Específico (Ex: tool="spades_k33")
+    # Detectamos se o nome da tool começa com "spades_k"
+    if tool_name.startswith("spades_k"):
+        # Extrai o valor do kmer da string (spades_k33 -> 33)
+        try:
+            kmer_val = tool_name.split("_k")[1]
+            filename = TOOL_OUTPUT_MAP.get("spades") # Pega 'contigs.fasta'
+            
+            return os.path.join(OUT_DIR, sample, "spades", f"kmer_{kmer_val}", filename)
+        except IndexError:
+            raise ValueError(f"Formato inválido para spades kmer: {tool_name}")
+
+    # 3. Caso Genérico (Megahit, Flye, Raven)
     else:
         filename = TOOL_OUTPUT_MAP.get(tool_name)
         if not filename:
+            # Segurança caso tool_name não esteja no mapa
             raise ValueError(f"Tool '{tool_name}' not recognized in TOOL_OUTPUT_MAP.")
             
         return os.path.join(OUT_DIR, sample, tool_name, filename)
-
-
+            
 #####################################################
 # --- 8. Helper Functions of Get De novo input --- #
 ####################################################

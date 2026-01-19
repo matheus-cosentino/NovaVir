@@ -16,8 +16,11 @@
 ###################################################################################
 
 rule diamond_blastx_contigs:
+  # ATENÇÃO: Atualize ou remova o wildcard_constraints.
+  # Se mantiver, precisa incluir o padrao spades_k\d+
   wildcard_constraints:
-    tool = "spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
+    tool = "spades_k\d+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
+    
   input:
     contigs = get_contigs_path
   output:
@@ -27,27 +30,26 @@ rule diamond_blastx_contigs:
     db = get_diamond_db_name,
     outfmt = config["diamond_contig"]["outfmt"],
     max_target_seqs = config["diamond_contig"]["max_target_seqs"],
-    sensitivity=config["diamond_contig"]["sensitivity"],
-    #evalue = config["diamond"]["evalue"]
+    sensitivity=config["diamond_contig"]["sensitivity"]
   log:
-    # FIXED: Log path now also matches the {tool} wildcard
     os.path.join(OUT_DIR, "{sample}", "log", "diamond_{tool}_{sample}.log")
   conda:
     DIAMOND
   shell:
     """
+    # Agora input.contigs é sempre UM arquivo único, 
+    # seja megahit/contigs.fa ou spades/kmer_21/contigs.fasta
+    
     diamond blastx \
-    --query {input.contigs} \
-    --db resources/diamond/{params.db} \
-    --out {output.hits} \
-    --threads {resources.threads} \
-    --outfmt {params.outfmt} \
-    --max-target-seqs {params.max_target_seqs} \
-    {params.sensitivity} \
-    &> {log}
+      --query {input.contigs} \
+      --db resources/diamond/{params.db} \
+      --out {output.hits} \
+      --threads {resources.threads} \
+      --outfmt {params.outfmt} \
+      --max-target-seqs {params.max_target_seqs} \
+      {params.sensitivity} \
+      &> {log}
 
-    # 2. Copy the log to the destination MultiQC expects
-    # This prevents the "Missing output files" error
     cp {log} {output.log}
     """
 
