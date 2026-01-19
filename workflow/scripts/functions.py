@@ -56,7 +56,7 @@ def get_final_outputs():
           if meta['mode'] == 'SRA':
             final_outputs.extend(meta['files'])
   
-  # 2. Assembly (Mantemos a lógica original aqui, pois ela já cria os arquivos kmer_XX)
+  # 2. Assembly (Mantemos igual, gera os arquivos físicos)
   if MODULES["assembly"]:  
     tools_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
     for tool_name in tools_list:
@@ -75,17 +75,30 @@ def get_final_outputs():
                 "{output_dir}/{sample}/{tool}/{filename}", 
                 output_dir=OUT_DIR, sample=SAMPLE, tool=tool_name, filename=file_name
             ))
-            
+
+  # --- PREPARAÇÃO: Expansão de ferramentas para Downstream (Darkmatter/Diamond/Kraken) ---
+  # Criamos a lista expandida AQUI para usar em todos os módulos abaixo
+  assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
+  
   # 3. Darkmatter
   if MODULES["darkmatter"]:
-    assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
     for sample, meta in SAMPLE_META.items():
+        # Lógica de expansão para esta amostra
+        current_tools = []
         if meta['mode'] == 'CONTIGS':
-             final_outputs.extend(expand("{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Report_Diversity.html", 
-                    out_dir=OUT_DIR, sample=sample, tool=PRE_ASSEMBLED_LABEL))
+             current_tools = [PRE_ASSEMBLED_LABEL]
         else:
-             final_outputs.extend(expand("{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Report_Diversity.html", 
-                    out_dir=OUT_DIR, sample=sample, tool=assembler_list))
+             for tool in assembler_list:
+                if tool == "spades":
+                    # O CORREÇÃO CRÍTICA: Expande spades para os k-mers no Darkmatter também
+                    kmer_list = config["spades"]["kmer"]
+                    for k in kmer_list:
+                        current_tools.append(f"spades_k{k}")
+                else:
+                    current_tools.append(tool)
+
+        final_outputs.extend(expand("{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Report_Diversity.html", 
+                out_dir=OUT_DIR, sample=sample, tool=current_tools))
 
   # 4. Reads (Diamond & Basta)
   if MODULES["reads_diamond"]:
@@ -105,21 +118,16 @@ def get_final_outputs():
         final_outputs.append(f"{OUT_DIR}/{sample}/krona_reads/{sample}_{label}_kraken2_krona.html")
         final_outputs.append(f"{OUT_DIR}/kraken2_all/Rarefaction_Curve.pdf")
 
-  # --- CORREÇÃO: Expansão de ferramentas para Downstream (Diamond/Kraken Contigs) ---
-  # Aqui definimos quais ferramentas existem de verdade (incluindo spades_k21, etc)
-  
+  # 6. Contigs (Kraken2) & 7. Contigs (Diamond)
   if MODULES["kraken2"] or MODULES["diamond"]:
-      assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
-      
       for sample, meta in SAMPLE_META.items():
-          # Define a lista de tools correta para ESTA amostra
+          # Reutiliza a mesma lógica de expansão usada no Darkmatter
           current_tools = []
           if meta['mode'] == 'CONTIGS':
               current_tools = [PRE_ASSEMBLED_LABEL]
           else:
               for tool in assembler_list:
                   if tool == "spades":
-                      # O segredo: trocar "spades" por ["spades_k21", "spades_k33"...]
                       kmer_list = config["spades"]["kmer"]
                       for k in kmer_list:
                           current_tools.append(f"spades_k{k}")
@@ -210,7 +218,7 @@ def get_multiqc_inputs(wildcards=None, sample=None):
             out_dir=OUT_DIR, sample=sample_id, tool=tools_expanded))
 
     return mqc_inputs
-    
+
 #############################################################
 # --- 3. Clean Up SRA Downloads after total processing --- #
 ############################################################
