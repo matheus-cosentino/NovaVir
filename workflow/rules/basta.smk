@@ -17,8 +17,8 @@
 
 rule basta_download_mapping:
     output:
-        db = directory(os.path.join(BASTA_DB_DIR[0], "prot_mapping.db")),
-        gz=os.path.join(BASTA_DB_DIR[0], "prot.accession2taxid.gz")
+        # Removemos o .gz da saída para evitar reexecução se o BASTA deletar/modificar o arquivo
+        db = directory(os.path.join(BASTA_DB_DIR[0], "prot_mapping.db"))
     params:
         tax_dir=os.path.join(BASTA_DB_DIR[0])
     conda:
@@ -26,7 +26,14 @@ rule basta_download_mapping:
     log:
         os.path.join(OUT_DIR, "log", "basta_download_mapping.log")
     shell:
-        "basta download prot -d {params.tax_dir} > {log} 2>&1"
+        # Se o diretório já existir, não faz nada (evita erro de overwrite)
+        """
+        if [ -d "{output.db}" ]; then
+            echo "[INFO] Mapping DB already exists at {output.db}. Skipping download." > {log}
+        else
+            basta download prot -d {params.tax_dir} > {log} 2>&1
+        fi
+        """
 
 rule basta_download_taxonomy:
     output:
@@ -43,16 +50,19 @@ rule basta_download_taxonomy:
         os.path.join(OUT_DIR, "log", "basta_download_taxonomy.log")
     shell:
         """
-        # Run BASTA taxonomy download/build
-        basta taxonomy -d {params.tax_dir} > {log} 2>&1
+        if [ -d "{output.db}" ]; then
+            echo "[INFO] Taxonomy DB already exists. Skipping download." > {log}
+        else
+            basta taxonomy -d {params.tax_dir} > {log} 2>&1
+        fi
         """
-
 
 rule basta_search:
     input:
-        mapping_db=os.path.join(BASTA_DB_DIR[0], "prot_mapping.db"),
-        query=os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt"),
-        taxonomy=os.path.join(BASTA_DB_DIR[0], "complete_taxa.db")
+        # USO DO ancient(): Protege contra reexecução se os bancos já existirem
+        mapping_db = ancient(os.path.join(BASTA_DB_DIR[0], "prot_mapping.db")),
+        taxonomy   = ancient(os.path.join(BASTA_DB_DIR[0], "complete_taxa.db")),
+        query      = os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt")
     output:
         lca=os.path.join(OUT_DIR, "{sample}", "basta_{source}", "{sample}_{source}_lca.tsv"),
         lca_summary=os.path.join(OUT_DIR, "{sample}", "basta_{source}", "{sample}_{source}_lca_summary.tsv")
@@ -91,8 +101,7 @@ rule basta_merge_counts:
 
         with open(output.table, 'w') as out_f:
             for lca_file in input.lca_files:
-                # Extract sample name from filename (assuming {sample}_reads_lca.tsv)
-                # Adjust splitting logic if your naming convention varies
+                # Extract sample name
                 filename = os.path.basename(lca_file)
                 sample_name = filename.replace("_reads_lca.tsv", "")
                 all_samples.append(sample_name)
