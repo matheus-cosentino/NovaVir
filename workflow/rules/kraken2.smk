@@ -16,45 +16,51 @@
 ###################################################################################
 
 rule kraken2_contigs:
+    # Permite ferramentas normais E ferramentas virtuais de k-mer (ex: spades_k33)
+    wildcard_constraints:
+        tool = "spades_k\d+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
-      contigs= get_contigs_path
+        contigs = get_contigs_path
     output:
-      report= "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_report.txt",
-      out="{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_output.txt"
+        report = "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_report.txt",
+        out    = "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_output.txt"
     params:
-      #db=f"{workflow.basedir}/{config["resources"]["kraken2"]}",
-      db=config["resources"]["kraken2"],        
-      confidence=config["kraken2"]["confidence"]
+        db = config["resources"]["kraken2"],        
+        confidence = config["kraken2"]["confidence"]
     log:
-      "{out_dir}/{sample}/log/kraken2_contigs_{tool}_{sample}.log"
+        "{out_dir}/{sample}/log/kraken2_contigs_{tool}_{sample}.log"
     conda:
-      KRAKEN2        
+        KRAKEN2 # Verifique se o nome do env está correto no seu config
     shell:
-      """
-      kraken2 \
-      --db {params.db} \
-      --confidence {params.confidence} \
-      --report {output.report} \
-      --threads {resources.threads} \
-      --memory-mapping \
-      --output {output.out} \
-      {input.contigs} \
-      > {log} 2>&1
-      """
+        """
+        # O input.contigs agora é garantido ser um arquivo único por job
+        kraken2 \
+        --db {params.db} \
+        --confidence {params.confidence} \
+        --report {output.report} \
+        --threads {threads} \
+        --memory-mapping \
+        --output {output.out} \
+        {input.contigs} \
+        > {log} 2>&1
+        """
 
 rule kraken_biom_contig:
+    # A mesma constraint deve ser aplicada aqui para o Snakemake "linkar" as regras
+    wildcard_constraints:
+        tool = "spades_k\d+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
-      report= "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_report.txt",
+        report = "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_report.txt",
     output:
-      biom= "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_biom.txt",
+        biom = "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_biom.txt",
     log:
-      "{out_dir}/{sample}/log/kraken2_contigs_{tool}_{sample}_biom.log"
+        "{out_dir}/{sample}/log/kraken2_contigs_{tool}_{sample}_biom.log"
     params:
-      maximun=config["kraken_biom"]["max"],
-      minimum=config["kraken_biom"]["min"],
-      out_format=config["kraken_biom"]["format"]
+        maximun = config["kraken_biom"]["max"],
+        minimum = config["kraken_biom"]["min"],
+        out_format = config["kraken_biom"]["format"]
     conda:
-        KRAKEN2_BIOM
+        KRAKEN2 
     shell:
         """
         kraken-biom \

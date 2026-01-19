@@ -112,10 +112,11 @@ spades:
 
   kmer:               # list of k-mer sizes, must be odd and less than 128 (Default: 21,33,55)
     - 'auto'          # SPAdes works by building de Bruijngraphs for several values of k. Let its “machine learning” choose the best values to use.
-    #- '21'            # Minimum value
+    - '21'            # Minimum value
     #- '33'
     #- '127'           # Maximum value
     #- '111'           # Custom or your choice (https://www.chilimath.com/lessons/introductory-algebra/list-of-odd-numbers)
+    - '21_33'
     #- '21_33_55_77'   # If you have enough coverage (+50x), then you may want to try to set this k-mer lengths
     #- '21_33_55_77_99'
     #- '21_33_55_77_99_111'
