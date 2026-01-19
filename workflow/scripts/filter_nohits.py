@@ -5,8 +5,13 @@ import gzip
 def main():
     # Access snakemake variables
     try:
-        blast_file = snakemake.input.diamond
-        fasta_file = snakemake.input.fasta
+        # Garante tratamento correto se input for lista ou string
+        blast_input = snakemake.input.diamond
+        blast_file = str(blast_input[0]) if isinstance(blast_input, list) else str(blast_input)
+        
+        fasta_input = snakemake.input.fasta
+        fasta_file = str(fasta_input[0]) if isinstance(fasta_input, list) else str(fasta_input)
+        
         output_file = snakemake.output.nohits
         sample_name = snakemake.wildcards.sample
         log_file = snakemake.log[0]
