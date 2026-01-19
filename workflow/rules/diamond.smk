@@ -16,8 +16,7 @@
 ###################################################################################
 
 rule diamond_blastx_contigs:
-  # ATENÇÃO: Atualize ou remova o wildcard_constraints.
-  # Se mantiver, precisa incluir o padrao spades_k\d+
+  # Permite ferramentas padrão E k-mers (ex: spades_kauto, spades_k21)
   wildcard_constraints:
     tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     
@@ -37,19 +36,35 @@ rule diamond_blastx_contigs:
     DIAMOND
   shell:
     """
-    # Agora input.contigs é sempre UM arquivo único, 
-    # seja megahit/contigs.fa ou spades/kmer_21/contigs.fasta
+    # 1. Garante que o diretório de log existe (Isso corrige o erro "Logfile not found")
+    mkdir -p $(dirname {log})
     
+    # 2. Inicia o Log explicitamente (similar a regra de reads)
+    echo "[INFO] Starting Diamond BlastX for Contigs..." > {log}
+    echo "[INFO] Input: {input.contigs}" >> {log}
+    
+    # 3. Verificação de segurança do Banco de Dados
+    DB_PATH="resources/diamond/{params.db}"
+    
+    if [ ! -f "$DB_PATH" ] && [ ! -f "$DB_PATH.dmnd" ]; then
+        echo "[ERROR] Diamond database not found at: $DB_PATH" >> {log}
+        ls -l resources/diamond/ >> {log} 2>&1
+        exit 1
+    fi
+    echo "[INFO] DB: $DB_PATH" >> {log}
+
+    # 4. Executa Diamond (usando sintaxe robusta de append >>)
     diamond blastx \
       --query {input.contigs} \
-      --db resources/diamond/{params.db} \
+      --db "$DB_PATH" \
       --out {output.hits} \
       --threads {resources.threads} \
       --outfmt {params.outfmt} \
       --max-target-seqs {params.max_target_seqs} \
       {params.sensitivity} \
-      &> {log}
+      >> {log} 2>&1
 
+    # 5. Copia o log para o output esperado
     cp {log} {output.log}
     """
 
@@ -66,13 +81,15 @@ rule diamond_blastx_reads:
     outfmt = config["diamond_reads"]["outfmt"],
     max_target_seqs = config["diamond_reads"]["max_target_seqs"],
     sensitivity=config["diamond_reads"]["sensitivity"]
-    #evalue = config["diamond"]["evalue"]
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "diamond_reads_{sample}.log")
   conda:
     DIAMOND
   shell:
     """
+    # Garante diretório de log aqui também por segurança
+    mkdir -p $(dirname {log})
+
     # 1. Define Temp Dir (Better perfomance)
     LOCAL_TMP=${{SLURM_TMPDIR:-/tmp}}
     MERGED_QUERY="$LOCAL_TMP/{wildcards.sample}_merged_query.fastq.gz"
