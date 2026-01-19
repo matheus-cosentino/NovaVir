@@ -18,7 +18,7 @@
 rule kraken2_contigs:
     # Permite ferramentas normais E ferramentas virtuais de k-mer (ex: spades_k33)
     wildcard_constraints:
-        tool = "spades_k\d+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
+        tool = r"spades_k\d+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
         contigs = get_contigs_path
     output:

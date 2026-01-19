@@ -19,7 +19,7 @@ rule diamond_blastx_contigs:
   # ATENÇÃO: Atualize ou remova o wildcard_constraints.
   # Se mantiver, precisa incluir o padrao spades_k\d+
   wildcard_constraints:
-    tool = "spades_k\d+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
+    tool = r"spades_k\d+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     
   input:
     contigs = get_contigs_path
