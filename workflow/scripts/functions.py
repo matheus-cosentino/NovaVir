@@ -168,9 +168,9 @@ def get_final_outputs():
             # Define a lista de "tools" virtuais
         current_tools = []
             
-          if meta['mode'] == 'CONTIGS':
+        if meta['mode'] == 'CONTIGS':
             current_tools = [PRE_ASSEMBLED_LABEL]
-          else:
+        else:
             for tool in assembler_list:
                if tool == "spades":
                # Cria "ferramentas virtuais" para cada k-mer
@@ -180,21 +180,21 @@ def get_final_outputs():
                     current_tools.append(f"spades_k{k}")
                else:
                     current_tools.append(tool) 
-          final_outputs.extend(expand(
+        final_outputs.extend(expand(
                 "{out_dir}/{sample}/basta_{tool}/{sample}_{tool}_lca.tsv",
                 out_dir=OUT_DIR, sample=sample, tool=current_tools
             ))
-          final_outputs.extend(expand(
+        final_outputs.extend(expand(
                 "{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_hits_with_lineage.tsv",
                 out_dir=OUT_DIR, sample=sample, tool=current_tools
             ))
             
             # Krona Plots
-          final_outputs.extend(expand(
+        final_outputs.extend(expand(
                 "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_basta_krona.html",
                 out_dir=OUT_DIR, sample=sample, tool=current_tools
             ))
-          final_outputs.extend(expand(
+        final_outputs.extend(expand(
                 "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_diamond_krona.html",
                 out_dir=OUT_DIR, sample=sample, tool=current_tools
             ))       
