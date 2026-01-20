@@ -38,13 +38,13 @@ show-failed-logs: True
 
 default-resources:
   slurm_account: transvihmi
-  #slurm_partition: short
-  #tmpdir: /scratch-ib
+  slurm_partition: short
+  tmpdir: /scratch-ib
   tmpdir: /scratch
   threads: 2
   mem_mb: 8000
   runtime: 4320
-  #constraint: infiniband
+  constraint: infiniband
 
 
 #######################################
