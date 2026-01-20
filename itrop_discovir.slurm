@@ -47,12 +47,12 @@ bash DiscoVir.sh \
     --input /home/cosentino/discovir/data \
     --output "$SCRATCH_DIR" \
     --assembly \
+    --temp-dir /scratch-ib/$USER/
 #    --diamond \
 #    --reads-diamond \
 #    --reads-kraken \
 #    --kraken2 \
-    --darkmatter \
-    --temp-dir /scratch-ib/
+#    --darkmatter \    
 #   --diamond_db /databases/tools/diamond/ncbi-nr.taxonomy.2.1.13.dmnd
 #   --kraken2_db /databases/tools/kraken2/k2_standard_20250714
 
