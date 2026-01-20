@@ -54,7 +54,6 @@ rule spades:
             {params.input_args} \
             -o {params.outdir} \
             -k {params.kmer} \
-            --tmp-dir "$LOCAL_TMP" \
             --only-assembler \
             > {log} 2>&1
         """
