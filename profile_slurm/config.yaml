@@ -40,7 +40,7 @@ default-resources:
   slurm_account: transvihmi
   #slurm_partition: short
   tmpdir: /scratch-ib
-  tmpdir: /scratch
+  #tmpdir: /scratch
   threads: 2
   mem_mb: 8000
   runtime: 4320
