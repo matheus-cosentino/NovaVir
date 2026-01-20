@@ -47,7 +47,7 @@ bash DiscoVir.sh \
     --input /home/cosentino/discovir/data \
     --output "$SCRATCH_DIR" \
     --assembly \
-    --temp-dir /scratch-ib/$USER/
+    --temp-dir /scratch-ib
 #    --diamond \
 #    --reads-diamond \
 #    --reads-kraken \
