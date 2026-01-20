@@ -52,6 +52,7 @@ bash DiscoVir.sh \
 #    --reads-kraken \
 #    --kraken2 \
     --darkmatter \
+    --temp-dir /scratch-ib/
 #   --diamond_db /databases/tools/diamond/ncbi-nr.taxonomy.2.1.13.dmnd
 #   --kraken2_db /databases/tools/kraken2/k2_standard_20250714
 
