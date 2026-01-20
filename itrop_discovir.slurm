@@ -44,17 +44,23 @@ echo "[INFO] Heavy Data will be written to: $SCRATCH_DIR"
 # --- 4. RUN PIPELINE ---
 # We pass the SCRATCH_DIR to the script
 bash DiscoVir.sh \
-    --input /home/cosentino/Hanta \
+    --input /home/cosentino/discovir/data \
     --output "$SCRATCH_DIR" \
     --assembly \
-    --diamond \
-    --reads-diamond \
-    --reads-kraken \
-    --kraken2 \
+#    --diamond \
+#    --reads-diamond \
+#    --reads-kraken \
+#    --kraken2 \
     --darkmatter \
-    --diamond_db /databases/tools/diamond/ncbi-nr.taxonomy.2.1.13.dmnd \
-    --kraken2_db /databases/tools/kraken2/k2_standard_20250714 || exit 1
+#   --diamond_db /databases/tools/diamond/ncbi-nr.taxonomy.2.1.13.dmnd
+#   --kraken2_db /databases/tools/kraken2/k2_standard_20250714
 
+if [ $? -eq 0 ]; then
+    echo "✅ Pipeline Finished Successfully. Results in: $RESULTS_DIR"
+else
+    echo "❌ Pipeline failed."
+    exit 1
+fi
 # --- 5. RETRIEVE RESULTS ---
 # Move results from Scratch back to Home (or a safe place) before the job ends
 FINAL_HOME_DIR="$PROJECT_HOME/results_$SLURM_JOB_ID"
