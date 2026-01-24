@@ -30,23 +30,6 @@ rule krona_update_taxonomy:
     log:
         os.path.join(OUT_DIR, "log", "krona_update_taxonomy.log")
     shell:
- # workflow/rules/krona.smk
-
-rule krona_update_taxonomy:
-    output:
-        # Mantemos no diretório resources para garantir reprodutibilidade
-        db_dir = directory(os.path.join("resources", "krona", "taxonomy")),
-        acc_done = touch(os.path.join("resources", "krona", "taxonomy", "accessions.done"))
-    input:
-        names = os.path.join(BASTA_DB_DIR[0], "names.dmp"),
-        nodes = os.path.join(BASTA_DB_DIR[0], "nodes.dmp"),
-        # Usamos o arquivo local que você já tem para o BASTA
-        acc2tax = os.path.join(BASTA_DB_DIR[0], "prot.accession2taxid.gz")
-    conda:
-        KRONA
-    log:
-        os.path.join(OUT_DIR, "log", "krona_update_taxonomy.log")
-    shell:
         """
         mkdir -p {output.db_dir}
 
