@@ -17,34 +17,6 @@
 
 # workflow/rules/krona.smk
 
-rule krona_update_taxonomy
-    output:
-        
-        acc_done = os.path.join("resources", "krona", "taxonomy", "accessions.done")
-    input:
-        names = os.path.join(BASTA_DB_DIR[0], "names.dmp"),
-        nodes = os.path.join(BASTA_DB_DIR[0], "nodes.dmp"),
-        acc2tax = os.path.join(BASTA_DB_DIR[0], "prot.accession2taxid.gz") 
-    conda:
-        KRONA
-    log:
-        os.path.join(OUT_DIR, "log", "krona_update_taxonomy.log")
-    shell:
-        """
-        mkdir -p {output.db_dir}
-
-        echo "[INFO] Linking taxonomy files..." > {log}
-        ln -sf $(readlink -f {input.names}) {output.db_dir}/names.dmp
-        ln -sf $(readlink -f {input.nodes}) {output.db_dir}/nodes.dmp
-
-        echo "[INFO] Building Taxonomy Tree..." >> {log}
-        ktUpdateTaxonomy.sh --only-build {output.db_dir} >> {log} 2>&1
-        echo "[INFO] Processing Accessions from local file: {input.acc2tax}" >> {log}
-        
-        ktUpdateAccessions.sh --file {input.acc2tax} --taxonomy {output.db_dir} >> {log} 2>&1
-        """
-
-
 rule krona_update_taxonomy:
     output:
         db_dir = directory(os.path.join("resources", "krona", "taxonomy")),
