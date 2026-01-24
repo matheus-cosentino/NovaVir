@@ -19,26 +19,35 @@
 
 rule krona_update_taxonomy:
     output:
-        db_dir = directory(os.path.join("resources", "krona", "taxonomy"))
+        db_dir = directory(os.path.join("resources", "krona", "taxonomy")),
+        acc_done = os.path.join("resources", "krona", "taxonomy", "accessions.done")
     input:
         names = os.path.join(BASTA_DB_DIR[0], "names.dmp"),
-        nodes = os.path.join(BASTA_DB_DIR[0], "nodes.dmp")
+        nodes = os.path.join(BASTA_DB_DIR[0], "nodes.dmp"),
+        acc2tax = os.path.join(BASTA_DB_DIR[0], "prot.accession2taxid.gz") 
     conda:
         KRONA
     log:
         os.path.join(OUT_DIR, "log", "krona_update_taxonomy.log")
     shell:
         """
-        # Ensure directory exists
         mkdir -p {output.db_dir}
 
-        # FIX: Copy files instead of symlinking to avoid relative path errors
+        echo "[INFO] Copying taxonomy dump files..." > {log}
         cp {input.names} {output.db_dir}/names.dmp
         cp {input.nodes} {output.db_dir}/nodes.dmp
         
-        # Run Krona update using the local files we just copied
-        ktUpdateTaxonomy.sh --only-build {output.db_dir} > {log} 2>&1
+        echo "[INFO] Building Taxonomy Tree..." >> {log}
+        ktUpdateTaxonomy.sh --only-build {output.db_dir} >> {log} 2>&1
+
+        echo "[INFO] Processing Accessions (This takes a long time)..." >> {log}
+        # Attempt to use the local file if compatible, otherwise it attempts download
+        # Note: ktUpdateAccessions.sh is very strict about downloads. 
+        # If this fails on the cluster, run 'ktUpdateAccessions.sh' manually on the head node.
+        
+        ktUpdateAccessions.sh --taxonomy {output.db_dir} >> {log} 2>&1
         """
+
 
 rule krona_kraken2:
     input:

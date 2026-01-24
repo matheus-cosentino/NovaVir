@@ -36,14 +36,17 @@ rule diamond_blastx_contigs:
     DIAMOND
   shell:
     """
-    # 1. Garante que o diretório de log existe (Isso corrige o erro "Logfile not found")
+    # Force creation of the log file immediately to satisfy Snakemake's file check
     mkdir -p $(dirname {log})
+    touch {log} 
+
+    # Buffer output to a temporary file first to avoid file locking issues on network drives
+    TMP_LOG=$(mktemp)
+
+    echo "[INFO] Starting Diamond BlastX for Contigs..." > "$TMP_LOG"
+    echo "[INFO] Input: {input.contigs}" >> "$TMP_LOG"
     
-    # 2. Inicia o Log explicitamente (similar a regra de reads)
-    echo "[INFO] Starting Diamond BlastX for Contigs..." > {log}
-    echo "[INFO] Input: {input.contigs}" >> {log}
-    
-    # 3. Verificação de segurança do Banco de Dados
+    # DB Check
     DB_PATH="resources/diamond/{params.db}"
     
     if [ ! -f "$DB_PATH" ] && [ ! -f "$DB_PATH.dmnd" ]; then
@@ -51,9 +54,9 @@ rule diamond_blastx_contigs:
         ls -l resources/diamond/ >> {log} 2>&1
         exit 1
     fi
-    echo "[INFO] DB: $DB_PATH" >> {log}
 
-    # 4. Executa Diamond (usando sintaxe robusta de append >>)
+    echo "[INFO] DB: $DB_PATH" >> {log}
+    # Run Diamond
     diamond blastx \
       --query {input.contigs} \
       --db "$DB_PATH" \
@@ -62,10 +65,19 @@ rule diamond_blastx_contigs:
       --outfmt {params.outfmt} \
       --max-target-seqs {params.max_target_seqs} \
       {params.sensitivity} \
-      >> {log} 2>&1
+      >> "$TMP_LOG" 2>&1
+    
+    EXIT_CODE=$?
 
-    # 5. Copia o log para o output esperado
+    # Move temp log to final destination
+    cat "$TMP_LOG" > {log}
+    rm "$TMP_LOG"
+    
+    # Also copy to the output.log defined in the rule
     cp {log} {output.log}
+
+    # Exit with the actual diamond exit code
+    exit $EXIT_CODE
     """
 
 rule diamond_blastx_reads:
