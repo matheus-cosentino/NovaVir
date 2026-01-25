@@ -32,9 +32,12 @@ rule krona_update_taxonomy:
         os.path.join(OUT_DIR, "log", "krona_update_taxonomy.log")
     shell:
         """
+        echo "[INFO] Linking taxonomy files..." > {log}
+        ln -sf $(readlink -f {input.names}) $(dirname {output.tab})/names.dmp
+        ln -sf $(readlink -f {input.nodes}) $(dirname {output.tab})/nodes.dmp
+
         echo "[INFO] Building Taxonomy Tree..." >> {log}
         ktUpdateTaxonomy.sh --only-build {params.tax_dir} >> {log} 2>&1
-
         """
 
 rule krona_kraken2:
