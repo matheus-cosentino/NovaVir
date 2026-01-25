@@ -434,37 +434,23 @@ data <- data %>%
     Overall = ifelse(str_detect(Temp_Overall, "Viruses"), "Viruses", Temp_Overall)
   )
 
+virus_data <- data %>%
+  filter(Overall == "Viruses") %>%
+  mutate(Family = replace_na(Family, "Unclassified"))
+
 if (nrow(virus_data) > 0) {
     output_filename <- file.path(OUTPUT_DIR_ABS,paste0(params$sample_name,"Viral_Diamond.tsv"))
+    write.table(virus_data, file = output_filename, sep = "\t", row.names = FALSE, quote = FALSE)
     
-    write.table(
-      virus_data,
-      file = output_filename,
-      sep = "\t",
-      row.names = FALSE,
-      quote = FALSE 
-    )
-    
-    
-    # plot graphs
     virus_plot <- create_and_plot_frequency_chart(virus_data, "Family", kingdom_label = "Viruses")
-    
     print(virus_plot)
     
     output_filename <- file.path(OUTPUT_DIR_ABS,paste0(params$sample_name,"Virus_Classification_Log10.png"))
-    
-    ggsave(
-      filename = output_filename,
-      plot = virus_plot,
-      width = 8,
-      height = 6,
-      dpi = 300
-    )
-
+    ggsave(filename = output_filename, plot = virus_plot, width = 8, height = 6, dpi = 300)
 } else {
     cat("**No viral contigs identified in this sample via DIAMOND/Taxonomy.**")
-    cat("\n\nSkipping viral diversity charts.")
 }
+
 ```
 
 Contigs determined as **Unclassified** are viruses lacking proper, official taxonomy at the reference level, typically due to: (1)  Non-up-to-date records in public databases (e.g., NCBI); (2) absence of an official classification within the **International Committee on Taxonomy of Viruses (ICTV)**.
@@ -472,6 +458,8 @@ Contigs determined as **Unclassified** are viruses lacking proper, official taxo
 ### Overall Family Diversity & Richness
 
 ```{r contigs_table_viral_family, message=FALSE, echo=FALSE, fig.width=10, fig.height=5, out.width="90%"}
+
+
 if (nrow(virus_data) > 0) {
 
     #  get summary of viruses
