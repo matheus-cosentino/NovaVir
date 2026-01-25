@@ -171,8 +171,7 @@ rule report_summarize:
     REPORT
   shell:
     """
-    # Execute the R script inside a subshell
-      Rscript ../scripts/generate_report.R \
+    Rscript workflow/scripts/generate_report.R \
       --sample_name {wildcards.sample} \
       --fasta_path {input.fasta} \
       --diamond_path {input.diamond} \
@@ -180,6 +179,6 @@ rule report_summarize:
       --output_dir {params.output_dir} \
       --report_name {wildcards.sample}_Report_Diversity.html \
       --logos {params.logo_dirs} \
-      --input workflow/rules/scripts/Report_Model.Rmd \
+      --input workflow/scripts/Report_Model.Rmd \
       > {log} 2>&1
-     """
+    """
