@@ -172,7 +172,7 @@ rule report_summarize:
   shell:
     """
     # Execute the R script inside a subshell
-      Rscript workflow/scripts/generate_report.R \
+      Rscript ../scripts/generate_report.R \
       --sample_name {wildcards.sample} \
       --fasta_path {input.fasta} \
       --diamond_path {input.diamond} \
