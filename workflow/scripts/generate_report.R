@@ -184,9 +184,7 @@ tryCatch({
   cat(paste("WARNING: R Markdown rendering encountered a non-fatal error for sample", sample_name, 
              ". Details:", conditionMessage(e), "\n"))
   # Você pode optar por registrar a mensagem de erro no log sem interromper a execução do Rscript.
-}) 
+} 
 
 cat("SUCCESS: Report generation complete.\n")
 quit(save="no", status=0)
-
-# Add this line early in the script:

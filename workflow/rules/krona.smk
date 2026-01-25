@@ -15,10 +15,8 @@
 #                              version: 01.2026                                   #
 ###################################################################################
 
-
 rule krona_update_taxonomy:
     output:
-        # Saídas explícitas
         tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab"),
         sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted")
     input:
@@ -29,6 +27,9 @@ rule krona_update_taxonomy:
         KRONA
     log:
         os.path.join(OUT_DIR, "log", "krona_update_taxonomy.log")
+    threads: 8
+    resources:
+        mem_mb = 32000
     shell:
         """
         mkdir -p $(dirname {output.tab})
@@ -41,12 +42,7 @@ rule krona_update_taxonomy:
         ktUpdateTaxonomy.sh --only-build $(dirname {output.tab}) >> {log} 2>&1
 
         echo "[INFO] Generating accession2taxid.sorted manually..." >> {log}
-        # Substituímos o script updateAccessions.sh falho por processamento manual.
-        # 1. zcat: lê o arquivo comprimido
-        # 2. sed 1d: remove o cabeçalho
-        # 3. cut -f 2,3: pega Accession.version e TaxID (padrão NCBI prot)
-        # 4. sort: ordena pela coluna 1 (Accession)
-        
+        # Gera o arquivo sorted manualmente, pois o script do Krona falha com arquivos locais
         zcat {input.acc2tax} | \
         sed '1d' | \
         cut -f 2,3 | \
@@ -63,19 +59,21 @@ rule krona_update_taxonomy:
 rule krona_kraken2:
     input:
         report = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_output.txt"),
-        # Dependência explícita do arquivo sorted
         tax_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted"),
         tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_kraken2_krona.html")
     conda:
         KRONA
+    params:
+        # Caminho absoluto para evitar erro no shadow directory
+        tax_db = os.path.abspath(KRONA_DB_DIR[0])
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken2_{tool}_{sample}.log")
     shell:
         """
         ktImportTaxonomy \
-            -tax $(dirname {input.tax_tab}) \
+            -tax {params.tax_db} \
             -o {output.html} \
             {input.report} \
             > {log} 2>&1
@@ -92,12 +90,14 @@ rule krona_reads_kraken:
         html = os.path.join(OUT_DIR, "{sample}", "krona_reads", "{sample}_{read_type}_kraken2_krona.html")
     conda:
         KRONA
+    params:
+        tax_db = os.path.abspath(KRONA_DB_DIR[0])
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken_reads_{read_type}_{sample}.log")
     shell:
         """
         ktImportTaxonomy \
-            -tax $(dirname {input.tax_tab}) \
+            -tax {params.tax_db} \
             -o {output.html} \
             {input.report} \
             > {log} 2>&1
@@ -129,13 +129,15 @@ rule krona_diamond_reads:
         html = os.path.join(OUT_DIR, "{sample}", "krona_reads", "{sample}_reads_diamond_krona.html")
     conda:
         KRONA
+    params:
+        tax_db = os.path.abspath(KRONA_DB_DIR[0])
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_reads_{sample}.log")
     shell:
         """
         ktImportBLAST \
             {input.report} \
-            -tax $(dirname {input.tax_tab}) \
+            -tax {params.tax_db} \
             -o {output.html} \
             > {log} 2>&1
         """
@@ -145,20 +147,23 @@ rule krona_diamond_contigs:
         tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
         report = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
-        # Dependência explícita garantindo que o sorted existe e será montado no shadow dir
+        # Mantemos no input para garantir dependência
         tax_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted"),
         tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_diamond_krona.html")
     conda:
         KRONA
+    params:
+        # CORREÇÃO: Caminho absoluto passado diretamente para o comando
+        tax_db = os.path.abspath(KRONA_DB_DIR[0])
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_contigs_{tool}_{sample}.log")
     shell:
         """
         ktImportBLAST \
             {input.report} \
-            -tax $(dirname {input.tax_tab}) \
+            -tax {params.tax_db} \
             -o {output.html} \
             > {log} 2>&1
         """

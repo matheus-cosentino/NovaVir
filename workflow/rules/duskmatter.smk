@@ -144,41 +144,32 @@ rule fev2tsv_single:
 # --- 6. Summarize Dusk Matter Findings --- #
 ############################################## 
 rule report_summarize:
-  """
-  Executes an R script to generate a primary HTML report.
-  """
-  # ADICIONAR ESTA CONSTRAINT TAMBÉM
-  wildcard_constraints:
-    tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
-  input:
-    fasta = get_contigs_path,
-    diamond = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_lineage.tsv"),
-    duskmatter = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_RdRp.tsv")
-  output:
-    html = os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}", "{sample}_Report_Diversity.html"),
-    contig_summary_tsv = os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}", "{sample}_{tool}_summary.tsv"),
-    kingdom_tsv = os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}", "{sample}_{tool}_summary_per_Kingdom.tsv"),
-    viral_diamond_tsv = os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}", "{sample}_Viral_Diamond.tsv"),
-    viral_summary_tsv = os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}", "{sample}_viral_{tool}_summary.tsv"),
-    kingdom_png = os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}", "{sample}_KINGDOM_Classification_Log10.png"),
-    viral_png = os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}", "{sample}_Virus_Classification_Log10.png")
-  params:
-    logo_dirs = config["resources"]["logo_dirs"],
-    output_dir = os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}") + "/"
-  log:
-    os.path.join(OUT_DIR, "{sample}", "log", "{sample}_report_summarize_{tool}.log")
-  conda:
-    REPORT
-  shell:
-    """
-    Rscript workflow/scripts/generate_report.R \
-      --sample_name {wildcards.sample} \
-      --fasta_path {input.fasta} \
-      --diamond_path {input.diamond} \
-      --duskmatter_path {input.duskmatter} \
-      --output_dir {params.output_dir} \
-      --report_name {wildcards.sample}_Report_Diversity.html \
-      --logos {params.logo_dirs} \
-      --input workflow/scripts/Report_Model.Rmd \
-      > {log} 2>&1
-    """
+    input:
+        fasta = os.path.join(OUT_DIR, "{sample}", "spades", "kmer_auto", "contigs.fasta"),
+        diamond = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_lineage.tsv"),
+        dusk = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_RdRp.tsv")
+    output:
+        # Rastrear APENAS o HTML garante que o job termine com sucesso 
+        # desde que o relatório principal seja criado.
+        html = os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}", "{sample}_Report_Diversity.html")
+        # Os arquivos TSV e PNG serão gerados na pasta, mas não listados aqui.
+    params:
+        out_dir = directory(os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}")),
+        logos = "resources/logo/"
+    log:
+        os.path.join(OUT_DIR, "{sample}", "log", "{sample}_report_summarize_{tool}.log")
+    conda:
+        REPORT
+    shell:
+        """
+        Rscript workflow/scripts/generate_report.R \
+            --sample_name {wildcards.sample} \
+            --fasta_path {input.fasta} \
+            --diamond_path {input.diamond} \
+            --duskmatter_path {input.dusk} \
+            --output_dir {params.out_dir} \
+            --report_name $(basename {output.html}) \
+            --logos {params.logos} \
+            --input workflow/scripts/Report_Model.Rmd \
+            > {log} 2>&1
+        """
