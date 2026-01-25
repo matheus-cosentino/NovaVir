@@ -41,7 +41,7 @@ rule krona_update_taxonomy:
 
         echo "[INFO] Building Taxonomy Tree..." >> {log}
         # 2. Run Krona update with absolute path
-        ktUpdateTaxonomy.sh --only-build $TARGET_DIR >> {log} 2>&1
+        ktUpdateTaxonomy --only-build $TARGET_DIR >> {log} 2>&1
 
         echo "[INFO] Processing Accessions..." >> {log}
         # 3. Explicitly generate the sorted accession file (Required for output.acc_sorted)
