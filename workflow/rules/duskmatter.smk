@@ -43,19 +43,6 @@ rule get_nohit_fasta:
 # --- 2. Find Orfs for the no Hits Contigs --- #
 ################################################ 
 rule find_orfs:
-  """
-    Extract orfs in distinct genetic codes used by RNA Viruses.
-  """
-  input: 
-    fasta = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_{tool}_nohit.fasta")
-  output:
-    orfs = temp(os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_ORFs.fasta.temp"))
-  log:
-    os.path.join(OUT_DIR, "{sample}", "log", "duskmatter_{tool}_{sample}_orfs.log")
-  conda:
-    PALM
-  shell:
-rule find_orfs:
   input: 
     fasta = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_{tool}_nohit.fasta")
   output:
