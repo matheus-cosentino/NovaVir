@@ -55,19 +55,38 @@ rule find_orfs:
   conda:
     PALM
   shell:
+rule find_orfs:
+  input: 
+    fasta = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_{tool}_nohit.fasta")
+  output:
+    orfs = temp(os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_ORFs.fasta.temp"))
+  log:
+    os.path.join(OUT_DIR, "{sample}", "log", "duskmatter_{tool}_{sample}_orfs.log")
+  conda:
+    PALM
+  shell:
     """
-    genetic_codes="1 3 4 5 6 11 16"
-    # Loop through each genetic code table and run getorf generating temp files
-
-    for table in $genetic_codes; do
-        getorf {input.fasta} -minsize 600 -table "$table" -find 0 -outseq "Orfs_{wildcards.sample}_Table${{table}}.fasta"
-        sed -i "s/^>/>gc_${{table}}_/g" "Orfs_{wildcards.sample}_Table${{table}}.fasta"
-    done
+    # Ativa modo de debug para ver o erro no log
+    set -x 
     
-    # Combine orfs files
-    cat Orfs_{wildcards.sample}_Table*.fasta > {output.orfs}  2>> {log}
-    # Clean up temp files
-    rm Orfs_{wildcards.sample}_Table*.fasta
+    # Limpa arquivo de saida
+    > {output.orfs}
+
+    # Lista explicita para evitar erro de expansao do shell
+    for table in 1 3 4 5 6 11 16; do
+        tmp_file="Orfs_{wildcards.sample}_Table${{table}}.fasta"
+        
+        # Roda getorf
+        getorf -sequence {input.fasta} -minsize 600 -table "$table" -find 0 -outseq "$tmp_file" 2>> {log}
+        
+        # Verifica se gerou algo antes de rodar o sed
+        if [ -s "$tmp_file" ]; then
+            sed -i "s/^>/>gc_${{table}}_/g" "$tmp_file" 2>> {log}
+            cat "$tmp_file" >> {output.orfs}
+        fi
+        
+        rm -f "$tmp_file"
+    done
     """
 
 #######################################################

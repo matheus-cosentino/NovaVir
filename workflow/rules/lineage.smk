@@ -49,7 +49,6 @@ rule split_hits_by_taxid:
         valid_hits = temp(os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_hits_with_header.tsv")),
         no_lineage = temp(os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_hits_no_lineage.temp"))
     params:
-        # Cabeçalho padrão do Diamond + Taxid
         header="qseqid\tsseqid\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore\ttaxid"
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_split_hits.log")
@@ -59,14 +58,12 @@ rule split_hits_by_taxid:
         echo -e "{params.header}" > {output.valid_hits}
         echo -e "{params.header}" > {output.no_lineage}
         
-        # Split data using AWK
-        # IMPORTANTE: Removemos 'NR==1 {{ next }}' porque o arquivo de entrada NÃO tem cabeçalho.
-        # Se mantivermos, perdemos o primeiro hit (NODE_1).
+        # CORREÇÃO AQUI: Adicionado BEGIN {{OFS="\\t"}}
+        # Isso garante que ao modificar a linha, o awk mantenha os TABs e não troque por espaços.
         
-        awk -F'\\t' '
+        awk -F'\\t' 'BEGIN {{OFS="\\t"}} 
         {{
-            # Verifica a última coluna ($NF)
-            # Removemos carriage return (\\r) caso exista (comum em arquivos gerados via python/windows)
+            # Limpa carriage return (\r) do Windows se existir
             gsub(/\\r/, "", $NF)
             
             if ($NF == "NOT_FOUND") {{
