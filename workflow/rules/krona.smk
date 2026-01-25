@@ -27,9 +27,6 @@ rule krona_update_taxonomy:
         KRONA
     log:
         os.path.join(OUT_DIR, "log", "krona_update_taxonomy.log")
-    threads: 8
-    resources:
-        mem_mb = 32000
     shell:
         """
         mkdir -p $(dirname {output.tab})
@@ -38,11 +35,11 @@ rule krona_update_taxonomy:
         ln -sf $(readlink -f {input.names}) $(dirname {output.tab})/names.dmp
         ln -sf $(readlink -f {input.nodes}) $(dirname {output.tab})/nodes.dmp
 
-        echo "[INFO] Building Taxonomy Tree (taxonomy.tab)..." >> {log}
+        echo "[INFO] Building Taxonomy Tree..." >> {log}
         ktUpdateTaxonomy.sh --only-build $(dirname {output.tab}) >> {log} 2>&1
 
         echo "[INFO] Generating accession2taxid.sorted manually..." >> {log}
-        # Gera o arquivo sorted manualmente, pois o script do Krona falha com arquivos locais
+        # Criação manual do arquivo sorted (mais robusto que o script interno do Krona)
         zcat {input.acc2tax} | \
         sed '1d' | \
         cut -f 2,3 | \
@@ -59,24 +56,29 @@ rule krona_update_taxonomy:
 rule krona_kraken2:
     input:
         report = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_output.txt"),
+        # Input explícito para garantir que o Snakemake monte os arquivos no shadow dir
         tax_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted"),
         tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_kraken2_krona.html")
     conda:
         KRONA
-    params:
-        # Caminho absoluto para evitar erro no shadow directory
-        tax_db = os.path.abspath(KRONA_DB_DIR[0])
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken2_{tool}_{sample}.log")
     shell:
         """
+        # Estratégia de DB Local Temporário
+        mkdir -p tmp_krona_db
+        ln -sf $(readlink -f {input.tax_sorted}) tmp_krona_db/accession2taxid.sorted
+        ln -sf $(readlink -f {input.tax_tab}) tmp_krona_db/taxonomy.tab
+
         ktImportTaxonomy \
-            -tax {params.tax_db} \
+            -tax tmp_krona_db \
             -o {output.html} \
             {input.report} \
             > {log} 2>&1
+            
+        rm -rf tmp_krona_db
         """
 
 rule krona_reads_kraken:
@@ -90,17 +92,21 @@ rule krona_reads_kraken:
         html = os.path.join(OUT_DIR, "{sample}", "krona_reads", "{sample}_{read_type}_kraken2_krona.html")
     conda:
         KRONA
-    params:
-        tax_db = os.path.abspath(KRONA_DB_DIR[0])
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken_reads_{read_type}_{sample}.log")
     shell:
         """
+        mkdir -p tmp_krona_db
+        ln -sf $(readlink -f {input.tax_sorted}) tmp_krona_db/accession2taxid.sorted
+        ln -sf $(readlink -f {input.tax_tab}) tmp_krona_db/taxonomy.tab
+
         ktImportTaxonomy \
-            -tax {params.tax_db} \
+            -tax tmp_krona_db \
             -o {output.html} \
             {input.report} \
             > {log} 2>&1
+        
+        rm -rf tmp_krona_db
         """
 
 rule krona_basta:
@@ -129,17 +135,21 @@ rule krona_diamond_reads:
         html = os.path.join(OUT_DIR, "{sample}", "krona_reads", "{sample}_reads_diamond_krona.html")
     conda:
         KRONA
-    params:
-        tax_db = os.path.abspath(KRONA_DB_DIR[0])
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_reads_{sample}.log")
     shell:
         """
+        mkdir -p tmp_krona_db
+        ln -sf $(readlink -f {input.tax_sorted}) tmp_krona_db/accession2taxid.sorted
+        ln -sf $(readlink -f {input.tax_tab}) tmp_krona_db/taxonomy.tab
+
         ktImportBLAST \
             {input.report} \
-            -tax {params.tax_db} \
+            -tax tmp_krona_db \
             -o {output.html} \
             > {log} 2>&1
+            
+        rm -rf tmp_krona_db
         """
 
 rule krona_diamond_contigs:
@@ -147,23 +157,27 @@ rule krona_diamond_contigs:
         tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
         report = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
-        # Mantemos no input para garantir dependência
         tax_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted"),
         tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_diamond_krona.html")
     conda:
         KRONA
-    params:
-        # CORREÇÃO: Caminho absoluto passado diretamente para o comando
-        tax_db = os.path.abspath(KRONA_DB_DIR[0])
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_contigs_{tool}_{sample}.log")
     shell:
         """
+        # CRÍTICO: Criar DB local linkado para enganar o Krona
+        # Isso resolve problemas de caminhos absolutos vs shadow directories
+        mkdir -p tmp_krona_db
+        ln -sf $(readlink -f {input.tax_sorted}) tmp_krona_db/accession2taxid.sorted
+        ln -sf $(readlink -f {input.tax_tab}) tmp_krona_db/taxonomy.tab
+
         ktImportBLAST \
             {input.report} \
-            -tax {params.tax_db} \
+            -tax tmp_krona_db \
             -o {output.html} \
             > {log} 2>&1
+        
+        rm -rf tmp_krona_db
         """
