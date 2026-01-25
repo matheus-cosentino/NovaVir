@@ -22,31 +22,39 @@ rule krona_update_taxonomy:
     input:
         names = os.path.join(BASTA_DB_DIR[0], "names.dmp"),
         nodes = os.path.join(BASTA_DB_DIR[0], "nodes.dmp"),
+        # Krona espera nomes específicos. Se o seu input for prot, ele deve ser linkado corretamente.
         acc2tax = os.path.join(BASTA_DB_DIR[0], "prot.accession2taxid.gz")
     params:
         tax_dir=KRONA_DB_DIR[0]
     conda:
-        KRONA 
+        "KRONA"
     log:
         os.path.join(OUT_DIR, "log", "krona_update_taxonomy.log")
     shell:
         """
-        echo "[INFO] Linking taxonomy files..." > {log}
+        echo "[INFO] Configurando diretórios..." > {log}
         
-        # 1. Resolve absolute path to prevent script failure
+        # 1. Resolve caminho absoluto (essencial para evitar erro do Krona)
         TARGET_DIR=$(readlink -f {params.tax_dir})
-        
+        ACC_DIR="$TARGET_DIR/accession2taxid"
+        mkdir -p $ACC_DIR
+
+        # 2. Linka os arquivos de taxonomia (names e nodes) na raiz do DB
+        echo "[INFO] Linkando arquivos de taxonomia..." >> {log}
         ln -sf $(readlink -f {input.names}) $TARGET_DIR/names.dmp
         ln -sf $(readlink -f {input.nodes}) $TARGET_DIR/nodes.dmp
 
-        echo "[INFO] Building Taxonomy Tree..." >> {log}
-        # 2. Run Krona update with absolute path
+        # 3. Linka o arquivo de accession na subpasta específica que a doc exige
+        # A doc diz: "Place in <KronaTools>/taxonomy/accession2taxid/"
+        ln -sf $(readlink -f {input.acc2tax}) $ACC_DIR/prot.accession2taxid.gz
+
+        # 4. Constrói a árvore taxonômica
+        echo "[INFO] Executando ktUpdateTaxonomy.sh..." >> {log}
         ktUpdateTaxonomy.sh --only-build $TARGET_DIR >> {log} 2>&1
 
-        echo "[INFO] Processing Accessions..." >> {log}
-        # 3. Explicitly generate the sorted accession file (Required for output.acc_sorted)
-        # Extracts accession.version (col 2) and taxid (col 3) from NCBI format
-        zcat {input.acc2tax} | cut -f 2,3 | sort -k 1,1 > {output.acc_sorted} 2>> {log}
+        # 5. Constrói o mapeamento de accessions (Gera o accession2taxid.sorted)
+        echo "[INFO] Executando ktUpdateAccessions.sh..." >> {log}
+        ktUpdateAccessions.sh --only-build $TARGET_DIR >> {log} 2>&1
         """
 
 rule krona_kraken2:
