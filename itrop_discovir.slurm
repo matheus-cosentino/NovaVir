@@ -47,12 +47,10 @@ bash DiscoVir.sh \
     --input /scratch-ib/cosentino/cov \
     --output "$SCRATCH_DIR" \
     --assembly \
-    --temp-dir /scratch-ib
-#    --diamond \
+    --temp-dir /scratch-ib//$USER --diamond -darkmatter 
 #    --reads-diamond \
 #    --reads-kraken \
-#    --kraken2 \
-#    --darkmatter \    
+#    --kraken2 \ 
 #   --diamond_db /databases/tools/diamond/ncbi-nr.taxonomy.2.1.13.dmnd
 #   --kraken2_db /databases/tools/kraken2/k2_standard_20250714
 
@@ -68,6 +66,6 @@ FINAL_HOME_DIR="$PROJECT_HOME/results_$SLURM_JOB_ID"
 mkdir -p "$FINAL_HOME_DIR"
 
 echo "[INFO] Retrieving results from Scratch..."
-rsync -av "$SCRATCH_DIR/" "$FINAL_HOME_DIR/"
+#rsync -av "$SCRATCH_DIR/" "$FINAL_HOME_DIR/"
 
 echo "[INFO] Done."
