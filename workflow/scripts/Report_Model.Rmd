@@ -651,116 +651,103 @@ pp.col.canonical <- c("#440154", "gray60", "#3b528b", "gray60", "#fde725")
 ### Putative RdRp Iddentified
 
 ```{r dusk_matter_analysis, echo=FALSE,  warning=FALSE, fig.width=10, fig.height=4, out.width="50%"}
+# Carregar a tabela
 fev <- read.table(file = params$duskmatter_file, header = T, sep = "\t")
 
+# AQUI ESTA A CORRECAO: Verificar se a tabela tem dados
+if (nrow(fev) > 0) {
 
-# 1. Mapeamento de Colunas Fixas
-fev$query <- fev$Label
-fev$qlen <- nchar(fev$aaseq)
+    # 1. Mapeamento de Colunas Fixas
+    fev$query <- fev$Label
+    fev$qlen <- nchar(fev$aaseq)
+    
+    # 2. Lógica Condicional para Ordem (ABC vs CAB)
+    fev$order_labels <- list(NA)
+    fev$order_colors <- list(NA)
+    fev$order_starts <- list(NA)
+    fev$order_ends <- list(NA)
+    
+    # Função para calcular as coordenadas e comprimentos baseados na ordem
+    for (i in 1:nrow(fev)) {
+      ps <- fev[i, ]
+      
+      # 2a. Definir os pontos de início dos motivos centrais
+      if (ps$pssm_ABC == "ABC") {
+        # Ordem Canônica: A -> B -> C
+        pA <- ps$posA
+        pB <- ps$posB
+        pC <- ps$posC
+        
+        # Calcular os comprimentos das regiões variáveis
+        v1_len <- pB - (pA + mA)
+        v2_len <- pC - (pB + mB)
+        
+        # Sequência de Motivos na Ordem de Plotagem
+        labels <- c("A", "v1", "B", "v2", "C")
+        colors <- pp.col.canonical
+        
+        # Coordenadas (baseadas em A -> B -> C)
+        starts <- c(pA, pA + mA + 1, pB, pB + mB + 1, pC)
+        ends <- c(pA + mA, pB, pB + mB, pC, pC + mC - 1) 
+        
+      } else if (ps$pssm_ABC == "CAB") {
+        # Ordem Invertida: C -> A -> B
+        pC <- ps$posC
+        pA <- ps$posA
+        pB <- ps$posB
+        
+        v1_len <- pA - (pC + mC) 
+        v2_len <- pB - (pA + mA) 
+        
+        labels <- c("C", "v1", "A", "v2", "B")
+        colors <- c(pp.col.canonical[5], pp.col.canonical[2], pp.col.canonical[1], pp.col.canonical[4], pp.col.canonical[3])
+        
+        starts <- c(pC, pC + mC + 1, pA, pA + mA + 1, pB)
+        ends <- c(pC + mC, pA, pA + mA, pB, pB + mB) 
+        
+      } else {
+        next 
+      }
+      
+      all_starts <- c(pA, pB, pC)
+      all_ends <- c(pA + mA, pB + mB, pC + mC)
+      
+      ps$pp_start <- min(all_starts)
+      ps$pp_end <- max(all_ends)
+      ps$v1_length <- v1_len
+      ps$v2_length <- v2_len
+      
+      fev[i, ]$pp_start <- ps$pp_start
+      fev[i, ]$pp_end <- ps$pp_end
+      fev[i, ]$v1_length <- ps$v1_length
+      fev[i, ]$v2_length <- ps$v2_length
+      
+      fev[i, ]$order_labels <- list(labels)
+      fev[i, ]$order_colors <- list(colors)
+      fev[i, ]$order_starts <- list(starts)
+      fev[i, ]$order_ends <- list(ends)
+    }
+    
+    
+    # --- EXECUÇÃO DO PLOT ---
+    for (i in 1:nrow(fev)) {
+      pp.plot <- PlotPP(fev[i, , drop = FALSE])
+      
+      output_filename <- file.path(OUTPUT_DIR_ABS,paste0(params$sample_name,"_",fev$query[i],"RdRp_Motifs.png"))
+      
+      ggsave(
+        filename = output_filename,
+        plot = pp.plot,
+        width = 8,
+        height = 6,
+        dpi = 300
+      )
+      
+      print(pp.plot)
+    }
 
-# 2. Lógica Condicional para Ordem (ABC vs CAB)
-# Inicializa colunas para armazenar a ordem e as coordenadas
-fev$order_labels <- list(NA)
-fev$order_colors <- list(NA)
-fev$order_starts <- list(NA)
-fev$order_ends <- list(NA)
-
-# Função para calcular as coordenadas e comprimentos baseados na ordem
-for (i in 1:nrow(fev)) {
-  ps <- fev[i, ]
-  
-  # 2a. Definir os pontos de início dos motivos centrais
-  if (ps$pssm_ABC == "ABC") {
-    # Ordem Canônica: A -> B -> C
-    pA <- ps$posA
-    pB <- ps$posB
-    pC <- ps$posC
-    
-    # Calcular os comprimentos das regiões variáveis
-    v1_len <- pB - (pA + mA)
-    v2_len <- pC - (pB + mB)
-    
-    # Sequência de Motivos na Ordem de Plotagem
-    labels <- c("A", "v1", "B", "v2", "C")
-    colors <- pp.col.canonical
-    
-    # Coordenadas (baseadas em A -> B -> C)
-    starts <- c(pA, pA + mA + 1, pB, pB + mB + 1, pC)
-    ends <- c(pA + mA, pB, pB + mB, pC, pC + mC - 1) # Assumindo C tem comprimento mC
-    
-  } else if (ps$pssm_ABC == "CAB") {
-    # Ordem Invertida: C -> A -> B
-    pC <- ps$posC
-    pA <- ps$posA
-    pB <- ps$posB
-    
-    # Calcular os comprimentos das regiões variáveis na ordem C -> A -> B
-    # v1: distância entre C e A
-    v1_len <- pA - (pC + mC) # Pos Início A - Pos Fim C
-    # v2: distância entre A e B
-    v2_len <- pB - (pA + mA) # Pos Início B - Pos Fim A
-    
-    # Sequência de Motivos na Ordem de Plotagem (C -> v1 -> A -> v2 -> B)
-    # Ajustamos as cores para corresponder à nova ordem dos motivos
-    labels <- c("C", "v1", "A", "v2", "B")
-    colors <- c(pp.col.canonical[5], pp.col.canonical[2], pp.col.canonical[1], pp.col.canonical[4], pp.col.canonical[3])
-    
-    # Coordenadas (baseadas em C -> A -> B)
-    starts <- c(pC, pC + mC + 1, pA, pA + mA + 1, pB)
-    ends <- c(pC + mC, pA, pA + mA, pB, pB + mB) # Assumindo B tem comprimento mB
-    
-  } else {
-    # Caso não suportado ou erro
-    next 
-  }
-  
-  # 2b. Mapear o início e o fim do Palmprint total
-  # O Palmprint total deve ir do menor 'pos' ao maior 'pos' + comprimento do motivo.
-  all_starts <- c(pA, pB, pC)
-  all_ends <- c(pA + mA, pB + mB, pC + mC)
-  
-  ps$pp_start <- min(all_starts)
-  ps$pp_end <- max(all_ends)
-  
-  # 2c. Armazenar as coordenadas e comprimentos ajustados
-  # As colunas v1_length e v2_length devem agora ser positivas ou zero
-  ps$v1_length <- v1_len
-  ps$v2_length <- v2_len
-  
-  # Atualizar o data frame fev
-  fev[i, ]$pp_start <- ps$pp_start
-  fev[i, ]$pp_end <- ps$pp_end
-  fev[i, ]$v1_length <- ps$v1_length
-  fev[i, ]$v2_length <- ps$v2_length
-  
-  # Armazenar os vetores de plotagem (labels, starts, ends, colors) como listas
-  fev[i, ]$order_labels <- list(labels)
-  fev[i, ]$order_colors <- list(colors)
-  fev[i, ]$order_starts <- list(starts)
-  fev[i, ]$order_ends <- list(ends)
-}
-
-
-# --- EXECUÇÃO DO PLOT ---
-
-# O loop vai plotar o diagrama de gene para cada linha.
-# Agora, o diagrama usará as coordenadas e a ordem de cores corretas.
-for (i in 1:nrow(fev)) {
-  # Passa a linha como um data frame de 1 linha (drop = FALSE)
-  pp.plot <- PlotPP(fev[i, , drop = FALSE])
-  
-  output_filename <- file.path(OUTPUT_DIR_ABS,paste0(params$sample_name,"_",fev$query[i],"RdRp_Motifs.png"))
-  
-  ggsave(
-  filename = output_filename,
-  plot = pp.plot,
-  width = 8,
-  height = 6,
-  dpi = 300
-)
-  
-  # Exibe o gráfico
-  print(pp.plot)
+} else {
+    cat("**No putative RdRp sequences identified in this sample (Dusk Matter Analysis).**")
 }
 ```
 
