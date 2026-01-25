@@ -181,5 +181,5 @@ rule report_summarize:
       --report_name {wildcards.sample}_Report_Diversity.html \
       --logos {params.logo_dirs} \
       --input workflow/rules/scripts/Report_Model.Rmd \
-      2>&1 > {log}
+      > {log} 2>&1
      """
