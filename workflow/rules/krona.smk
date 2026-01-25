@@ -15,7 +15,6 @@
 #                              version: 01.2026                                   #
 ###################################################################################
 
-
 rule krona_update_taxonomy:
     output:
         tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab"),
@@ -27,17 +26,27 @@ rule krona_update_taxonomy:
     params:
         tax_dir=KRONA_DB_DIR[0]
     conda:
-        KRONA
+        "KRONA"  # Ensure this matches your env definition name
     log:
         os.path.join(OUT_DIR, "log", "krona_update_taxonomy.log")
     shell:
         """
         echo "[INFO] Linking taxonomy files..." > {log}
-        ln -sf $(readlink -f {input.names}) $(dirname {output.tab})/names.dmp
-        ln -sf $(readlink -f {input.nodes}) $(dirname {output.tab})/nodes.dmp
+        
+        # 1. Resolve absolute path to prevent script failure
+        TARGET_DIR=$(readlink -f {params.tax_dir})
+        
+        ln -sf $(readlink -f {input.names}) $TARGET_DIR/names.dmp
+        ln -sf $(readlink -f {input.nodes}) $TARGET_DIR/nodes.dmp
 
         echo "[INFO] Building Taxonomy Tree..." >> {log}
-        ktUpdateTaxonomy.sh --only-build {params.tax_dir} >> {log} 2>&1
+        # 2. Run Krona update with absolute path
+        ktUpdateTaxonomy.sh --only-build $TARGET_DIR >> {log} 2>&1
+
+        echo "[INFO] Processing Accessions..." >> {log}
+        # 3. Explicitly generate the sorted accession file (Required for output.acc_sorted)
+        # Extracts accession.version (col 2) and taxid (col 3) from NCBI format
+        zcat {input.acc2tax} | cut -f 2,3 | sort -k 1,1 > {output.acc_sorted} 2>> {log}
         """
 
 rule krona_kraken2:
