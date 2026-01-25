@@ -15,50 +15,26 @@
 #                              version: 01.2026                                   #
 ###################################################################################
 
-###################################################################################
-#                         workflow/rules/krona.smk                                #
-#                           MSc. Matheus Cosentino                                #
-###################################################################################
-#                              version: 01.2026                                   #
-###################################################################################
-
-KRONA_DB_DIR = config["resources"]["krona"]
 
 rule krona_update_taxonomy:
     output:
         tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab"),
-        sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted")
+        acc_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted")
     input:
         names = os.path.join(BASTA_DB_DIR[0], "names.dmp"),
         nodes = os.path.join(BASTA_DB_DIR[0], "nodes.dmp"),
         acc2tax = os.path.join(BASTA_DB_DIR[0], "prot.accession2taxid.gz")
+    params:
+        tax_dir=KRONA_DB_DIR[0]
     conda:
         KRONA
     log:
         os.path.join(OUT_DIR, "log", "krona_update_taxonomy.log")
     shell:
         """
-        mkdir -p $(dirname {output.tab})
-
-        echo "[INFO] Linking taxonomy files..." > {log}
-        ln -sf $(readlink -f {input.names}) $(dirname {output.tab})/names.dmp
-        ln -sf $(readlink -f {input.nodes}) $(dirname {output.tab})/nodes.dmp
-
         echo "[INFO] Building Taxonomy Tree..." >> {log}
-        ktUpdateTaxonomy.sh --only-build $(dirname {output.tab}) >> {log} 2>&1
+        ktUpdateTaxonomy.sh --only-build {params.tax_dir} >> {log} 2>&1
 
-        echo "[INFO] Generating accession2taxid.sorted manually..." >> {log}
-        zcat {input.acc2tax} | \
-        sed '1d' | \
-        cut -f 2,3 | \
-        LC_ALL=C sort -k1,1 --parallel={threads} -S 10G > {output.sorted} 2>> {log}
-        
-        if [ ! -s {output.sorted} ]; then
-             echo "[ERROR] Failed to create sorted file." >> {log}
-             exit 1
-        fi
-        
-        echo "[INFO] Done." >> {log}
         """
 
 rule krona_kraken2:
@@ -68,29 +44,19 @@ rule krona_kraken2:
         tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_kraken2_krona.html")
+    params:
+        tax_dir=KRONA_DB_DIR[0]
     conda:
         KRONA
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken2_{tool}_{sample}.log")
     shell:
         """
-        # Cria diretório temporário local
-        TMP_DB="{wildcards.sample}_{wildcards.tool}_kraken_krona_db"
-        mkdir -p $TMP_DB
-        
-        # Cria links simbólicos para os arquivos do banco
-        ln -sf $(readlink -f {input.tax_sorted}) $TMP_DB/accession2taxid.sorted
-        ln -sf $(readlink -f {input.tax_tab}) $TMP_DB/taxonomy.tab
-
-        # Roda o comando apontando para o diretório local
         ktImportTaxonomy \
-            -tax $TMP_DB \
+            -tax {params.tax_dir} \
             -o {output.html} \
             {input.report} \
             > {log} 2>&1
-            
-        # Limpeza
-        rm -rf $TMP_DB
         """
 
 rule krona_reads_kraken:
@@ -177,26 +143,16 @@ rule krona_diamond_contigs:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_diamond_krona.html")
     conda:
         KRONA
+    params:
+        tax_dir=KRONA_DB_DIR[0]
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_contigs_{tool}_{sample}.log")
     shell:
         """
-        # CRÍTICO: Montagem de diretório local para o banco de dados
-        # Cria um diretório temporário único para este job
-        TMP_DB="{wildcards.sample}_{wildcards.tool}_krona_db"
-        mkdir -p $TMP_DB
-        
-        # Linka os arquivos reais para dentro desse diretório temporário
-        ln -sf $(readlink -f {input.tax_sorted}) $TMP_DB/accession2taxid.sorted
-        ln -sf $(readlink -f {input.tax_tab}) $TMP_DB/taxonomy.tab
-
-        # Roda o comando apontando -tax para o diretório local temporário
         ktImportBLAST \
             {input.report} \
-            -tax $TMP_DB \
+            -tax  {params.tax_dir} \
             -o {output.html} \
             > {log} 2>&1
         
-        # Remove o diretório temporário
-        rm -rf $TMP_DB
         """
