@@ -15,7 +15,6 @@
 #                              version: 12.2025                                   #
 ###################################################################################
 
-
 #################################################
 # --- 1. Map Proteins Id Diamond for Taxid --- #
 ################################################ 
@@ -44,6 +43,7 @@ rule map_accession_to_taxid:
 rule split_hits_by_taxid:
     """
     Filters the input file to keep only hits with valid TaxIDs.
+    Adds a clean header.
     """
     input:
       os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_hits_with_taxid.tmp")
@@ -58,12 +58,8 @@ rule split_hits_by_taxid:
         # 1. Create the output file with the header
         echo -e "{params.header}" > {output.valid_hits}
         
-        # 2. Filter data: Skip header (NR==1) AND only print if last column is NOT "NOT_FOUND"
-        awk -F'\\t' '
-        NR==1 {{ next }} 
-        $NF != "NOT_FOUND" {{
-            print $0 >> "{output.valid_hits}"
-        }}' {input}
+        # 2. Filter data        
+        grep -v "NOT_FOUND" {input} >> {output.valid_hits} || true
         """
 
 #################################################
@@ -88,28 +84,39 @@ rule append_lineage:
         """
         DB_DIR=$(dirname {params.nodes})
         
-        # Skip header and extract taxids
+        # 1. Extrai APENAS os TaxIDs (pulando o cabeçalho)
         tail -n +2 {input.valid_hits} | cut -f 13 > {output}.taxids.tmp
         
-        # 1. Get lineage information, outputting TaxID (default col 1) + 12 reformatted columns (col 2-13), all separated by TAB
-        # Usamos '\t' para garantir que os campos sejam separados por tabulação.
-        taxonkit lineage --data-dir "${{DB_DIR}}" {output}.taxids.tmp 2>> {log} | \\
-        taxonkit reformat --data-dir "${{DB_DIR}}" \\
-            -f "{{C}}\\t{{a}}\\t{{d}}\\t{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" \\
+        # 2. Obtém a linhagem via TaxonKit
+        # O output do taxonkit reformat será: TaxID <TAB> Coluna1 <TAB> Coluna2 ...
+        taxonkit lineage --data-dir "${{DB_DIR}}" {output}.taxids.tmp 2>> {log} | \
+        taxonkit reformat --data-dir "${{DB_DIR}}" \
+            -f "{{C}}\t{{a}}\t{{d}}\t{{k}}\t{{p}}\t{{c}}\t{{o}}\t{{f}}\t{{g}}\t{{s}}" \
+            -F \
              2>> {log} > {output}.lineage.tmp
         
-        # 2. Extract ONLY the 12 reformatted columns (cols 2-13), dropping the TaxID (col 1),
-        # as the TaxID is already available in the main DIAMOND output (col 13).
-        # We use cut on the tab-separated intermediate file.
+        # 3. Remove a coluna TaxID do output do TaxonKit (pois já temos ela no arquivo original)
+        # Ficamos apenas com as colunas de linhagem
         cut -f 2- {output}.lineage.tmp > {output}.reformat_only.tmp
         
-        # 3. Create final output with comprehensive header
-        echo -e "{params.base_header}\\t{params.lineage_header}" > {output}
+        # 4. Verifica integridade (Número de linhas deve bater)
+        N_ORIG=$(wc -l < {output}.taxids.tmp)
+        N_NEW=$(wc -l < {output}.reformat_only.tmp)
         
-        # 4. Combine original DIAMOND data (cols 1-12) + Taxid (col 13) + Reformatted Ranks (cols 14-25)
-        tail -n +2 {input.valid_hits} | cut -f 1-12 | \\
-        paste - <(tail -n +2 {input.valid_hits} | cut -f 13) {output}.reformat_only.tmp >> {output}
+        if [ "$N_ORIG" -ne "$N_NEW" ]; then
+            echo "[ERROR] Line count mismatch! Input: $N_ORIG, Lineage: $N_NEW" >> {log}
+            exit 1
+        fi
+
+        # 5. Cria o arquivo final
+        # Cabeçalho
+        echo -e "{params.base_header}\t{params.lineage_header}" > {output.lineages}
         
-        # Cleanup
+        # Cola as colunas originais (1-12) + Taxid (13) + Linhagem
+        # Usamos paste para garantir alinhamento tabular perfeito
+        tail -n +2 {input.valid_hits} | cut -f 1-13 | \
+        paste - {output}.reformat_only.tmp >> {output.lineages}
+        
+        # Limpeza
         rm {output}.taxids.tmp {output}.lineage.tmp {output}.reformat_only.tmp
         """
