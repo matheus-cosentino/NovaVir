@@ -422,10 +422,17 @@ This section analyzes the **frequency distribution** of annotated contigs at the
 ```{r contigs-viral-graph, echo=FALSE, fig.width=10, fig.height=15, out.width="90%"}
 # 1. Função de Plotagem de Frequência Detalhada (Horizontal Bar Chart)
 
-# subset virus
-virus_data <- data %>%
-  filter(Overall == "Viruses") %>%
-  mutate(Family = replace_na(Family, "Unclassified"))
+
+data <- data %>%
+  mutate(
+    # 1. Pega o valor original (Ex: "unclassified Viruses domain")
+    Temp_Overall = coalesce(Realm, Acelular),
+    
+    # 2. O TRUQUE MÁGICO:
+    # A função str_detect procura se a palavra "Viruses" existe DENTRO da frase.
+    # Se existir, forçamos o nome para ser apenas "Viruses".
+    Overall = ifelse(str_detect(Temp_Overall, "Viruses"), "Viruses", Temp_Overall)
+  )
 
 if (nrow(virus_data) > 0) {
     output_filename <- file.path(OUTPUT_DIR_ABS,paste0(params$sample_name,"Viral_Diamond.tsv"))

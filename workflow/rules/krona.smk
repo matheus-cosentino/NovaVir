@@ -60,7 +60,7 @@ rule krona_update_taxonomy:
 rule krona_kraken2:
     input:
         report = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_output.txt"),
-        tax_db = "resources/krona/taxonomy"
+        tax_db = os.path.abspath("resources/krona/taxonomy")    
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_kraken2_krona.html")
     conda:
