@@ -59,18 +59,20 @@ rule krona_update_taxonomy:
 
 rule krona_kraken2:
     input:
-        report = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_output.txt"),
-        tax_db = os.path.abspath("resources/krona/taxonomy")    
+        report = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_output.txt")
+        
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_kraken2_krona.html")
     conda:
         KRONA
+    params:
+        tax_db = config["resources"]["krona"]["taxonomy"]
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken2_{tool}_{sample}.log")
     shell:
         """
         ktImportTaxonomy \
-            -tax {input.tax_db} \
+            -tax {params.tax_db} \
             -o {output.html} \
             {input.report} \
             > {log} 2>&1
