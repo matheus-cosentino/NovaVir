@@ -18,8 +18,9 @@
 
 rule krona_update_taxonomy:
     output:
-        db_dir = directory(KRONA_DB_DIR[0]),
-        marker = touch(os.path.join(KRONA_DB_DIR[0], "accessions.done"))
+        # Saídas explícitas
+        tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab"),
+        sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted")
     input:
         names = os.path.join(BASTA_DB_DIR[0], "names.dmp"),
         nodes = os.path.join(BASTA_DB_DIR[0], "nodes.dmp"),
@@ -30,36 +31,41 @@ rule krona_update_taxonomy:
         os.path.join(OUT_DIR, "log", "krona_update_taxonomy.log")
     shell:
         """
-        mkdir -p {output.db_dir}
+        mkdir -p $(dirname {output.tab})
+
         echo "[INFO] Linking taxonomy files..." > {log}
-        ln -sf $(readlink -f {input.names}) {output.db_dir}/names.dmp
-        ln -sf $(readlink -f {input.nodes}) {output.db_dir}/nodes.dmp
+        ln -sf $(readlink -f {input.names}) $(dirname {output.tab})/names.dmp
+        ln -sf $(readlink -f {input.nodes}) $(dirname {output.tab})/nodes.dmp
 
-        echo "[INFO] Building Taxonomy Tree..." >> {log}
-        ktUpdateTaxonomy.sh --only-build {output.db_dir} >> {log} 2>&1
+        echo "[INFO] Building Taxonomy Tree (taxonomy.tab)..." >> {log}
+        ktUpdateTaxonomy.sh --only-build $(dirname {output.tab}) >> {log} 2>&1
 
-        echo "[INFO] Processing Accessions..." >> {log}
-        ln -sf $(readlink -f {input.acc2tax}) {output.db_dir}/accession2taxid.gz
-
-        echo "[INFO] Finding Krona updateAccessions..." >> {log}
-        KRONA_BIN_DIR=$(dirname $(which ktImportBLAST))
-        HIDDEN_SCRIPT="$KRONA_BIN_DIR/../opt/krona/updateAccessions.sh"
-
-        if command -v ktUpdateAccessions.sh &> /dev/null; then
-            ktUpdateAccessions.sh --file {input.acc2tax} --taxonomy {output.db_dir} >> {log} 2>&1
-        elif [ -f "$HIDDEN_SCRIPT" ]; then
-            echo "[INFO] Found hidden script at $HIDDEN_SCRIPT" >> {log}
-            bash "$HIDDEN_SCRIPT" --file {input.acc2tax} --taxonomy {output.db_dir} >> {log} 2>&1
-        else
-            echo "[WARN] Could not find updateAccessions.sh anywhere." >> {log}
+        echo "[INFO] Generating accession2taxid.sorted manually..." >> {log}
+        # Substituímos o script updateAccessions.sh falho por processamento manual.
+        # 1. zcat: lê o arquivo comprimido
+        # 2. sed 1d: remove o cabeçalho
+        # 3. cut -f 2,3: pega Accession.version e TaxID (padrão NCBI prot)
+        # 4. sort: ordena pela coluna 1 (Accession)
+        
+        zcat {input.acc2tax} | \
+        sed '1d' | \
+        cut -f 2,3 | \
+        LC_ALL=C sort -k1,1 --parallel={threads} -S 10G > {output.sorted} 2>> {log}
+        
+        if [ ! -s {output.sorted} ]; then
+             echo "[ERROR] Failed to create sorted file." >> {log}
+             exit 1
         fi
+        
+        echo "[INFO] Done." >> {log}
         """
 
 rule krona_kraken2:
     input:
         report = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_output.txt"),
-        # IMPORTANTE: Adiciona o DB como input para o Snakemake montar no shadow dir
-        tax_db = KRONA_DB_DIR[0]
+        # Dependência explícita do arquivo sorted
+        tax_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted"),
+        tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_kraken2_krona.html")
     conda:
@@ -69,7 +75,7 @@ rule krona_kraken2:
     shell:
         """
         ktImportTaxonomy \
-            -tax {input.tax_db} \
+            -tax $(dirname {input.tax_tab}) \
             -o {output.html} \
             {input.report} \
             > {log} 2>&1
@@ -80,7 +86,8 @@ rule krona_reads_kraken:
         read_type="paired|unpaired"
     input:
         report = os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_{read_type}_reads_output.txt"),
-        tax_db = KRONA_DB_DIR[0]
+        tax_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted"),
+        tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_reads", "{sample}_{read_type}_kraken2_krona.html")
     conda:
@@ -90,7 +97,7 @@ rule krona_reads_kraken:
     shell:
         """
         ktImportTaxonomy \
-            -tax {input.tax_db} \
+            -tax $(dirname {input.tax_tab}) \
             -o {output.html} \
             {input.report} \
             > {log} 2>&1
@@ -116,7 +123,8 @@ rule krona_basta:
 rule krona_diamond_reads:
     input:
         report = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads_report.txt"),
-        tax_db = KRONA_DB_DIR[0]
+        tax_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted"),
+        tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_reads", "{sample}_reads_diamond_krona.html")
     conda:
@@ -127,7 +135,7 @@ rule krona_diamond_reads:
         """
         ktImportBLAST \
             {input.report} \
-            -tax {input.tax_db} \
+            -tax $(dirname {input.tax_tab}) \
             -o {output.html} \
             > {log} 2>&1
         """
@@ -137,8 +145,9 @@ rule krona_diamond_contigs:
         tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
         report = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
-        # CORREÇÃO PRINCIPAL: Banco de dados adicionado como INPUT
-        tax_db = KRONA_DB_DIR[0]
+        # Dependência explícita garantindo que o sorted existe e será montado no shadow dir
+        tax_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted"),
+        tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_diamond_krona.html")
     conda:
@@ -149,7 +158,7 @@ rule krona_diamond_contigs:
         """
         ktImportBLAST \
             {input.report} \
-            -tax {input.tax_db} \
+            -tax $(dirname {input.tax_tab}) \
             -o {output.html} \
             > {log} 2>&1
         """

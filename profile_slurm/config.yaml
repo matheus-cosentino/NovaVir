@@ -89,4 +89,7 @@ set-resources:
   basta_search:
     mem_mb: 60000
     threads: 12
+  krona_update_taxonomy:
+    mem_mb: 32000
+    threads: 8
 
