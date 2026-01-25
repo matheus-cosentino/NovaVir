@@ -32,37 +32,27 @@ rule krona_update_taxonomy:
     shell:
         """
         echo "[INFO] Configurando diretórios..." > {log}
-        
-        # 1. Resolve caminhos absolutos
         TARGET_DIR=$(readlink -f {params.tax_dir})
-        ACC_DIR="$TARGET_DIR/accession2taxid"
-        mkdir -p $ACC_DIR
-
-        # 2. Linka os arquivos para onde os scripts do Krona esperam encontrá-los
-        echo "[INFO] Linkando arquivos..." >> {log}
+        
+        # 1. Taxonomia (Isso funciona, vamos manter)
+        echo "[INFO] Linkando arquivos de taxonomia..." >> {log}
         ln -sf $(readlink -f {input.names}) $TARGET_DIR/names.dmp
         ln -sf $(readlink -f {input.nodes}) $TARGET_DIR/nodes.dmp
-        # IMPORTANTE: O updateAccessions procura dentro da pasta 'accession2taxid'
-        ln -sf $(readlink -f {input.acc2tax}) $ACC_DIR/prot.accession2taxid.gz
-
-        # 3. Localiza o script 'perdido' do updateAccessions
-        # (Usa o local do ktUpdateTaxonomy.sh para achar a pasta opt/krona)
-        KRONA_OPT_DIR=$(dirname $(readlink -f $(which ktUpdateTaxonomy.sh)))
-        UPDATE_ACC_SCRIPT="$KRONA_OPT_DIR/updateAccessions.sh"
         
-        echo "[INFO] Script localizado em: $UPDATE_ACC_SCRIPT" >> {log}
-
-        # 4. Executa os scripts
-        echo "[INFO] Construindo taxonomia..." >> {log}
+        echo "[INFO] Executando ktUpdateTaxonomy.sh..." >> {log}
         ktUpdateTaxonomy.sh --only-build $TARGET_DIR >> {log} 2>&1
 
-        echo "[INFO] Construindo accessions..." >> {log}
-        if [ -f "$UPDATE_ACC_SCRIPT" ]; then
-            bash $UPDATE_ACC_SCRIPT --only-build $TARGET_DIR >> {log} 2>&1
-        else
-            echo "[ERROR] Script updateAccessions.sh ainda não foi encontrado!" >> {log}
-            exit 1
-        fi
+        # 2. Accessions (Fazer Manualmente = 100% Seguro)
+        # O script original falha em achar o arquivo, então nós mesmos criamos o output.
+        # Pegamos colunas 2 (Accession.Version) e 3 (TaxID) e ordenamos.
+        
+        echo "[INFO] Gerando accession2taxid.sorted manualmente..." >> {log}
+        
+        zcat {input.acc2tax} | \
+        cut -f 2,3 | \
+        sort -k 1,1 > {output.acc_sorted} 2>> {log}
+        
+        echo "[INFO] Concluído." >> {log}
         """
 
 rule krona_kraken2:
