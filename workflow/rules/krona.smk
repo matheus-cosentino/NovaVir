@@ -15,8 +15,6 @@
 #                              version: 12.2025                                   #
 ###################################################################################
 
-# workflow/rules/krona.smk
-
 rule krona_update_taxonomy:
     output:
         db_dir = directory(os.path.join("resources", "krona", "taxonomy")),
@@ -40,10 +38,11 @@ rule krona_update_taxonomy:
         ktUpdateTaxonomy.sh --only-build {output.db_dir} >> {log} 2>&1
 
         echo "[INFO] Processing Accessions..." >> {log}
-        
+        # Criamos o link, assumindo que o arquivo sorted já foi gerado manualmente ou existe
+        # Se for o .gz original, o script abaixo tentará processá-lo
         ln -sf $(readlink -f {input.acc2tax}) {output.db_dir}/accession2taxid.gz
 
-        echo "[INFO] Finding Krona  AupdateAccessions..." >> {log}
+        echo "[INFO] Finding Krona updateAccessions..." >> {log}
         KRONA_BIN_DIR=$(dirname $(which ktImportBLAST))
         HIDDEN_SCRIPT="$KRONA_BIN_DIR/../opt/krona/updateAccessions.sh"
 
@@ -53,20 +52,21 @@ rule krona_update_taxonomy:
             echo "[INFO] Found hidden script at $HIDDEN_SCRIPT" >> {log}
             bash "$HIDDEN_SCRIPT" --file {input.acc2tax} --taxonomy {output.db_dir} >> {log} 2>&1
         else
-            echo "[WARN] Could not find updateAccessions.sh anywhere. Relying on manual symlink." >> {log}
+            echo "[WARN] Could not find updateAccessions.sh anywhere." >> {log}
         fi
         """
 
 rule krona_kraken2:
     input:
         report = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_output.txt")
-        
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_kraken2_krona.html")
     conda:
         KRONA
     params:
-        tax_db = config["resources"]["krona"]["taxonomy"]
+        # CORREÇÃO 1: Removido acesso incorreto ao config (TypeError)
+        # CORREÇÃO 2: Uso de caminho absoluto (os.path.abspath) para evitar erro no cluster
+        tax_db = os.path.abspath("resources/krona/taxonomy")
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken2_{tool}_{sample}.log")
     shell:
@@ -82,23 +82,24 @@ rule krona_reads_kraken:
     wildcard_constraints:
         read_type="paired|unpaired"
     input:
-        report = os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_{read_type}_reads_output.txt"),
-        tax_db = "resources/krona/taxonomy"
+        report = os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_{read_type}_reads_output.txt")
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_reads", "{sample}_{read_type}_kraken2_krona.html")
     conda:
         KRONA
+    params:
+        # Uso de caminho absoluto via params
+        tax_db = os.path.abspath("resources/krona/taxonomy")
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken_reads_{read_type}_{sample}.log")
     shell:
         """
         ktImportTaxonomy \
-            -tax {input.tax_db} \
+            -tax {params.tax_db} \
             -o {output.html} \
             {input.report} \
             > {log} 2>&1
         """
-
 
 rule krona_basta:
     input:
@@ -123,41 +124,44 @@ rule krona_basta:
 
 rule krona_diamond_reads:
     input:
-        report = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads_report.txt"),
-        tax_db = "resources/krona/taxonomy"
+        report = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads_report.txt")
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_reads", "{sample}_reads_diamond_krona.html")
     conda:
         KRONA
+    params:
+        # Uso de caminho absoluto via params
+        tax_db = os.path.abspath("resources/krona/taxonomy")
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_reads_{sample}.log")
     shell:
         """
         ktImportBLAST \
             {input.report} \
-            -tax {input.tax_db} \
+            -tax {params.tax_db} \
             -o {output.html} \
             > {log} 2>&1
         """
-
 
 rule krona_diamond_contigs:
     wildcard_constraints:
         tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
-        report = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
-        tax_db = "resources/krona/taxonomy"
+        report = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt")
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_diamond_krona.html")
     conda:
         KRONA
+    params:
+        # Uso de caminho absoluto via params
+        tax_db = os.path.abspath("resources/krona/taxonomy")
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_contigs_{tool}_{sample}.log")
     shell:
         """
         ktImportBLAST \
             {input.report} \
-            -tax {input.tax_db} \
+            -tax {params.tax_db} \
             -o {output.html} \
             > {log} 2>&1
         """
