@@ -420,7 +420,6 @@ This section analyzes the **frequency distribution** of annotated contigs at the
 
 
 ```{r contigs-viral-graph, echo=FALSE, fig.width=10, fig.height=15, out.width="90%"}
-
 # 1. Função de Plotagem de Frequência Detalhada (Horizontal Bar Chart)
 
 # subset virus
@@ -428,33 +427,37 @@ virus_data <- data %>%
   filter(Overall == "Viruses") %>%
   mutate(Family = replace_na(Family, "Unclassified"))
 
-# make filtered txt of Virus Only
-output_filename <- file.path(OUTPUT_DIR_ABS,paste0(params$sample_name,"Viral_Diamond.tsv"))
+if (nrow(virus_data) > 0) {
+    output_filename <- file.path(OUTPUT_DIR_ABS,paste0(params$sample_name,"Viral_Diamond.tsv"))
+    
+    write.table(
+      virus_data,
+      file = output_filename,
+      sep = "\t",
+      row.names = FALSE,
+      quote = FALSE 
+    )
+    
+    
+    # plot graphs
+    virus_plot <- create_and_plot_frequency_chart(virus_data, "Family", kingdom_label = "Viruses")
+    
+    print(virus_plot)
+    
+    output_filename <- file.path(OUTPUT_DIR_ABS,paste0(params$sample_name,"Virus_Classification_Log10.png"))
+    
+    ggsave(
+      filename = output_filename,
+      plot = virus_plot,
+      width = 8,
+      height = 6,
+      dpi = 300
+    )
 
-write.table(
-  virus_data,
-  file = output_filename,
-  sep = "\t",
-  row.names = FALSE,
-  quote = FALSE # Opcional: evita aspas em torno dos campos de texto
-)
-
-
-# plot graphs
-virus_plot <- create_and_plot_frequency_chart(virus_data, "Family", kingdom_label = "Viruses")
-
-virus_plot
-
-output_filename <- file.path(OUTPUT_DIR_ABS,paste0(params$sample_name,"Virus_Classification_Log10.png"))
-
-ggsave(
-  filename = output_filename,
-  plot = virus_plot,
-  width = 8,
-  height = 6,
-  dpi = 300
-)
-
+} else {
+    cat("**No viral contigs identified in this sample via DIAMOND/Taxonomy.**")
+    cat("\n\nSkipping viral diversity charts.")
+}
 ```
 
 Contigs determined as **Unclassified** are viruses lacking proper, official taxonomy at the reference level, typically due to: (1)  Non-up-to-date records in public databases (e.g., NCBI); (2) absence of an official classification within the **International Committee on Taxonomy of Viruses (ICTV)**.
@@ -462,50 +465,54 @@ Contigs determined as **Unclassified** are viruses lacking proper, official taxo
 ### Overall Family Diversity & Richness
 
 ```{r contigs_table_viral_family, message=FALSE, echo=FALSE, fig.width=10, fig.height=5, out.width="90%"}
+if (nrow(virus_data) > 0) {
 
-#  get summary of viruses
-sum_virus <- as.data.frame(table(virus_data$Family)) %>%
-  rename(Entry = Var1, Freq = Freq) 
+    #  get summary of viruses
+    sum_virus <- as.data.frame(table(virus_data$Family)) %>%
+      rename(Entry = Var1, Freq = Freq) 
+    
+    # Calculate the grand total count (sum of all frequencies)
+    grand_total_count <- sum(sum_virus$Freq)
+    
+    # --- 2. Calculate Percentages and Prepare Table ---
+    
+    summary_for_table <- sum_virus %>%
+      # Recalculate Total for percentage calculation (this is correct here)
+      mutate(
+        Total_Count = grand_total_count,
+        Percentage = round((Freq / Total_Count) * 100, 2)
+      ) %>%
+      # Arrange by frequency (Count)
+      arrange(desc(Freq)) %>%
+      # Select and rename columns for final output
+      select(Category = Entry, Count = Freq, Percentage)
+    
+    # --- 3. Create table of diversity per Viral family id ---
+    
+    total_row <- summary_for_table %>%
+      # Calculate the sum of Counts and sum of Percentages
+      summarise(
+        Category = "**TOTAL**",
+        Count = sum(Count),
+        Percentage = sum(Percentage) # Should be 100.00 or very close
+      ) %>%
+      # Re-round the total percentage to ensure clean output
+      mutate(Percentage = round(Percentage, 2))
+    
+    # Combine the summary table with the total row at the end
+    final_table <- bind_rows(summary_for_table, total_row)
+    
+    # --- 4. Render the Table ---
+    
+    knitr::kable(
+      final_table,
+      caption = "Summary of Contig per Viral Family",
+      col.names = c("Family", "Contigs", "Percentage (%)")
+    )
 
-# Calculate the grand total count (sum of all frequencies)
-grand_total_count <- sum(sum_virus$Freq)
-
-# --- 2. Calculate Percentages and Prepare Table ---
-
-summary_for_table <- sum_virus %>%
-  # Recalculate Total for percentage calculation (this is correct here)
-  mutate(
-    Total_Count = grand_total_count,
-    Percentage = round((Freq / Total_Count) * 100, 2)
-  ) %>%
-  # Arrange by frequency (Count)
-  arrange(desc(Freq)) %>%
-  # Select and rename columns for final output
-  select(Category = Entry, Count = Freq, Percentage)
-
-# --- 3. Create table of diversity per Viral family id ---
-
-total_row <- summary_for_table %>%
-  # Calculate the sum of Counts and sum of Percentages
-  summarise(
-    Category = "**TOTAL**",
-    Count = sum(Count),
-    Percentage = sum(Percentage) # Should be 100.00 or very close
-  ) %>%
-  # Re-round the total percentage to ensure clean output
-  mutate(Percentage = round(Percentage, 2))
-
-# Combine the summary table with the total row at the end
-final_table <- bind_rows(summary_for_table, total_row)
-
-# --- 4. Render the Table ---
-
-knitr::kable(
-  final_table,
-  caption = "Summary of Contig per Viral Family",
-  col.names = c("Family", "Contigs", "Percentage (%)")
-)
-
+} else {
+    cat("**No viral data available for Family summary.**")
+}
 
 ```
 
@@ -519,44 +526,50 @@ This table provides an **essential summary** of the assembled contigs, organized
 * **Summary Detail:** The table summarizes the **overall assembled contigs** for each identified viral family.
 
 ```{r contigs-viral-family, echo=FALSE, fig.width=10, fig.height=15, out.width="90%"}
-summary_virus_lengths <- list()
-# Iterate over the UNIQUE names of the families
-for(name in unique(virus_data$Family)){ 
-    qseqid_for_family <- virus_data$qseqid[which(virus_data$Family %in% name)]
-    index <- which(names(fasta) %in% qseqid_for_family)
-    in_fasta <- fasta[index]
-    summary_table_single <- summarize_dnabin_lengths(in_fasta, name)
-    summary_virus_lengths[[name]] <- summary_table_single
-    
-    # CRITICAL: Write the per-family FASTA file here as a side effect (optional, but good practice)
-    file_name <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name, "_",name, ".fasta"))
-    write.FASTA(in_fasta, file = file_name)
-}
+if (nrow(virus_data) > 0) {
 
-# Combine all summary tables
-final_length_summary <- summary_virus_lengths[[1]]
-
-if (length(summary_virus_lengths) > 1) {
-    for (i in 2:length(summary_virus_lengths)) {
-        final_length_summary <- merge(final_length_summary, summary_virus_lengths[[i]], by = "Metric", all = TRUE)
+    summary_virus_lengths <- list()
+    # Iterate over the UNIQUE names of the families
+    for(name in unique(virus_data$Family)){ 
+        qseqid_for_family <- virus_data$qseqid[which(virus_data$Family %in% name)]
+        index <- which(names(fasta) %in% qseqid_for_family)
+        in_fasta <- fasta[index]
+        summary_table_single <- summarize_dnabin_lengths(in_fasta, name)
+        summary_virus_lengths[[name]] <- summary_table_single
+        
+        # CRITICAL: Write the per-family FASTA file here as a side effect (optional, but good practice)
+        file_name <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name, "_",name, ".fasta"))
+        write.FASTA(in_fasta, file = file_name)
     }
+    
+    # Combine all summary tables
+    final_length_summary <- summary_virus_lengths[[1]]
+    
+    if (length(summary_virus_lengths) > 1) {
+        for (i in 2:length(summary_virus_lengths)) {
+            final_length_summary <- merge(final_length_summary, summary_virus_lengths[[i]], by = "Metric", all = TRUE)
+        }
+    }
+    
+    output_filename <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name,"viral_contigs_summary.tsv"))
+    write.table(
+        final_length_summary,
+        file = output_filename,
+        sep = "\t",
+        row.names = FALSE,
+        quote = FALSE
+    )
+    
+    # Render the Table
+    knitr::kable(
+        final_length_summary,
+        caption = "Length Statistics of Contigs per Viral Family",
+        align = c('l', rep('r', length(summary_virus_lengths)))
+    )
+
+} else {
+    cat("**No viral contigs found to summarize lengths.**")
 }
-
-output_filename <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name,"viral_contigs_summary.tsv"))
-write.table(
-    final_length_summary,
-    file = output_filename,
-    sep = "\t",
-    row.names = FALSE,
-    quote = FALSE
-)
-
-# Render the Table
-knitr::kable(
-    final_length_summary,
-    caption = "Length Statistics of Contigs per Viral Family",
-    align = c('l', rep('r', length(summary_virus_lengths)))
-)
 ```
 
 ## 🦠🌌 Viral Dusk Matter Putative Members Iddentification
