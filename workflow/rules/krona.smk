@@ -12,12 +12,12 @@
 # o888bood8P'   o888o 8""888P' `Y8bod8P' `Y8bod8P'       `8'       o888o d888b    #
 #                                                                                 #
 ###################################################################################
-#                              version: 12.2025                                   #
+#                              version: 01.2026                                   #
 ###################################################################################
+
 
 rule krona_update_taxonomy:
     output:
-        # Usa o caminho do config para definir onde criar o banco
         db_dir = directory(KRONA_DB_DIR[0]),
         marker = touch(os.path.join(KRONA_DB_DIR[0], "accessions.done"))
     input:
@@ -57,20 +57,19 @@ rule krona_update_taxonomy:
 
 rule krona_kraken2:
     input:
-        report = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_output.txt")
+        report = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_output.txt"),
+        # IMPORTANTE: Adiciona o DB como input para o Snakemake montar no shadow dir
+        tax_db = KRONA_DB_DIR[0]
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_kraken2_krona.html")
     conda:
         KRONA
-    params:
-        # Uso consistente da variável do config
-        tax_db = KRONA_DB_DIR[0]
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken2_{tool}_{sample}.log")
     shell:
         """
         ktImportTaxonomy \
-            -tax {params.tax_db} \
+            -tax {input.tax_db} \
             -o {output.html} \
             {input.report} \
             > {log} 2>&1
@@ -80,19 +79,18 @@ rule krona_reads_kraken:
     wildcard_constraints:
         read_type="paired|unpaired"
     input:
-        report = os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_{read_type}_reads_output.txt")
+        report = os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_{read_type}_reads_output.txt"),
+        tax_db = KRONA_DB_DIR[0]
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_reads", "{sample}_{read_type}_kraken2_krona.html")
     conda:
         KRONA
-    params:
-        tax_db = KRONA_DB_DIR[0]
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken_reads_{read_type}_{sample}.log")
     shell:
         """
         ktImportTaxonomy \
-            -tax {params.tax_db} \
+            -tax {input.tax_db} \
             -o {output.html} \
             {input.report} \
             > {log} 2>&1
@@ -117,20 +115,19 @@ rule krona_basta:
 
 rule krona_diamond_reads:
     input:
-        report = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads_report.txt")
+        report = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads_report.txt"),
+        tax_db = KRONA_DB_DIR[0]
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_reads", "{sample}_reads_diamond_krona.html")
     conda:
         KRONA
-    params:
-        tax_db = KRONA_DB_DIR[0]
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_reads_{sample}.log")
     shell:
         """
         ktImportBLAST \
             {input.report} \
-            -tax {params.tax_db} \
+            -tax {input.tax_db} \
             -o {output.html} \
             > {log} 2>&1
         """
@@ -139,22 +136,20 @@ rule krona_diamond_contigs:
     wildcard_constraints:
         tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
-        report = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt")
-        # DICA: Se possível, adicione o arquivo de taxonomia como input para forçar a dependência correta
-        # tax_marker = os.path.join(KRONA_DB_DIR[0], "accessions.done") 
+        report = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
+        # CORREÇÃO PRINCIPAL: Banco de dados adicionado como INPUT
+        tax_db = KRONA_DB_DIR[0]
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_diamond_krona.html")
     conda:
         KRONA
-    params:
-        tax_db = KRONA_DB_DIR[0]
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_contigs_{tool}_{sample}.log")
     shell:
         """
         ktImportBLAST \
             {input.report} \
-            -tax {params.tax_db} \
+            -tax {input.tax_db} \
             -o {output.html} \
             > {log} 2>&1
         """
