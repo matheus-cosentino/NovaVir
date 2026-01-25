@@ -44,7 +44,7 @@ echo "[INFO] Heavy Data will be written to: $SCRATCH_DIR"
 # --- 4. RUN PIPELINE ---
 # We pass the SCRATCH_DIR to the script
 bash DiscoVir.sh \
-    --input /home/cosentino/discovir/data \
+    --input /scratch-ib/cosentino/cov \
     --output "$SCRATCH_DIR" \
     --assembly \
     --temp-dir /scratch-ib
