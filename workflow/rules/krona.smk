@@ -15,6 +15,15 @@
 #                              version: 01.2026                                   #
 ###################################################################################
 
+###################################################################################
+#                         workflow/rules/krona.smk                                #
+#                           MSc. Matheus Cosentino                                #
+###################################################################################
+#                              version: 01.2026                                   #
+###################################################################################
+
+KRONA_DB_DIR = config["resources"]["krona"]
+
 rule krona_update_taxonomy:
     output:
         tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab"),
@@ -39,7 +48,6 @@ rule krona_update_taxonomy:
         ktUpdateTaxonomy.sh --only-build $(dirname {output.tab}) >> {log} 2>&1
 
         echo "[INFO] Generating accession2taxid.sorted manually..." >> {log}
-        # Criação manual do arquivo sorted (mais robusto que o script interno do Krona)
         zcat {input.acc2tax} | \
         sed '1d' | \
         cut -f 2,3 | \
@@ -56,7 +64,6 @@ rule krona_update_taxonomy:
 rule krona_kraken2:
     input:
         report = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_output.txt"),
-        # Input explícito para garantir que o Snakemake monte os arquivos no shadow dir
         tax_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted"),
         tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
     output:
@@ -67,18 +74,23 @@ rule krona_kraken2:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken2_{tool}_{sample}.log")
     shell:
         """
-        # Estratégia de DB Local Temporário
-        mkdir -p tmp_krona_db
-        ln -sf $(readlink -f {input.tax_sorted}) tmp_krona_db/accession2taxid.sorted
-        ln -sf $(readlink -f {input.tax_tab}) tmp_krona_db/taxonomy.tab
+        # Cria diretório temporário local
+        TMP_DB="{wildcards.sample}_{wildcards.tool}_kraken_krona_db"
+        mkdir -p $TMP_DB
+        
+        # Cria links simbólicos para os arquivos do banco
+        ln -sf $(readlink -f {input.tax_sorted}) $TMP_DB/accession2taxid.sorted
+        ln -sf $(readlink -f {input.tax_tab}) $TMP_DB/taxonomy.tab
 
+        # Roda o comando apontando para o diretório local
         ktImportTaxonomy \
-            -tax tmp_krona_db \
+            -tax $TMP_DB \
             -o {output.html} \
             {input.report} \
             > {log} 2>&1
             
-        rm -rf tmp_krona_db
+        # Limpeza
+        rm -rf $TMP_DB
         """
 
 rule krona_reads_kraken:
@@ -96,17 +108,18 @@ rule krona_reads_kraken:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken_reads_{read_type}_{sample}.log")
     shell:
         """
-        mkdir -p tmp_krona_db
-        ln -sf $(readlink -f {input.tax_sorted}) tmp_krona_db/accession2taxid.sorted
-        ln -sf $(readlink -f {input.tax_tab}) tmp_krona_db/taxonomy.tab
+        TMP_DB="{wildcards.sample}_{wildcards.read_type}_reads_krona_db"
+        mkdir -p $TMP_DB
+        ln -sf $(readlink -f {input.tax_sorted}) $TMP_DB/accession2taxid.sorted
+        ln -sf $(readlink -f {input.tax_tab}) $TMP_DB/taxonomy.tab
 
         ktImportTaxonomy \
-            -tax tmp_krona_db \
+            -tax $TMP_DB \
             -o {output.html} \
             {input.report} \
             > {log} 2>&1
         
-        rm -rf tmp_krona_db
+        rm -rf $TMP_DB
         """
 
 rule krona_basta:
@@ -139,17 +152,18 @@ rule krona_diamond_reads:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_reads_{sample}.log")
     shell:
         """
-        mkdir -p tmp_krona_db
-        ln -sf $(readlink -f {input.tax_sorted}) tmp_krona_db/accession2taxid.sorted
-        ln -sf $(readlink -f {input.tax_tab}) tmp_krona_db/taxonomy.tab
+        TMP_DB="{wildcards.sample}_reads_diamond_krona_db"
+        mkdir -p $TMP_DB
+        ln -sf $(readlink -f {input.tax_sorted}) $TMP_DB/accession2taxid.sorted
+        ln -sf $(readlink -f {input.tax_tab}) $TMP_DB/taxonomy.tab
 
         ktImportBLAST \
             {input.report} \
-            -tax tmp_krona_db \
+            -tax $TMP_DB \
             -o {output.html} \
             > {log} 2>&1
             
-        rm -rf tmp_krona_db
+        rm -rf $TMP_DB
         """
 
 rule krona_diamond_contigs:
@@ -167,17 +181,22 @@ rule krona_diamond_contigs:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_contigs_{tool}_{sample}.log")
     shell:
         """
-        # CRÍTICO: Criar DB local linkado para enganar o Krona
-        # Isso resolve problemas de caminhos absolutos vs shadow directories
-        mkdir -p tmp_krona_db
-        ln -sf $(readlink -f {input.tax_sorted}) tmp_krona_db/accession2taxid.sorted
-        ln -sf $(readlink -f {input.tax_tab}) tmp_krona_db/taxonomy.tab
+        # CRÍTICO: Montagem de diretório local para o banco de dados
+        # Cria um diretório temporário único para este job
+        TMP_DB="{wildcards.sample}_{wildcards.tool}_krona_db"
+        mkdir -p $TMP_DB
+        
+        # Linka os arquivos reais para dentro desse diretório temporário
+        ln -sf $(readlink -f {input.tax_sorted}) $TMP_DB/accession2taxid.sorted
+        ln -sf $(readlink -f {input.tax_tab}) $TMP_DB/taxonomy.tab
 
+        # Roda o comando apontando -tax para o diretório local temporário
         ktImportBLAST \
             {input.report} \
-            -tax tmp_krona_db \
+            -tax $TMP_DB \
             -o {output.html} \
             > {log} 2>&1
         
-        rm -rf tmp_krona_db
+        # Remove o diretório temporário
+        rm -rf $TMP_DB
         """
