@@ -17,8 +17,9 @@
 
 rule krona_update_taxonomy:
     output:
-        db_dir = directory(os.path.join("resources", "krona", "taxonomy")),
-        marker = touch(os.path.join("resources", "krona", "taxonomy", "accessions.done"))
+        # Usa o caminho do config para definir onde criar o banco
+        db_dir = directory(KRONA_DB_DIR[0]),
+        marker = touch(os.path.join(KRONA_DB_DIR[0], "accessions.done"))
     input:
         names = os.path.join(BASTA_DB_DIR[0], "names.dmp"),
         nodes = os.path.join(BASTA_DB_DIR[0], "nodes.dmp"),
@@ -38,8 +39,6 @@ rule krona_update_taxonomy:
         ktUpdateTaxonomy.sh --only-build {output.db_dir} >> {log} 2>&1
 
         echo "[INFO] Processing Accessions..." >> {log}
-        # Criamos o link, assumindo que o arquivo sorted já foi gerado manualmente ou existe
-        # Se for o .gz original, o script abaixo tentará processá-lo
         ln -sf $(readlink -f {input.acc2tax}) {output.db_dir}/accession2taxid.gz
 
         echo "[INFO] Finding Krona updateAccessions..." >> {log}
@@ -64,9 +63,8 @@ rule krona_kraken2:
     conda:
         KRONA
     params:
-        # CORREÇÃO 1: Removido acesso incorreto ao config (TypeError)
-        # CORREÇÃO 2: Uso de caminho absoluto (os.path.abspath) para evitar erro no cluster
-        tax_db = os.path.abspath("resources/krona/taxonomy")
+        # Uso consistente da variável do config
+        tax_db = KRONA_DB_DIR[0]
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken2_{tool}_{sample}.log")
     shell:
@@ -88,8 +86,7 @@ rule krona_reads_kraken:
     conda:
         KRONA
     params:
-        # Uso de caminho absoluto via params
-        tax_db = os.path.abspath("resources/krona/taxonomy")
+        tax_db = KRONA_DB_DIR[0]
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken_reads_{read_type}_{sample}.log")
     shell:
@@ -112,10 +109,6 @@ rule krona_basta:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_basta_{source}_{sample}.log")
     shell:
         """
-        # Preprocess BASTA output for Krona:
-        # 1. Cut column 2 (The lineage string)
-        # 2. Replace semicolon separators ('; ') with tabs for ktImportText
-        
         cut -f 2 {input.lca} | \
         sed 's/; /\\t/g' | \
         ktImportText -o {output.html} - \
@@ -130,8 +123,7 @@ rule krona_diamond_reads:
     conda:
         KRONA
     params:
-        # Uso de caminho absoluto via params
-        tax_db = os.path.abspath("resources/krona/taxonomy")
+        tax_db = KRONA_DB_DIR[0]
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_reads_{sample}.log")
     shell:
@@ -148,13 +140,14 @@ rule krona_diamond_contigs:
         tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
         report = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt")
+        # DICA: Se possível, adicione o arquivo de taxonomia como input para forçar a dependência correta
+        # tax_marker = os.path.join(KRONA_DB_DIR[0], "accessions.done") 
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_diamond_krona.html")
     conda:
         KRONA
     params:
-        # Uso de caminho absoluto via params
-        tax_db = os.path.abspath("resources/krona/taxonomy")
+        tax_db = KRONA_DB_DIR[0]
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_contigs_{tool}_{sample}.log")
     shell:

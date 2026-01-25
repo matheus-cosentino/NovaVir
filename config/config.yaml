@@ -82,8 +82,7 @@ resources:
     - "resources/logo/"
  #krona db
   krona: 
-    - "taxonomy/"
-
+    - "resources/krona/taxonomy"
 
 ### Parameters for each tool used within the dataset ###
 
