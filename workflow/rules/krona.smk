@@ -22,7 +22,6 @@ rule krona_update_taxonomy:
     input:
         names = os.path.join(BASTA_DB_DIR[0], "names.dmp"),
         nodes = os.path.join(BASTA_DB_DIR[0], "nodes.dmp"),
-        # Krona espera nomes específicos. Se o seu input for prot, ele deve ser linkado corretamente.
         acc2tax = os.path.join(BASTA_DB_DIR[0], "prot.accession2taxid.gz")
     params:
         tax_dir=KRONA_DB_DIR[0]
@@ -34,27 +33,36 @@ rule krona_update_taxonomy:
         """
         echo "[INFO] Configurando diretórios..." > {log}
         
-        # 1. Resolve caminho absoluto (essencial para evitar erro do Krona)
+        # 1. Resolve caminhos absolutos
         TARGET_DIR=$(readlink -f {params.tax_dir})
         ACC_DIR="$TARGET_DIR/accession2taxid"
         mkdir -p $ACC_DIR
 
-        # 2. Linka os arquivos de taxonomia (names e nodes) na raiz do DB
-        echo "[INFO] Linkando arquivos de taxonomia..." >> {log}
+        # 2. Linka os arquivos para onde os scripts do Krona esperam encontrá-los
+        echo "[INFO] Linkando arquivos..." >> {log}
         ln -sf $(readlink -f {input.names}) $TARGET_DIR/names.dmp
         ln -sf $(readlink -f {input.nodes}) $TARGET_DIR/nodes.dmp
-
-        # 3. Linka o arquivo de accession na subpasta específica que a doc exige
-        # A doc diz: "Place in <KronaTools>/taxonomy/accession2taxid/"
+        # IMPORTANTE: O updateAccessions procura dentro da pasta 'accession2taxid'
         ln -sf $(readlink -f {input.acc2tax}) $ACC_DIR/prot.accession2taxid.gz
 
-        # 4. Constrói a árvore taxonômica
-        echo "[INFO] Executando ktUpdateTaxonomy.sh..." >> {log}
+        # 3. Localiza o script 'perdido' do updateAccessions
+        # (Usa o local do ktUpdateTaxonomy.sh para achar a pasta opt/krona)
+        KRONA_OPT_DIR=$(dirname $(readlink -f $(which ktUpdateTaxonomy.sh)))
+        UPDATE_ACC_SCRIPT="$KRONA_OPT_DIR/updateAccessions.sh"
+        
+        echo "[INFO] Script localizado em: $UPDATE_ACC_SCRIPT" >> {log}
+
+        # 4. Executa os scripts
+        echo "[INFO] Construindo taxonomia..." >> {log}
         ktUpdateTaxonomy.sh --only-build $TARGET_DIR >> {log} 2>&1
 
-        # 5. Constrói o mapeamento de accessions (Gera o accession2taxid.sorted)
-        echo "[INFO] Executando ktUpdateAccessions.sh..." >> {log}
-        ktUpdateAccessions.sh --only-build $TARGET_DIR >> {log} 2>&1
+        echo "[INFO] Construindo accessions..." >> {log}
+        if [ -f "$UPDATE_ACC_SCRIPT" ]; then
+            bash $UPDATE_ACC_SCRIPT --only-build $TARGET_DIR >> {log} 2>&1
+        else
+            echo "[ERROR] Script updateAccessions.sh ainda não foi encontrado!" >> {log}
+            exit 1
+        fi
         """
 
 rule krona_kraken2:
