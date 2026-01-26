@@ -155,7 +155,6 @@ rule krona_diamond_contigs:
         tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
         report = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
-        # O arquivo sorted original deve existir
         tax_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted"),
         tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
     output:
@@ -168,34 +167,35 @@ rule krona_diamond_contigs:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_contigs_{tool}_{sample}.log")
     shell:
         """
-        echo "[INFO] Iniciando configuração de ambiente Krona..." > {log}
+        echo "[INFO] Configurando ambiente Krona..." > {log}
         
-        # 1. Obter caminho ABSOLUTO da pasta de taxonomia
+        # 1. Resolver Caminhos Absolutos
         TAX_ABS=$(readlink -f {params.tax_dir})
         ACC_FILE="$TAX_ABS/accession2taxid.sorted"
-        
-        # 2. Verificar se o arquivo principal existe
-        if [ ! -f "$ACC_FILE" ]; then
-            echo "[ERROR] Arquivo principal não encontrado: $ACC_FILE" >> {log}
-            exit 1
-        fi
+        TARGET_DIR="$TAX_ABS/accession2taxid"
+        mkdir -p "$TARGET_DIR"
 
-        # 3. Criar links de compatibilidade (A correção do erro está AQUI)
-        # O script do Krona pode procurar em 'taxonomy/' ou 'taxonomy/accession2taxid/'
-        # Usamos caminhos ABSOLUTOS para garantir que o link não quebre.
+        # 2. Estratégia 'Shotgun': Criar links com TODOS os nomes possíveis
+        # O ktImportBLAST pode procurar por 'prot.accession2taxid.sorted' se detectar proteína.
         
-        mkdir -p "$TAX_ABS/accession2taxid"
+        echo "[INFO] Criando links de compatibilidade em $TARGET_DIR..." >> {log}
         
-        # Link 1: Garante que exista na pasta 'accession2taxid' apontando para o arquivo real
-        ln -sf "$ACC_FILE" "$TAX_ABS/accession2taxid/accession2taxid.sorted"
-        
-        echo "[INFO] Links de compatibilidade criados." >> {log}
-        echo "[DEBUG] Listando arquivos para confirmação:" >> {log}
-        ls -l "$ACC_FILE" >> {log}
-        ls -l "$TAX_ABS/accession2taxid/accession2taxid.sorted" >> {log}
+        # Função para linkar (tenta hard link primeiro, falha para soft link)
+        link_file() {{
+            ln -f "$1" "$2" 2>/dev/null || ln -sf "$1" "$2"
+        }}
 
-        # 4. Executar o Krona
+        link_file "$ACC_FILE" "$TARGET_DIR/accession2taxid.sorted"
+        link_file "$ACC_FILE" "$TARGET_DIR/prot.accession2taxid.sorted"
+        link_file "$ACC_FILE" "$TARGET_DIR/trans.accession2taxid.sorted"
+
+        # 3. Listar para debug
+        ls -l "$TARGET_DIR" >> {log}
+
+        # 4. Executar Krona com Locale C (Importante para leitura de arquivos sorted)
         echo "[INFO] Executando ktImportBLAST..." >> {log}
+        
+        export LC_ALL=C
         
         ktImportBLAST \
             {input.report} \
