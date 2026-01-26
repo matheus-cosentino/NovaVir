@@ -170,40 +170,39 @@ rule krona_diamond_contigs:
         echo "[INFO] Iniciando Krona..." > {log}
 
         # 1. Definir a raiz do Banco de Dados (Onde está o taxonomy.tab)
+        # O readlink garante que temos o caminho absoluto
         DB_ROOT=$(readlink -f {params.tax_dir})
 
-        # Correção de segurança: Se a variável apontar para 'accession2taxid', suba um nível.
-        if [ ! -f "$DB_ROOT/taxonomy.tab" ] && [ -f "$DB_ROOT/../taxonomy.tab" ]; then
-            echo "[WARN] Ajustando caminho do DB para o diretório pai..." >> {log}
-            DB_ROOT=$(dirname "$DB_ROOT")
-        fi
-
-        # Verificação final
+        # Verificação de segurança: O taxonomy.tab TEM que estar aqui
         if [ ! -f "$DB_ROOT/taxonomy.tab" ]; then
             echo "[ERROR] taxonomy.tab não encontrado em $DB_ROOT" >> {log}
             exit 1
         fi
+        echo "[INFO] Raiz do DB confirmada em: $DB_ROOT" >> {log}
 
-        echo "[INFO] Usando DB em: $DB_ROOT" >> {log}
-
-        # 2. Configurar Links de Acesso (Estratégia Shotgun)
-        # O Krona procura dentro de $DB_ROOT/accession2taxid/
-        ACC_DIR="$DB_ROOT/accession2taxid"
-        mkdir -p "$ACC_DIR"
+        # 2. Configurar a subpasta accession2taxid (Onde o Krona procura os IDs)
+        ACC_SUBDIR="$DB_ROOT/accession2taxid"
+        mkdir -p "$ACC_SUBDIR"
         
         # Arquivo fonte real (gerado pela regra anterior na raiz do DB)
         SRC_FILE="$DB_ROOT/accession2taxid.sorted"
 
-        echo "[INFO] Criando links em $ACC_DIR..." >> {log}
-        # Cria links com todos os nomes possíveis para garantir que o script Perl encontre
-        ln -sf "$SRC_FILE" "$ACC_DIR/accession2taxid.sorted"
-        ln -sf "$SRC_FILE" "$ACC_DIR/prot.accession2taxid.sorted"
-        ln -sf "$SRC_FILE" "$ACC_DIR/trans.accession2taxid.sorted"
-
-        # 3. Executar ktImportBLAST
-        # IMPORTANTE: -tax deve ser $DB_ROOT (onde está taxonomy.tab), NÃO $ACC_DIR
-        echo "[INFO] Executando comando..." >> {log}
+        # 3. Criar links simbólicos dentro da subpasta
+        # O Krona tenta vários nomes dependendo do input (prot, trans, ou genérico).
+        # Linkamos todos para garantir.
         
+        echo "[INFO] Criando links de compatibilidade em $ACC_SUBDIR..." >> {log}
+        ln -sf "$SRC_FILE" "$ACC_SUBDIR/accession2taxid.sorted"
+        ln -sf "$SRC_FILE" "$ACC_SUBDIR/prot.accession2taxid.sorted"
+        ln -sf "$SRC_FILE" "$ACC_SUBDIR/trans.accession2taxid.sorted"
+
+        # 4. Executar ktImportBLAST
+        # IMPORTANTE: -tax aponta para $DB_ROOT (onde está taxonomy.tab)
+        # O script vai procurar automaticamente dentro de $DB_ROOT/accession2taxid/
+        
+        echo "[INFO] Executando ktImportBLAST..." >> {log}
+        
+        # LC_ALL=C previne erros de leitura em arquivos grandes ordenados
         export LC_ALL=C
         
         ktImportBLAST \
