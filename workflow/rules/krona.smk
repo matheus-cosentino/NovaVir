@@ -167,9 +167,39 @@ rule krona_diamond_contigs:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_contigs_{tool}_{sample}.log")
     shell:
         """
+        echo "[INFO] Configurando ambiente Krona..." > {log}
+        
+        # 1. Resolver Caminhos Absolutos
+        TAX_ABS=$(readlink -f {params.tax_dir})
+        ACC_FILE="$TAX_ABS/accession2taxid.sorted"
+        TARGET_DIR="$TAX_ABS/accession2taxid"
+        mkdir -p "$TARGET_DIR"
+
+        # 2. Estratégia 'Shotgun': Criar links com TODOS os nomes possíveis
+        # O ktImportBLAST pode procurar por 'prot.accession2taxid.sorted' se detectar proteína.
+        
+        echo "[INFO] Criando links de compatibilidade em $TARGET_DIR..." >> {log}
+        
+        # Função para linkar (tenta hard link primeiro, falha para soft link)
+        link_file() {{
+            ln -f "$1" "$2" 2>/dev/null || ln -sf "$1" "$2"
+        }}
+
+        link_file "$ACC_FILE" "$TARGET_DIR/accession2taxid.sorted"
+        link_file "$ACC_FILE" "$TARGET_DIR/prot.accession2taxid.sorted"
+        link_file "$ACC_FILE" "$TARGET_DIR/trans.accession2taxid.sorted"
+
+        # 3. Listar para debug
+        ls -l "$TARGET_DIR" >> {log}
+
+        # 4. Executar Krona com Locale C (Importante para leitura de arquivos sorted)
+        echo "[INFO] Executando ktImportBLAST..." >> {log}
+        
+        export LC_ALL=C
+        
         ktImportBLAST \
             {input.report} \
-            -tax {params.tax_dir} \
+            -tax "$TAX_ABS" \
             -o {output.html} \
             >> {log} 2>&1
         """
