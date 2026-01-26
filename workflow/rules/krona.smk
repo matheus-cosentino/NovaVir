@@ -155,12 +155,13 @@ rule krona_diamond_contigs:
         tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
         report = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
+        # O arquivo sorted e a taxonomia devem existir
         tax_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted"),
         tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_diamond_krona.html")
     conda:
-        KRONA
+        "KRONA"
     params:
         tax_dir=KRONA_DB_DIR[0]
     log:
@@ -169,54 +170,45 @@ rule krona_diamond_contigs:
         """
         echo "[INFO] Iniciando Krona..." > {log}
 
-        # 1. Definição de Caminhos Absolutos
+        # 1. Obter caminho ABSOLUTO do banco de dados
         DB_ROOT=$(readlink -f {params.tax_dir})
-        ACC_SUBDIR="$DB_ROOT/accession2taxid"
-        SRC_FILE="$DB_ROOT/accession2taxid.sorted"
+        ACC_FILE="$DB_ROOT/accession2taxid.sorted"
 
-        # Verificação básica
+        # 2. Verificar se os arquivos essenciais existem
         if [ ! -f "$DB_ROOT/taxonomy.tab" ]; then
             echo "[ERROR] taxonomy.tab não encontrado em $DB_ROOT" >> {log}
             exit 1
         fi
+        if [ ! -f "$ACC_FILE" ]; then
+            echo "[ERROR] accession2taxid.sorted não encontrado em $DB_ROOT" >> {log}
+            exit 1
+        fi
 
-        # 2. Estratégia "Universal Symlink" (Otimização de Espaço)
-        # O Krona pode procurar nomes diferentes dependendo se acha que o input é DNA ou Proteína.
-        # Nós criamos links para TODOS os nomes possíveis apontando para o mesmo arquivo sorted.
+        # 3. Organizar diretórios conforme exigência do Krona
+        # O script original EXIGE que o arquivo esteja dentro de uma pasta 'accession2taxid'
+        # Aqui fazemos apenas UM link simbólico para satisfazer a estrutura de pastas,
+        # mas a 'mágica' de nomes será feita no patch do script abaixo.
+        ACC_DIR="$DB_ROOT/accession2taxid"
+        mkdir -p "$ACC_DIR"
         
-        mkdir -p "$ACC_SUBDIR"
-        
-        # Lista de nomes que o KronaTools.pm costuma procurar
-        declare -a KRONA_FILES=(
-            "accession2taxid.sorted"
-            "prot.accession2taxid.sorted"
-            "trans.accession2taxid.sorted"
-            "nucl_gb.accession2taxid.sorted"
-            "nucl_wgs.accession2taxid.sorted"
-            "dead_prot.accession2taxid.sorted"
-            "dead_nucl.accession2taxid.sorted"
-        )
+        # Link simples (sem adivinhação de nomes prot/trans)
+        ln -sf "$ACC_FILE" "$ACC_DIR/accession2taxid.sorted"
 
-        echo "[INFO] Atualizando links simbólicos em $ACC_SUBDIR..." >> {log}
+        # 4. PATCH DO SCRIPT DO KRONA (A Mágica)
+        # Encontra onde o KronaTools.pm está instalado neste ambiente Conda
+        KRONA_PM=$(find $CONDA_PREFIX -name KronaTools.pm | head -n 1)
         
-        for TARGET_NAME in "${{KRONA_FILES[@]}}"; do
-            # Remove link antigo se existir (para evitar erro de 'file exists')
-            rm -f "$ACC_SUBDIR/$TARGET_NAME"
-            
-            # Cria link simbólico (Zero uso de disco extra)
-            ln -s "$SRC_FILE" "$ACC_SUBDIR/$TARGET_NAME"
-        done
-
-        # Debug: Mostrar como ficou a pasta
-        ls -l "$ACC_SUBDIR" >> {log}
-
-        # 3. Execução do ktImportBLAST
-        # O -tax DEVE ser a raiz (onde está o taxonomy.tab). 
-        # O script encontrará os accessions na subpasta automaticamente graças aos links.
+        echo "[INFO] Aplicando patch no script: $KRONA_PM" >> {log}
         
+        # O comando sed abaixo altera a lógica interna do Perl.
+        # Ele substitui a construção "$prefix.accession2taxid.sorted" por apenas "accession2taxid.sorted".
+        # Isso força o Krona a aceitar nosso arquivo genérico independente se o input é proteína ou DNA.
+        
+        sed -i "s/\\\$prefix\.accession2taxid\.sorted/accession2taxid.sorted/g" "$KRONA_PM"
+
+        # 5. Executar ktImportBLAST
         echo "[INFO] Executando ktImportBLAST..." >> {log}
         
-        # LC_ALL=C é crítico para garantir que a leitura do arquivo sorted funcione
         export LC_ALL=C
         
         ktImportBLAST \
