@@ -82,6 +82,7 @@ rule megahit:
           {params.input_args} \
           -o {params.outdir} \
           -t {resources.threads} \
+          -f \
           > {log} 2>&1
              
         """
