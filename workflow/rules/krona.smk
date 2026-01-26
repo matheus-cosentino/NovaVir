@@ -155,7 +155,7 @@ rule krona_diamond_contigs:
         tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
         report = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
-        # O arquivo sorted e a taxonomia devem existir
+        # O arquivo sorted deve existir na raiz da taxonomia
         tax_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted"),
         tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
     output:
@@ -172,43 +172,29 @@ rule krona_diamond_contigs:
 
         # 1. Obter caminho ABSOLUTO do banco de dados
         DB_ROOT=$(readlink -f {params.tax_dir})
-        ACC_FILE="$DB_ROOT/accession2taxid.sorted"
 
-        # 2. Verificar se os arquivos essenciais existem
+        # 2. Verificação de Segurança
         if [ ! -f "$DB_ROOT/taxonomy.tab" ]; then
             echo "[ERROR] taxonomy.tab não encontrado em $DB_ROOT" >> {log}
             exit 1
         fi
-        if [ ! -f "$ACC_FILE" ]; then
-            echo "[ERROR] accession2taxid.sorted não encontrado em $DB_ROOT" >> {log}
-            exit 1
-        fi
-
-        # 3. Organizar diretórios conforme exigência do Krona
-        # O script original EXIGE que o arquivo esteja dentro de uma pasta 'accession2taxid'
-        # Aqui fazemos apenas UM link simbólico para satisfazer a estrutura de pastas,
-        # mas a 'mágica' de nomes será feita no patch do script abaixo.
-        ACC_DIR="$DB_ROOT/accession2taxid"
-        mkdir -p "$ACC_DIR"
         
-        # Link simples (sem adivinhação de nomes prot/trans)
-        ln -sf "$ACC_FILE" "$ACC_DIR/accession2taxid.sorted"
-
-        # 4. PATCH DO SCRIPT DO KRONA (A Mágica)
-        # Encontra onde o KronaTools.pm está instalado neste ambiente Conda
+        # 3. PATCH DO KRONATOOLS.PM
+        # Encontra o arquivo de biblioteca Perl dentro do ambiente Conda atual
         KRONA_PM=$(find $CONDA_PREFIX -name KronaTools.pm | head -n 1)
         
-        echo "[INFO] Aplicando patch no script: $KRONA_PM" >> {log}
+        echo "[INFO] Aplicando patch em: $KRONA_PM" >> {log}
         
-        # O comando sed abaixo altera a lógica interna do Perl.
-        # Ele substitui a construção "$prefix.accession2taxid.sorted" por apenas "accession2taxid.sorted".
-        # Isso força o Krona a aceitar nosso arquivo genérico independente se o input é proteína ou DNA.
+        # O problema é a linha: my $fileTaxByAcc = 'all.accession2taxid.sorted';
+        # Vamos alterá-la para: my $fileTaxByAcc = 'accession2taxid.sorted';
+        # Usamos aspas simples no sed para evitar que o Bash tente interpretar o '$'.
         
-        sed -i "s/\\\$prefix\.accession2taxid\.sorted/accession2taxid.sorted/g" "$KRONA_PM"
+        sed -i "s/my \\\$fileTaxByAcc = .*/my \\\$fileTaxByAcc = 'accession2taxid.sorted';/" "$KRONA_PM"
 
-        # 5. Executar ktImportBLAST
+        # 4. Executar ktImportBLAST
         echo "[INFO] Executando ktImportBLAST..." >> {log}
         
+        # LC_ALL=C previne erros de leitura/ordenação
         export LC_ALL=C
         
         ktImportBLAST \
