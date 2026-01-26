@@ -39,7 +39,7 @@ tool:
   denovo: #select your favorite de novo tools
   # options: 
     - 'spades'    # more resourcers needed, but algorythis to better deal with RNA seq data of Illumina short reads(default)
-   # - 'megahit'    # indicated for llumina short reads. Faster, but more error proner
+    - 'megahit'    # indicated for llumina short reads. Faster, but more error proner
    # - 'flye'       #indicated for nanopore sequencing long reads (>1000 bp per reads)
    # - 'raven'      #indicated for nanopore sequencing. Faster, but more error proner
    # - 'medaka_flye'   #correction to ONP flye assembly
@@ -119,7 +119,7 @@ spades:
     #- '127'           # Maximum value
     #- '111'           # Custom or your choice (https://www.chilimath.com/lessons/introductory-algebra/list-of-odd-numbers)
     #- '21_33'
-    #- '21_33_55_77'   # If you have enough coverage (+50x), then you may want to try to set this k-mer lengths
+    - '21_33_55_77'   # If you have enough coverage (+50x), then you may want to try to set this k-mer lengths
     #- '21_33_55_77_99'
     #- '21_33_55_77_99_111'
     #- '21_33_55_77_99_111_127'

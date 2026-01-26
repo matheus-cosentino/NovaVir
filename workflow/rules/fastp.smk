@@ -82,5 +82,6 @@ rule fastp_unpaired:
             --thread {threads} \
             --length_required {params.length_required} \
             --qualified_quality_phred {params.quality} \
+            --dedup --trim_poly_g --trim_poly_x \
             2> {log}
         """

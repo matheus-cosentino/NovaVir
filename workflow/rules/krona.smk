@@ -168,28 +168,16 @@ rule krona_diamond_contigs:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_contigs_{tool}_{sample}.log")
     shell:
         """
-        echo "[INFO] Iniciando Krona..." > {log}
+        echo "[INFO] Initializing Krona..." > {log}
 
-        # 1. Definir a raiz do Banco de Dados
         DB_ROOT=$(readlink -f {params.tax_dir})
-
-        # 2. PATCH NO KRONATOOLS.PM
-        # Localiza a biblioteca no ambiente Conda
         KRONA_PM=$(find $CONDA_PREFIX -name KronaTools.pm | head -n 1)
         
-        echo "[INFO] Aplicando patch em: $KRONA_PM" >> {log}
-        
-        # Correção Crítica:
-        # Usamos aspas simples (') em volta do comando sed para proteger o $ do Bash.
-        # Alteramos a linha que define o nome do arquivo de 'all.accession2taxid.sorted' 
-        # para o nosso 'accession2taxid.sorted'.
-        
+        echo "[INFO] Applying patch in: $KRONA_PM" >> {log}      
         sed -i 's/my $fileTaxByAcc = .*/my $fileTaxByAcc = "accession2taxid.sorted";/' "$KRONA_PM"
 
-        # 3. Executar ktImportBLAST
-        echo "[INFO] Executando ktImportBLAST..." >> {log}
+        echo "[INFO] Executing ktImportBLAST..." >> {log}
         
-        # LC_ALL=C é obrigatório para evitar erros de ordenação
         export LC_ALL=C
         
         ktImportBLAST \
