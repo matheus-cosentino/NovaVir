@@ -155,22 +155,28 @@ rule krona_diamond_contigs:
         tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
         report = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
+        # Garante que os arquivos do DB existam antes de rodar
         tax_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted"),
         tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_diamond_krona.html")
     conda:
-        KRONA
+        "KRONA"
     params:
         tax_dir=KRONA_DB_DIR[0]
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_contigs_{tool}_{sample}.log")
     shell:
         """
+        # 1. Converte o caminho do banco de dados para ABSOLUTO
+        # O Krona falha frequentemente com caminhos relativos (resources/...)
+        TAX_ABS=$(readlink -f {params.tax_dir})
+
+        echo "[INFO] Usando banco de dados em: $TAX_ABS" > {log}
+
         ktImportBLAST \
             {input.report} \
-            -tax  {params.tax_dir} \
+            -tax $TAX_ABS \
             -o {output.html} \
-            > {log} 2>&1
-        
+            >> {log} 2>&1
         """
