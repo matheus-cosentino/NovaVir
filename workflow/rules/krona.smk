@@ -161,7 +161,7 @@ rule krona_diamond_contigs:
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_diamond_krona.html")
     conda:
-        "KRONA"
+        KRONA
     params:
         tax_dir=KRONA_DB_DIR[0]
     log:
