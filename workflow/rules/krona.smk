@@ -155,6 +155,7 @@ rule krona_diamond_contigs:
         tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
         report = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
+        # Estes arquivos já foram gerados e estão na raiz do KRONA_DB_DIR
         tax_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted"),
         tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
     output:
@@ -166,6 +167,61 @@ rule krona_diamond_contigs:
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_contigs_{tool}_{sample}.log")
     shell:
+        """
+        echo "[INFO] Iniciando setup do Krona..." > {log}
+
+        # 1. Definir caminhos absolutos
+        DB_ROOT=$(readlink -f {params.tax_dir})
+        ACC_SUBDIR="$DB_ROOT/accession2taxid"
+        SRC_FILE="$DB_ROOT/accession2taxid.sorted"
+
+        # 2. Validar existência dos arquivos originais
+        if [ ! -f "$DB_ROOT/taxonomy.tab" ]; then
+            echo "[ERROR] taxonomy.tab não encontrado em $DB_ROOT" >> {log}
+            exit 1
+        fi
+        
+        # 3. Criar diretório de accessions (se não existir)
+        mkdir -p "$ACC_SUBDIR"
+
+        echo "[INFO] Criando links universais em $ACC_SUBDIR..." >> {log}
+
+        # 4. A ESTRATÉGIA DE ADAPTAÇÃO:
+        # O Krona pode procurar por qualquer um desses nomes. 
+        # Nós criamos links de TODOS eles apontando para o seu arquivo único gerado.
+        
+        FILES_TO_LINK=(
+            "accession2taxid.sorted"
+            "prot.accession2taxid.sorted"
+            "nucl_gb.accession2taxid.sorted"
+            "nucl_wgs.accession2taxid.sorted"
+            "nucl_est.accession2taxid.sorted"
+            "nucl_gss.accession2taxid.sorted"
+            "dead_prot.accession2taxid.sorted"
+            "dead_nucl.accession2taxid.sorted"
+            "dead_wgs.accession2taxid.sorted"
+        )
+
+        for FILE_NAME in "${{FILES_TO_LINK[@]}}"; do
+            # Remove link antigo se existir e cria um novo (hard link preferencialmente)
+            ln -f "$SRC_FILE" "$ACC_SUBDIR/$FILE_NAME" 2>/dev/null || ln -sf "$SRC_FILE" "$ACC_SUBDIR/$FILE_NAME"
+        done
+
+        # Debug: Mostrar o que foi criado
+        ls -l "$ACC_SUBDIR" >> {log}
+
+        # 5. Executar ktImportBLAST
+        echo "[INFO] Executando ktImportBLAST..." >> {log}
+        
+        # LC_ALL=C é CRÍTICO para o Perl ler arquivos sorted corretamente
+        export LC_ALL=C
+        
+        ktImportBLAST \
+            {input.report} \
+            -tax "$DB_ROOT" \
+            -o {output.html} \
+            >> {log} 2>&1
+        """
         """
         echo "[INFO] Iniciando Krona..." > {log}
 
