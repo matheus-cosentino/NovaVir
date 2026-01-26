@@ -155,7 +155,7 @@ rule krona_diamond_contigs:
         tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
         report = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
-        # O arquivo sorted deve existir na raiz da taxonomia
+        # Arquivos na raiz do DB
         tax_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted"),
         tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
     output:
@@ -170,31 +170,26 @@ rule krona_diamond_contigs:
         """
         echo "[INFO] Iniciando Krona..." > {log}
 
-        # 1. Obter caminho ABSOLUTO do banco de dados
+        # 1. Definir a raiz do Banco de Dados
         DB_ROOT=$(readlink -f {params.tax_dir})
 
-        # 2. Verificação de Segurança
-        if [ ! -f "$DB_ROOT/taxonomy.tab" ]; then
-            echo "[ERROR] taxonomy.tab não encontrado em $DB_ROOT" >> {log}
-            exit 1
-        fi
-        
-        # 3. PATCH DO KRONATOOLS.PM
-        # Encontra o arquivo de biblioteca Perl dentro do ambiente Conda atual
+        # 2. PATCH NO KRONATOOLS.PM
+        # Localiza a biblioteca no ambiente Conda
         KRONA_PM=$(find $CONDA_PREFIX -name KronaTools.pm | head -n 1)
         
         echo "[INFO] Aplicando patch em: $KRONA_PM" >> {log}
         
-        # O problema é a linha: my $fileTaxByAcc = 'all.accession2taxid.sorted';
-        # Vamos alterá-la para: my $fileTaxByAcc = 'accession2taxid.sorted';
-        # Usamos aspas simples no sed para evitar que o Bash tente interpretar o '$'.
+        # Correção Crítica:
+        # Usamos aspas simples (') em volta do comando sed para proteger o $ do Bash.
+        # Alteramos a linha que define o nome do arquivo de 'all.accession2taxid.sorted' 
+        # para o nosso 'accession2taxid.sorted'.
         
-        sed -i "s/my \\\$fileTaxByAcc = .*/my \\\$fileTaxByAcc = 'accession2taxid.sorted';/" "$KRONA_PM"
+        sed -i 's/my $fileTaxByAcc = .*/my $fileTaxByAcc = "accession2taxid.sorted";/' "$KRONA_PM"
 
-        # 4. Executar ktImportBLAST
+        # 3. Executar ktImportBLAST
         echo "[INFO] Executando ktImportBLAST..." >> {log}
         
-        # LC_ALL=C previne erros de leitura/ordenação
+        # LC_ALL=C é obrigatório para evitar erros de ordenação
         export LC_ALL=C
         
         ktImportBLAST \
