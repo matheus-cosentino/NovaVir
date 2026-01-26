@@ -160,46 +160,55 @@ rule krona_diamond_contigs:
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_diamond_krona.html")
     conda:
-        KRONA
+        "KRONA"
     params:
-        tax_dir=os.path.join(KRONA_DB_DIR[0], "accession2taxid")
+        tax_dir=KRONA_DB_DIR[0]
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_contigs_{tool}_{sample}.log")
     shell:
         """
-        echo "[INFO] Configurando ambiente Krona..." > {log}
+        echo "[INFO] Iniciando Krona..." > {log}
+
+        # 1. Definir a raiz do Banco de Dados (Onde está o taxonomy.tab)
+        DB_ROOT=$(readlink -f {params.tax_dir})
+
+        # Correção de segurança: Se a variável apontar para 'accession2taxid', suba um nível.
+        if [ ! -f "$DB_ROOT/taxonomy.tab" ] && [ -f "$DB_ROOT/../taxonomy.tab" ]; then
+            echo "[WARN] Ajustando caminho do DB para o diretório pai..." >> {log}
+            DB_ROOT=$(dirname "$DB_ROOT")
+        fi
+
+        # Verificação final
+        if [ ! -f "$DB_ROOT/taxonomy.tab" ]; then
+            echo "[ERROR] taxonomy.tab não encontrado em $DB_ROOT" >> {log}
+            exit 1
+        fi
+
+        echo "[INFO] Usando DB em: $DB_ROOT" >> {log}
+
+        # 2. Configurar Links de Acesso (Estratégia Shotgun)
+        # O Krona procura dentro de $DB_ROOT/accession2taxid/
+        ACC_DIR="$DB_ROOT/accession2taxid"
+        mkdir -p "$ACC_DIR"
         
-        # 1. Resolver Caminhos Absolutos
-        TAX_ABS=$(readlink -f {params.tax_dir})
-        ACC_FILE="$TAX_ABS/accession2taxid.sorted"
-        TARGET_DIR="$TAX_ABS/accession2taxid"
-        mkdir -p "$TARGET_DIR"
+        # Arquivo fonte real (gerado pela regra anterior na raiz do DB)
+        SRC_FILE="$DB_ROOT/accession2taxid.sorted"
 
-        # 2. Estratégia 'Shotgun': Criar links com TODOS os nomes possíveis
-        # O ktImportBLAST pode procurar por 'prot.accession2taxid.sorted' se detectar proteína.
-        
-        echo "[INFO] Criando links de compatibilidade em $TARGET_DIR..." >> {log}
-        
-        # Função para linkar (tenta hard link primeiro, falha para soft link)
-        link_file() {{
-            ln -f "$1" "$2" 2>/dev/null || ln -sf "$1" "$2"
-        }}
+        echo "[INFO] Criando links em $ACC_DIR..." >> {log}
+        # Cria links com todos os nomes possíveis para garantir que o script Perl encontre
+        ln -sf "$SRC_FILE" "$ACC_DIR/accession2taxid.sorted"
+        ln -sf "$SRC_FILE" "$ACC_DIR/prot.accession2taxid.sorted"
+        ln -sf "$SRC_FILE" "$ACC_DIR/trans.accession2taxid.sorted"
 
-        link_file "$ACC_FILE" "$TARGET_DIR/accession2taxid.sorted"
-        link_file "$ACC_FILE" "$TARGET_DIR/prot.accession2taxid.sorted"
-        link_file "$ACC_FILE" "$TARGET_DIR/trans.accession2taxid.sorted"
-
-        # 3. Listar para debug
-        ls -l "$TARGET_DIR" >> {log}
-
-        # 4. Executar Krona com Locale C (Importante para leitura de arquivos sorted)
-        echo "[INFO] Executando ktImportBLAST..." >> {log}
+        # 3. Executar ktImportBLAST
+        # IMPORTANTE: -tax deve ser $DB_ROOT (onde está taxonomy.tab), NÃO $ACC_DIR
+        echo "[INFO] Executando comando..." >> {log}
         
         export LC_ALL=C
         
         ktImportBLAST \
             {input.report} \
-            -tax "$TAX_ABS" \
+            -tax "$DB_ROOT" \
             -o {output.html} \
             >> {log} 2>&1
         """
