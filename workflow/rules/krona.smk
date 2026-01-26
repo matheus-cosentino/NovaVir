@@ -155,7 +155,7 @@ rule krona_diamond_contigs:
         tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
         report = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
-        # Garante que os arquivos do DB existam antes de rodar
+        # O arquivo sorted original deve existir
         tax_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted"),
         tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
     output:
@@ -168,15 +168,38 @@ rule krona_diamond_contigs:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_contigs_{tool}_{sample}.log")
     shell:
         """
-        # 1. Converte o caminho do banco de dados para ABSOLUTO
-        # O Krona falha frequentemente com caminhos relativos (resources/...)
+        echo "[INFO] Iniciando configuração de ambiente Krona..." > {log}
+        
+        # 1. Obter caminho ABSOLUTO da pasta de taxonomia
         TAX_ABS=$(readlink -f {params.tax_dir})
+        ACC_FILE="$TAX_ABS/accession2taxid.sorted"
+        
+        # 2. Verificar se o arquivo principal existe
+        if [ ! -f "$ACC_FILE" ]; then
+            echo "[ERROR] Arquivo principal não encontrado: $ACC_FILE" >> {log}
+            exit 1
+        fi
 
-        echo "[INFO] Usando banco de dados em: $TAX_ABS" > {log}
+        # 3. Criar links de compatibilidade (A correção do erro está AQUI)
+        # O script do Krona pode procurar em 'taxonomy/' ou 'taxonomy/accession2taxid/'
+        # Usamos caminhos ABSOLUTOS para garantir que o link não quebre.
+        
+        mkdir -p "$TAX_ABS/accession2taxid"
+        
+        # Link 1: Garante que exista na pasta 'accession2taxid' apontando para o arquivo real
+        ln -sf "$ACC_FILE" "$TAX_ABS/accession2taxid/accession2taxid.sorted"
+        
+        echo "[INFO] Links de compatibilidade criados." >> {log}
+        echo "[DEBUG] Listando arquivos para confirmação:" >> {log}
+        ls -l "$ACC_FILE" >> {log}
+        ls -l "$TAX_ABS/accession2taxid/accession2taxid.sorted" >> {log}
 
+        # 4. Executar o Krona
+        echo "[INFO] Executando ktImportBLAST..." >> {log}
+        
         ktImportBLAST \
             {input.report} \
-            -tax $TAX_ABS \
+            -tax "$TAX_ABS" \
             -o {output.html} \
             >> {log} 2>&1
         """
