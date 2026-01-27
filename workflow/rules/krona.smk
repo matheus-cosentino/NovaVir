@@ -26,7 +26,7 @@ rule krona_update_taxonomy:
     params:
         tax_dir=KRONA_DB_DIR[0]
     conda:
-        KRONA
+        "KRONA"
     log:
         os.path.join(OUT_DIR, "log", "krona_update_taxonomy.log")
     shell:
@@ -34,22 +34,23 @@ rule krona_update_taxonomy:
         echo "[INFO] Configurando diretórios..." > {log}
         TARGET_DIR=$(readlink -f {params.tax_dir})
         
-        # 1. Taxonomia (Isso funciona, vamos manter)
-        echo "[INFO] Linkando arquivos de taxonomia..." >> {log}
+        # 1. Taxonomia
         ln -sf $(readlink -f {input.names}) $TARGET_DIR/names.dmp
         ln -sf $(readlink -f {input.nodes}) $TARGET_DIR/nodes.dmp
         
-        echo "[INFO] Executando ktUpdateTaxonomy.sh..." >> {log}
         ktUpdateTaxonomy.sh --only-build $TARGET_DIR >> {log} 2>&1
 
-        # 2. Accessions (Fazer Manualmente = 100% Seguro)
-        # O script original falha em achar o arquivo, então nós mesmos criamos o output.
-        # Pegamos colunas 2 (Accession.Version) e 3 (TaxID) e ordenamos.
+        # 2. Accessions (CORREÇÃO AQUI)
+        echo "[INFO] Gerando accession2taxid.sorted..." >> {log}
         
-        echo "[INFO] Gerando accession2taxid.sorted manualmente..." >> {log}
+        # IMPORTANTE: LC_ALL=C garante a ordenação correta para o Perl
+        export LC_ALL=C
+        
+        # Usamos 'cut -f 1,3' para pegar o Accession puro (col 1) e o TaxID (col 3)
+        # O NCBI prot.accession2taxid.gz tem: Accession(1), Accession.Version(2), TaxID(3), GI(4)
         
         zcat {input.acc2tax} | \
-        cut -f 2,3 | \
+        cut -f 1,3 | \
         sort -k 1,1 > {output.acc_sorted} 2>> {log}
         
         echo "[INFO] Concluído." >> {log}
