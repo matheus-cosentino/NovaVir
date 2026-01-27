@@ -26,7 +26,7 @@ rule krona_update_taxonomy:
     params:
         tax_dir=KRONA_DB_DIR[0]
     conda:
-        "KRONA"
+        KRONA
     log:
         os.path.join(OUT_DIR, "log", "krona_update_taxonomy.log")
     shell:
