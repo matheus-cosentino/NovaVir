@@ -239,23 +239,61 @@ if (!dir.exists(output_dir_expanded)) {
 # CRITICAL FIX: DO NOT MODIFY 'params'. Assign to a new global variable.
 OUTPUT_DIR_ABS <- normalizePath(output_dir_expanded, mustWork = TRUE, winslash = "/") # New global variable for file paths
 
-# 2. Read Diamond taxonomy file
-# This TSV file is the product of sequence similarity annotation, providing the basis for all subsequent taxonomic classification.
-data <- read.table(params$diamond_file, sep = "\t", fill = T, header = T, na.strings = "", as.is = T)
+# -----------------------------------------------------------------------------
+# 2. Read Taxonomy file (Adaptive: Handles BASTA or Diamond/TaxonKit)
+# -----------------------------------------------------------------------------
 
-data <- data %>%
-  mutate(
-    Overall = coalesce(Realm, Acelular)
-  )
+# Lemos a primeira linha para detectar o formato
+first_line <- readLines(params$diamond_file, n = 1)
+is_basta <- !grepl("qseqid", first_line) # BASTA não tem header 'qseqid'
+
+if (is_basta) {
+  # 1. Ler arquivo BASTA (Sem header, colunas variáveis)
+  # Usamos fill=TRUE e stringsAsFactors=FALSE
+  raw_data <- read.table(params$diamond_file, sep = "\t", header = FALSE, fill = TRUE, stringsAsFactors = FALSE, quote = "")
+  
+  # Renomear para o padrão que o resto do script espera
+  colnames(raw_data)[1] <- "qseqid"
+  colnames(raw_data)[2] <- "TaxonomyString"
+  
+  # 2. Processar a string de taxonomia (separada por ;)
+  # Formato esperado: unknown;Phylum;Class;Order;Family;Genus;Species;
+  data <- raw_data %>%
+    separate(TaxonomyString, 
+             c("Superkingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"), 
+             sep = ";", 
+             fill = "right", 
+             extra = "drop") %>% 
+    mutate(
+      # Converter "unknown" ou strings vazias para NA
+      across(c(Superkingdom, Phylum, Class, Order, Family, Genus, Species), 
+             ~ na_if(., "")),
+      across(c(Superkingdom, Phylum, Class, Order, Family, Genus, Species), 
+             ~ na_if(tolower(.), "unknown")),
+      
+      # Criar a coluna 'Overall' para o gráfico de Reinos
+      # Tenta pegar Superkingdom -> Phylum -> Class -> Unclassified
+      Overall = coalesce(Superkingdom, Phylum, Class, "Unclassified")
+    )
+
+} else {
+  # Lógica original para arquivos Diamond/TaxonKit com Header
+  data <- read.table(params$diamond_file, sep = "\t", fill = T, header = T, na.strings = "", as.is = T)
+  
+  data <- data %>%
+    mutate(
+      Overall = coalesce(Realm, Acelular, Kingdom, "Unclassified")
+    )
+}
 
 
-# 4. Split contigs into groups: With Hits (tax) and Without Hits (notax)
+# 3. Split contigs into groups: With Hits (tax) and Without Hits (notax)
 # This separation is fundamental for quality analysis. Long contigs without hits (`fasta_notax`) may indicate sequences from novel assemblies or annotation failures, whereas short contigs without hits may be assembly artifacts. Comparing the length metrics between the two groups is critical.
 index_fas <- which(names(fasta) %in% data$qseqid)
 fasta_tax <- fasta[index_fas]
 fasta_notax <- fasta[-index_fas]
 
-# 5. Set up objects for future loops
+# 4. Set up objects for future loops
 # 'split_data' stores data subsets by Kingdom, and 'kingdom_names' lists the unique names for iteration in Section 3.
 split_data <- split(data, data$Overall)
 
@@ -422,30 +460,34 @@ This section analyzes the **frequency distribution** of annotated contigs at the
 ```{r contigs-viral-graph, echo=FALSE, fig.width=10, fig.height=15, out.width="90%"}
 # 1. Função de Plotagem de Frequência Detalhada (Horizontal Bar Chart)
 
-
+# AJUSTE DE SEGURANÇA:
+# Não tentamos recriar 'Overall' usando Realm/Acelular.
+# Apenas refinamos a coluna 'Overall' que já foi criada no setup.
 data <- data %>%
   mutate(
-    # 1. Pega o valor original (Ex: "unclassified Viruses domain")
-    Temp_Overall = coalesce(Realm, Acelular),
+    # Garante que NAs virem "Unclassified"
+    Overall = replace_na(Overall, "Unclassified"),
     
-    # 2. O TRUQUE MÁGICO:
-    # A função str_detect procura se a palavra "Viruses" existe DENTRO da frase.
-    # Se existir, forçamos o nome para ser apenas "Viruses".
-    Overall = ifelse(str_detect(Temp_Overall, "Viruses"), "Viruses", Temp_Overall)
+    # Padronização: Se a palavra "Viruses" aparecer em qualquer lugar da classificação
+    # (ex: "Duplodnaviria (Viruses)"), forçamos a categoria para apenas "Viruses".
+    Overall = ifelse(str_detect(Overall, "Viruses"), "Viruses", Overall)
   )
 
+# Filtra apenas o que foi classificado como Vírus
 virus_data <- data %>%
   filter(Overall == "Viruses") %>%
-  mutate(Family = replace_na(Family, "Unclassified"))
+  # Se a coluna Family não existir ou for NA, preenche como Unclassified
+  mutate(Family = if("Family" %in% names(.)) replace_na(Family, "Unclassified") else "Unclassified")
 
+# Gera os gráficos e tabelas se houver vírus
 if (nrow(virus_data) > 0) {
-    output_filename <- file.path(OUTPUT_DIR_ABS,paste0(params$sample_name,"Viral_Diamond.tsv"))
+    output_filename <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name, "Viral_Diamond.tsv"))
     write.table(virus_data, file = output_filename, sep = "\t", row.names = FALSE, quote = FALSE)
     
     virus_plot <- create_and_plot_frequency_chart(virus_data, "Family", kingdom_label = "Viruses")
     print(virus_plot)
     
-    output_filename <- file.path(OUTPUT_DIR_ABS,paste0(params$sample_name,"Virus_Classification_Log10.png"))
+    output_filename <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name, "Virus_Classification_Log10.png"))
     ggsave(filename = output_filename, plot = virus_plot, width = 8, height = 6, dpi = 300)
 } else {
     cat("**No viral contigs identified in this sample via DIAMOND/Taxonomy.**")

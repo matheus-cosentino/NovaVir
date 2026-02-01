@@ -143,16 +143,17 @@ rule fev2tsv_single:
 ##############################################
 # --- 6. Summarize Dusk Matter Findings --- #
 ############################################## 
+##############################################
+# --- 6. Summarize Dusk Matter Findings --- #
+############################################## 
 rule report_summarize:
     input:
         fasta = os.path.join(OUT_DIR, "{sample}", "spades", "kmer_auto", "contigs.fasta"),
-        diamond = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_lineage.tsv"),
+        # MUDANÇA: Usamos o output do BASTA (lca.tsv) em vez do Diamond Lineage
+        basta_lca = os.path.join(OUT_DIR, "{sample}", "basta_{tool}", "{sample}_{tool}_lca.tsv"),
         dusk = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_RdRp.tsv")
     output:
-        # Rastrear APENAS o HTML garante que o job termine com sucesso 
-        # desde que o relatório principal seja criado.
         html = os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}", "{sample}_Report_Diversity.html")
-        # Os arquivos TSV e PNG serão gerados na pasta, mas não listados aqui.
     params:
         out_dir = directory(os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}")),
         logos = "resources/logo/"
@@ -162,10 +163,12 @@ rule report_summarize:
         REPORT
     shell:
         """
+        # Passamos o arquivo do BASTA no argumento --diamond_path.
+        # O script R foi atualizado para detectar automaticamente que é um arquivo BASTA.
         Rscript workflow/scripts/generate_report.R \
             --sample_name {wildcards.sample} \
             --fasta_path {input.fasta} \
-            --diamond_path {input.diamond} \
+            --diamond_path {input.basta_lca} \
             --duskmatter_path {input.dusk} \
             --output_dir {params.out_dir} \
             --report_name $(basename {output.html}) \
