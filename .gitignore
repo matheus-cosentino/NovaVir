@@ -7,6 +7,8 @@ raw_data/
 # Ignore resources directory
 resources/database/
 
+resources/taxonomy/
+
 # Ignore data directory
 data/contigs/
 data/raw_data/
@@ -21,4 +23,5 @@ paper/
 slurm_scripts/
 slurm_scripts/crab_discovir.slurm
 slurm_scripts/itro_discovir.slurm
+slurm_scripts/crab_discovir.slurm
 
