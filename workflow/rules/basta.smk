@@ -62,7 +62,10 @@ rule basta_search:
     params:
         db_type="prot",
         tax_dir=os.path.join(BASTA_DB_DIR[0]),
-        algo=config["basta"]["classification"]
+        algo=config["basta"]["classification"],
+        identity=config["basta"]["identity"],
+        lengths=config["basta"]["lengths"],
+        min_hits= config["basta"]["min_hits"]    
     conda: 
         BASTA
     log:
@@ -72,7 +75,9 @@ rule basta_search:
         basta sequence {input.query} {output.lca} {params.db_type} \
             -v {output.lca_summary} \
             -d {params.tax_dir} \
-            -m 1 \
+            -m {params.min_hits} \
+            -i {params.identity} \
+            -l {params.lengths} \
             > {log} 2>&1
         """
 

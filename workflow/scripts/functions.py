@@ -51,9 +51,15 @@ def get_final_outputs():
   final_outputs = []
 
   # 1. Keep Download
+  if MODULES["download_only"]:
+    for sample, meta in SAMPLE_META.items():         
+      if meta['mode'] == 'SRA':
+        final_outputs.extend(meta['files'])
+    return final_outputs
+
   if MODULES["keep_download"]: 
     for sample, meta in SAMPLE_META.items():         
-          if meta['mode'] == 'SRA':
+        if meta['mode'] == 'SRA':
             final_outputs.extend(meta['files'])
   
   # 2. Assembly (Mantemos igual, gera os arquivos físicos)
@@ -76,8 +82,6 @@ def get_final_outputs():
                 output_dir=OUT_DIR, sample=SAMPLE, tool=tool_name, filename=file_name
             ))
 
-  # --- PREPARAÇÃO: Expansão de ferramentas para Downstream (Darkmatter/Diamond/Kraken) ---
-  # Criamos a lista expandida AQUI para usar em todos os módulos abaixo
   assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
   
   # 3. Darkmatter
@@ -103,9 +107,9 @@ def get_final_outputs():
   # 4. Reads (Diamond & Basta)
   if MODULES["reads_diamond"]:
     final_outputs.extend(expand("{out_dir}/{sample}/basta_reads/{sample}_reads_lca.tsv", out_dir=OUT_DIR, sample=SAMPLE))
-    final_outputs.extend(expand("{out_dir}/{sample}/diamond_reads/{sample}_reads_hits_with_lineage.tsv", out_dir=OUT_DIR, sample=SAMPLE))
+    #final_outputs.extend(expand("{out_dir}/{sample}/diamond_reads/{sample}_reads_hits_with_lineage.tsv", out_dir=OUT_DIR, sample=SAMPLE))
     final_outputs.extend(expand("{out_dir}/{sample}/krona_reads/{sample}_reads_basta_krona.html", out_dir=OUT_DIR, sample=SAMPLE))
-    final_outputs.extend(expand("{out_dir}/{sample}/krona_reads/{sample}_reads_diamond_krona.html", out_dir=OUT_DIR, sample=SAMPLE))
+    #final_outputs.extend(expand("{out_dir}/{sample}/krona_reads/{sample}_reads_diamond_krona.html", out_dir=OUT_DIR, sample=SAMPLE))
     final_outputs.append(expand("{out_dir}/basta_all/Basta_Rarefaction_Curve.pdf", out_dir=OUT_DIR))
 
   # 5. Reads (Kraken2)
@@ -151,18 +155,18 @@ def get_final_outputs():
                   "{out_dir}/{sample}/basta_{tool}/{sample}_{tool}_lca.tsv",
                   out_dir=OUT_DIR, sample=sample, tool=current_tools
               ))
-              final_outputs.extend(expand(
-                  "{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_hits_with_lineage.tsv",
-                  out_dir=OUT_DIR, sample=sample, tool=current_tools
-              ))
-              final_outputs.extend(expand(
-                  "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_basta_krona.html",
-                  out_dir=OUT_DIR, sample=sample, tool=current_tools
-              ))
-              final_outputs.extend(expand(
-                  "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_diamond_krona.html",
-                  out_dir=OUT_DIR, sample=sample, tool=current_tools
-              ))
+              #final_outputs.extend(expand(
+              #    "{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_hits_with_lineage.tsv",
+              #    out_dir=OUT_DIR, sample=sample, tool=current_tools
+              #))
+              #final_outputs.extend(expand(
+              #    "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_basta_krona.html",
+              #    out_dir=OUT_DIR, sample=sample, tool=current_tools
+              #))
+              #final_outputs.extend(expand(
+              #    "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_diamond_krona.html",
+              #    out_dir=OUT_DIR, sample=sample, tool=current_tools
+              #))
 
   return final_outputs
 

@@ -27,19 +27,21 @@ sample_list: "accessions.txt"
 ### Modules of Analysis to be requested
 modules: 
   keep_download: true  #Remove data download from SRA (default: false)
+  download_only: true #Only download data from SRA (default: false)
   assembly: false # Perform de novo assembly for reads (default: false)
   kraken2: false #Perform taxonomic assignment for Kraken2 (default: false)
   diamond: false #Perform taxonomic assignment for Diamond against nr5 for Reads(default: false)
   darkmatter: false #Perform palm annot identification (default: false)
-  reads_kraken2: true #Perform reads taxonomic identification (default: false)
-  reads_diamond: true #Perform reads taxonomic identification (default: false)
+  reads_kraken2: false #Perform reads taxonomic identification (default: false)
+  reads_diamond: false #Perform reads taxonomic identification (default: false)
+  
 
 ### De novo tools to be requested
 tool:
   denovo: #select your favorite de novo tools
   # options: 
     - 'spades'    # more resourcers needed, but algorythis to better deal with RNA seq data of Illumina short reads(default)
-    - 'megahit'    # indicated for llumina short reads. Faster, but more error proner
+   #- 'megahit'    # indicated for llumina short reads. Faster, but more error proner
    # - 'flye'       #indicated for nanopore sequencing long reads (>1000 bp per reads)
    # - 'raven'      #indicated for nanopore sequencing. Faster, but more error proner
    # - 'medaka_flye'   #correction to ONP flye assembly
@@ -119,7 +121,7 @@ spades:
     #- '127'           # Maximum value
     #- '111'           # Custom or your choice (https://www.chilimath.com/lessons/introductory-algebra/list-of-odd-numbers)
     #- '21_33'
-    - '21_33_55_77'   # If you have enough coverage (+50x), then you may want to try to set this k-mer lengths
+    #- '21_33_55_77'   # If you have enough coverage (+50x), then you may want to try to set this k-mer lengths
     #- '21_33_55_77_99'
     #- '21_33_55_77_99_111'
     #- '21_33_55_77_99_111_127'
@@ -134,7 +136,7 @@ flye:
   #type: "nano-hq" #ONT high-quality reads: Guppy5+ SUP or Q20 (<5% error)
 
 # Taxonomy by local alignment
-diamond_contig:
+diamond:
   outfmt: 
     #- 0 #BLAST pairwise
     #- 5 #BLAST XML
@@ -145,60 +147,58 @@ diamond_contig:
     #- 103 #PAF
     #- 104 #JSON (flat)
 
-  max_target_seqs: 
-    - 1
-    #- 50
-    #- 10
-  #evalue: 
-    #- 0.00001
-    #- 0.0001
-    #- 0.001
-    #- 0.01
-
-  sensitivity: 
-     #- "--ultra-sensitive"
-     #- "--very-sensitive" #(default)
-     #- "--mid-sensitive"
-     #- "--more-sensitive"
-     - "--sensitive"
-
-# Taxonomy by local alignment
-diamond_reads:
-  outfmt: 
-    #- 0 #BLAST pairwise
-    #- 5 #BLAST XML
-    - 6 #BLAST tabular (default)
-    #- 100 #DIAMOND alignment archive (DAA)
-    #- 101 #SAM
-    #- 102 #Taxonomic classification
-    #- 103 #PAF
-    #- 104 #JSON (flat)
   max_target_seqs: 
     #- 1
-    #- 50
     - 10
-  #evalue: 
+    #- 20
+  
+  evalue: 
     #- 0.00001
     #- 0.0001
-    #- 0.001
+    - 0.001
     #- 0.01
 
   sensitivity: 
-     #- "--ultra-sensitive"
-     #- "--very-sensitive" 
-     #- "--mid-sensitive"
-     #- "--more-sensitive"
-     - "--sensitive" #(default)
+    #- "--ultra-sensitive"
+    #- "--very-sensitive"
+    #- "--mid-sensitive"
+    #- "--more-sensitive"
+    - "--sensitive"
+
 
 #LCA algorythim
 basta:
   classification:
     #values between 51 and 99 BASTA returns the taxonomy that is shared by at least the given percentage of hits. 
-    #- 51    #percentage of best hits 51 (minimum)
+    - 51    #percentage of best hits 51 (minimum)
     #- 75
     #- 99    
-    - 100   #BASTA reads 3 best hits for each query sequence and returns the LCA of all sequences
-  
+    #- 100 
+  identity: #minimum id to diamond hit to consider to lca basta algorythim
+    #- 30
+    - 40
+    #- 50
+    #- 60
+    #- 70
+    #- 80 #basta default
+    #- 90
+    #- 100
+  lengths: #minimum hit length of orf to be considered to basta lca algorythim
+    - 30 #discovir default to calculate lca for small hits
+    #- 40
+    #- 50
+    #- 60
+    #- 70
+    #- 80
+    #- 90
+    #- 100 #basta default
+  min_hits: #minimum number of hits within a sequence to be considered to basta lca algorythim
+    - 1
+    #- 2
+    #- 3 #basta default
+    #- 4
+    #- 5
+
 # Taxonomy by k-mer iddentification
 kraken2:
   confidence: 0.0 #   confidence score threshold (default: 0.0); must be in [0,1]

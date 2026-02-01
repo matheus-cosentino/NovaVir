@@ -19,7 +19,7 @@
 ##################################
 # --- 1. Load Configuration --- #
 #################################
-#configfile: "config/config.yaml"
+configfile: "config/config.yaml"
 
 ###########################################
 # --- 2. Import functions to be used --- #
@@ -143,13 +143,6 @@ include: "rules/krona.smk"
 ##############################################################
 rule all:
     input:
-        # 1. The Aggregate Report
-        os.path.join(OUT_DIR, "multiqc_all", "multiqc_report.html"),
-        
-        # 2. The Per-Sample Reports (Expanded for all samples)
-        expand(os.path.join(OUT_DIR, "{sample}", "multiqc", "multiqc_report.html"), sample=SAMPLE),
-
-        # 3. Module-specific outputs
         get_final_outputs()
 
 onsuccess:

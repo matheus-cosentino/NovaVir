@@ -27,9 +27,9 @@ rule diamond_blastx_contigs:
     log  = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "diamond.log")
   params:
     db = get_diamond_db_name,
-    outfmt = config["diamond_contig"]["outfmt"],
-    max_target_seqs = config["diamond_contig"]["max_target_seqs"],
-    sensitivity=config["diamond_contig"]["sensitivity"]
+    outfmt = config["diamond"]["outfmt"],
+    max_target_seqs = config["diamond"]["max_target_seqs"],
+    sensitivity=config["diamond"]["sensitivity"]
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "diamond_{tool}_{sample}.log")
   conda:
@@ -90,9 +90,9 @@ rule diamond_blastx_reads:
     log  = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "diamond.log")
   params:
     db = get_diamond_db_name,
-    outfmt = config["diamond_reads"]["outfmt"],
-    max_target_seqs = config["diamond_reads"]["max_target_seqs"],
-    sensitivity=config["diamond_reads"]["sensitivity"]
+    outfmt = config["diamond"]["outfmt"],
+    max_target_seqs = config["diamond"]["max_target_seqs"],
+    sensitivity=config["diamond"]["sensitivity"]
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "diamond_reads_{sample}.log")
   conda:

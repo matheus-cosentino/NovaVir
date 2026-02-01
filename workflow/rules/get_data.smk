@@ -37,30 +37,23 @@ rule download_sra_data_paired:
     shadow: 
         "minimal" 
     params:
-        out_dir = config["data_dir"],
-        # FIX 1: Corrected Syntax with f-string
-        tmpdir = lambda wildcards: os.path.join(config["data_dir"], f"tmp_{wildcards.sample}")
+        out_dir = config["data_dir"]
     wildcard_constraints:
         sample = "|".join(PAIRED_SRA) if PAIRED_SRA else "NO_PAIRED_SAMPLES"
     shell:
         """
-        echo "Creating temp dir for download {wildcards.sample}..." > {log}
-        mkdir -p {params.tmpdir}
-
-        echo "Starting PAIRED download for {wildcards.sample}..." >> {log}
-        fasterq-dump --split-files --threads {resources.threads} -O {params.tmpdir} {wildcards.sample} >> {log} 2>&1
-
-        echo "Compressing fastq to fastq.gz..." >> {log}
-        # FIX 3: Target files inside params.tmpdir
-        gzip "{params.tmpdir}/{wildcards.sample}_1.fastq"
-        gzip "{params.tmpdir}/{wildcards.sample}_2.fastq"
+        echo "Starting PAIRED download (Low Disk Mode) for {wildcards.sample}..." > {log}
         
-        echo "Moving files to final destination..." >> {log}
-        mv "{params.tmpdir}/{wildcards.sample}_1.fastq.gz" {output.r1}
-        mv "{params.tmpdir}/{wildcards.sample}_2.fastq.gz" {output.r2}
+        # MUDANÇA CRÍTICA:
+        # Usamos 'fastq-dump' (antigo) em vez de 'fasterq-dump'.
+        # --gzip: Escreve JÁ COMPRIMIDO (economiza muito espaço)
+        # --split-3: Separa R1 e R2 corretamente
         
-        echo "Cleaning up temp dir..." >> {log}
-        rm -rf {params.tmpdir}
+        fastq-dump \
+            --split-3 \
+            --gzip \
+            --outdir {params.out_dir} \
+            {wildcards.sample} >> {log} 2>&1
         """
 
 ##############################################
@@ -78,31 +71,21 @@ rule download_sra_single:
         sample = "|".join(SINGLE_SRA) if SINGLE_SRA else "NO_SINGLE_SAMPLES"
     shadow: 
         "minimal"
-    # FIX 4: Added missing params section
     params:
-        out_dir = config["data_dir"],
-        tmpdir = lambda wildcards: os.path.join(config["data_dir"], f"tmp_{wildcards.sample}")
+        out_dir = config["data_dir"]
     shell:
         """
-        echo "Creating temp dir for download {wildcards.sample}..." > {log}
-        mkdir -p {params.tmpdir}
-
-        echo "Starting SingleEnd download for {wildcards.sample}..." >> {log}
-        fasterq-dump --split-files --threads {resources.threads} -O {params.tmpdir} {wildcards.sample} >> {log} 2>&1
-
-        echo "Compressing and renaming..." >> {log}
+        echo "Starting SINGLE download (Low Disk Mode) for {wildcards.sample}..." > {log}
         
-        # Logic to handle naming variations (sample.fastq vs sample_1.fastq)
-        # Note: We must compress BEFORE moving to .gz output
+        fastq-dump \
+            --gzip \
+            --outdir {params.out_dir} \
+            {wildcards.sample} >> {log} 2>&1
+            
+        # Renomeia se necessário para garantir o padrão _1.fastq.gz se o fastq-dump gerar sem sufixo
+        # O fastq-dump single as vezes gera apenas sample.fastq.gz
         
-        if [ -f "{params.tmpdir}/{wildcards.sample}_1.fastq" ]; then
-            gzip "{params.tmpdir}/{wildcards.sample}_1.fastq"
-            mv "{params.tmpdir}/{wildcards.sample}_1.fastq.gz" {output.r1}
-        elif [ -f "{params.tmpdir}/{wildcards.sample}.fastq" ]; then
-            gzip "{params.tmpdir}/{wildcards.sample}.fastq"
-            mv "{params.tmpdir}/{wildcards.sample}.fastq.gz" {output.r1}
+        if [ -f "{params.out_dir}/{wildcards.sample}.fastq.gz" ]; then
+            mv "{params.out_dir}/{wildcards.sample}.fastq.gz" {output.r1}
         fi
-
-        echo "Cleaning up temp dir..." >> {log}
-        rm -rf {params.tmpdir}
         """
