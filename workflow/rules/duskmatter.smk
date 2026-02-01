@@ -143,9 +143,6 @@ rule fev2tsv_single:
 ##############################################
 # --- 6. Summarize Dusk Matter Findings --- #
 ############################################## 
-##############################################
-# --- 6. Summarize Dusk Matter Findings --- #
-############################################## 
 rule report_summarize:
     input:
         fasta = os.path.join(OUT_DIR, "{sample}", "spades", "kmer_auto", "contigs.fasta"),
