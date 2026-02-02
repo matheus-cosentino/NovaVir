@@ -113,6 +113,7 @@ help(){
    --kraken2            Enable Kraken2 Taxonomy (Default: False)
    --diamond            Enable Diamond Taxonomy (Default: False)
    --darkmatter         Enable Palm Annot / Dark Matter (Default: False)
+   --download-only      Only download data from SRA provided in --sra list (skips analysis)
    --remove-download    Revome downloaded SRA files (Default: Keep)
    --reads-kraken       Enable Kraken2 analysis on reads (Default: Disabled)
    --reads-diamond      Enable Diamond analysis on reads (Default: Disabled)
@@ -294,6 +295,7 @@ mod_diamond="false"
 mod_darkmatter="false"
 mod_reads_kraken2="false"
 mod_reads_diamond="false"
+mod_download_only="false"
 
 # --- Argument Parsing --- #
 while [[ $# -gt 0 ]]; do
@@ -316,7 +318,8 @@ while [[ $# -gt 0 ]]; do
         --kraken2) mod_kraken2="true"; shift ;;
         --diamond) mod_diamond="true"; shift ;;
         --darkmatter) mod_darkmatter="true"; shift ;;
-        
+        --download-only) mod_download_only="true" ; mod_keep_download="true"; shift ;;
+
         # --- Negative Flags ---
         --remove-download) mod_keep_download="false"; shift ;;
         --reads-kraken) mod_reads_kraken2="true"; shift ;;
@@ -369,6 +372,7 @@ default-resources:
   
 modules:
   keep_download: $mod_keep_download
+  download_only: $mod_download_only
   assembly: $mod_assembly
   kraken2: $mod_kraken2
   diamond: $mod_diamond
