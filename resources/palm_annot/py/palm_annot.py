@@ -140,7 +140,7 @@ def MakeTmp(Name):
 
 CleanFN = MakeTmp("clean")
 
-CmdLine = RepoDir + "/py/fasta_clean.py"
+CmdLine = sys.executable + " " + RepoDir + "/py/fasta_clean.py"
 CmdLine += " --input " + Args.input
 CmdLine += " --output " + CleanFN
 CmdLine += " --white " + Args.white
@@ -182,7 +182,7 @@ if Args.keeptmp == "yes":
 	CmdLine += "  -log " + LogFN
 Exec(CmdLine)
 
-CmdLine = RepoDir + "py/palm_hmm_motif_search.py"
+CmdLine = sys.executable + " " + RepoDir + "/py/palm_hmm_motif_search.py"
 CmdLine += " --input " + AaFN
 CmdLine += " --fev " + HMM_motif_fev
 CmdLine += " --tmpdir " + TmpDir
@@ -190,7 +190,7 @@ if not Args.threads is None:
 	CmdLine += "  --threads %d" % Args.threads
 Exec(CmdLine)
 
-CmdLine = RepoDir + "py/palm_hmm_search.py"
+CmdLine = sys.executable + " " + RepoDir + "/py/palm_hmm_search.py"
 CmdLine += " --input " + AaFN
 CmdLine += " --fev " + HMM_pm_fev
 CmdLine += " --tmpdir " + TmpDir
@@ -198,7 +198,7 @@ if not Args.threads is None:
 	CmdLine += "  --threads %d" % Args.threads
 Exec(CmdLine)
 
-CmdLine = RepoDir + "py/palm_diamond_motif_search.py"
+CmdLine = sys.executable + " " + RepoDir + "/py/palm_diamond_motif_search.py"
 CmdLine += " --input " + AaFN
 CmdLine += " --fev " + Dmnd_fev
 CmdLine += " --tmpdir " + TmpDir

@@ -4,7 +4,7 @@ import subprocess
 import os
 import sys
 
-s = snakemake 
+s = snakemake
 palm_dir_raw = s.params.palm_annot_dir
 # Garante que seja string mesmo se vier como lista do config
 palm_dir = str(palm_dir_raw[0]) if isinstance(palm_dir_raw, list) else str(palm_dir_raw)
@@ -31,20 +31,13 @@ command = [
     "--minpssmscore", str(s.params.minpssmscore)
 ]
 
-# --- 3. Set the Custom PATH Environment Variable ---
-# This is still necessary for any *other* executables PALM may call
-new_path = f"{palm_dir}/bin:{palm_dir}/py:{os.environ.get('PATH', '')}"
-env_vars = os.environ.copy()
-env_vars['PATH'] = new_path
-
-# --- 4. Execute the Command ---
+# --- 3. Execute the Command ---
 with open(log_file, "w") as log_handle:
     try:
         subprocess.run(
             command,
             check=True,
-            stderr=log_handle,
-            env=env_vars
+            stderr=log_handle
         )
     except subprocess.CalledProcessError as e:
         print(f"PALM annotation failed with exit code: {e.returncode}", file=sys.stderr)
