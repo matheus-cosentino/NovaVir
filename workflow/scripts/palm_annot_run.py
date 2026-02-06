@@ -37,6 +37,7 @@ new_path = f"{palm_dir}/bin:{palm_dir}/py:{os.environ.get('PATH', '')}"
 env_vars = os.environ.copy()
 env_vars['PATH'] = new_path
 
+
 # --- 4. Execute the Command ---
 with open(log_file, "w") as log_handle:
     try:
