@@ -365,7 +365,7 @@ def identify_data_type(sample_list, data_dir):
     """
     sample_meta = {}
     
-    print(f"[INFO] Checking input availability for {len(sample_list)} samples...")
+    #print(f"[INFO] Checking input availability for {len(sample_list)} samples...")
 
     for sample in sample_list:
         # 1. Definição de caminhos esperados (Prioridade de checagem)
@@ -424,13 +424,13 @@ def identify_data_type(sample_list, data_dir):
             layout = get_sra_layout(sample)
             
             if layout == 'SINGLE':
-                print(f"[INFO] {sample} identified as SRA SINGLE END.")
+                #print(f"[INFO] {sample} identified as SRA SINGLE END.")
                 # We use SRA mode but only list 1 file. 
                 # This will trigger fastp_unpaired.
                 sample_meta[sample] = {'mode': 'SRA', 'files': [future_r1]}
                 SINGLE_SRA.append(sample)
             else:
-                print(f"[INFO] {sample} identified as SRA PAIRED END.")
+                #print(f"[INFO] {sample} identified as SRA PAIRED END.")
                 sample_meta[sample] = {'mode': 'SRA', 'files': [future_r1, future_r2]}
                 PAIRED_SRA.append(sample)
 

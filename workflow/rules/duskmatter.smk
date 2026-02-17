@@ -110,6 +110,7 @@ rule palm_annot:
   output:
     fev  = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_RdRp.fev"),
     rdrp = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_RdRp.fasta")
+  container: "docker://ubuntu:22.04"
   params:
     seqtype = config["palm_annot"]["seqtype"],
     minscore = config["palm_annot"]["minscore"],

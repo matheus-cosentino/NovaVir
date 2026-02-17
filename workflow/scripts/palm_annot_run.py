@@ -31,7 +31,18 @@ command = [
     "--minpssmscore", str(s.params.minpssmscore)
 ]
 
+<<<<<<< HEAD
 # --- 3. Execute the Command ---
+=======
+# --- 3. Set the Custom PATH Environment Variable ---
+# This is still necessary for any *other* executables PALM may call
+new_path = f"{palm_dir}/bin:{palm_dir}/py:{os.environ.get('PATH', '')}"
+env_vars = os.environ.copy()
+env_vars['PATH'] = new_path
+
+
+# --- 4. Execute the Command ---
+>>>>>>> b490abfa4c6c42f3c0bcec2d6f21b0f0bc0fc077
 with open(log_file, "w") as log_handle:
     try:
         subprocess.run(
