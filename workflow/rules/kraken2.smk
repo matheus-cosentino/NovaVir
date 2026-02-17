@@ -91,7 +91,7 @@ rule kraken2_reads_paired:
       KRAKEN2        
     shell:
       """
-      cat {input.r1} {input.r2} {input.extra} > v
+      cat {input.r1} {input.r2} {input.extra} > {params.int_file}
       kraken2 \
       --db {params.db} \
       --confidence {params.confidence} \
@@ -99,7 +99,7 @@ rule kraken2_reads_paired:
       --threads {resources.threads} \
       --memory-mapping \
       --output {output.out} \
-     {params.int_file} \
+      {params.int_file} \
       > {log} 2>&1
       """
 
