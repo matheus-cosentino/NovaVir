@@ -83,13 +83,15 @@ rule kraken2_reads_paired:
     params:
       #db=f"{workflow.basedir}/{config["resources"]["kraken2"]}",
       db=config["resources"]["kraken2"],        
-      confidence=config["kraken2"]["confidence"]
+      confidence=config["kraken2"]["confidence"],
+      int_file=temp(os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}.fastq.gz"))
     log:
       "{out_dir}/{sample}/log/kraken2_paired_reads_{sample}.log"
     conda:
       KRAKEN2        
     shell:
       """
+      cat {input.r1} {input.r2} {input.extra} > v
       kraken2 \
       --db {params.db} \
       --confidence {params.confidence} \
@@ -97,7 +99,7 @@ rule kraken2_reads_paired:
       --threads {resources.threads} \
       --memory-mapping \
       --output {output.out} \
-      {input.r1} {input.r2} {input.extra} \
+     {params.int_file} \
       > {log} 2>&1
       """
 
