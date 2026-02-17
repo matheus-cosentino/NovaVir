@@ -91,7 +91,7 @@ resources:
 # QC
 fastp:
   length_required: 
-    - 15 #illlumina adapters expected
+    - 50 #illlumina adapters expected
     #- 500 #nanopore conservative size for low reads
   qualified_quality_phred: 
     - 30 #illumina paired end
@@ -121,7 +121,7 @@ spades:
     #- '127'           # Maximum value
     #- '111'           # Custom or your choice (https://www.chilimath.com/lessons/introductory-algebra/list-of-odd-numbers)
     #- '21_33'
-    #- '21_33_55_77'   # If you have enough coverage (+50x), then you may want to try to set this k-mer lengths
+    - '21_33_55'   # If you have enough coverage (+50x), then you may want to try to set this k-mer lengths
     #- '21_33_55_77_99'
     #- '21_33_55_77_99_111'
     #- '21_33_55_77_99_111_127'
