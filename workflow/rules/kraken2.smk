@@ -60,7 +60,7 @@ rule kraken_biom_contig:
         minimum = config["kraken_biom"]["min"],
         out_format = config["kraken_biom"]["format"]
     conda:
-        KRAKEN2 
+        KRAKEN2_BIOM 
     shell:
         """
         kraken-biom \
