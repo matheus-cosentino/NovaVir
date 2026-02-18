@@ -148,8 +148,8 @@ diamond:
     #- 104 #JSON (flat)
 
   max_target_seqs: 
-    #- 1
-    - 10
+    - 1
+    #- 10
     #- 20
   
   evalue: 
