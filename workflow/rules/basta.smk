@@ -65,6 +65,8 @@ rule basta_search:
         identity=config["basta"]["identity"],
         lengths=config["basta"]["lengths"],
         min_hits= config["basta"]["min_hits"]    
+    resources:
+        basta_db_lock = 1
     conda: 
         BASTA
     log:
