@@ -27,8 +27,6 @@ rule basta_download_mapping:
         os.path.join(OUT_DIR, "log", "basta_download_mapping.log")
     shell:
         """
-        # O comando basta download cria os arquivos automaticamente.
-        # Se os arquivos output.db e output.gz já existirem, o Snakemake nem entra aqui.
         basta download prot -d {params.tax_dir} > {log} 2>&1
         """
 
