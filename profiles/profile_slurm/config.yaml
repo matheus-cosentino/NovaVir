@@ -38,13 +38,11 @@ show-failed-logs: true
 
 default-resources:
   slurm_account: transvihmi
-  #slurm_partition: short
   tmpdir: /scratch-ib
-  #tmpdir: /scratch
   threads: 2
   mem_mb: 8000
-  #runtime: 4320
   constraint: infiniband
+  basta_db_lock: 1
 
 
 #######################################
@@ -89,6 +87,7 @@ set-resources:
   basta_search:
     mem_mb: 60000
     threads: 12
+    basta_db_lock: 1
   krona_update_taxonomy:
     mem_mb: 32000
     threads: 8
