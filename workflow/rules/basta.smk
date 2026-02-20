@@ -18,7 +18,7 @@
 rule basta_download_mapping:
     output:
         db = protected(os.path.join(BASTA_DB_DIR[0], "prot_mapping.db")),
-        #gz = protected(os.path.join(BASTA_DB_DIR[0], "prot.accession2taxid.gz"))
+        gz = protected(os.path.join(BASTA_DB_DIR[0], "prot.accession2taxid.gz"))
     params:
         tax_dir=BASTA_DB_DIR[0]
     conda:
@@ -35,8 +35,8 @@ rule basta_download_mapping:
 rule basta_download_taxonomy:
     output:
         db    = protected(os.path.join(BASTA_DB_DIR[0], "complete_taxa.db")),
-        #names = protected(os.path.join(BASTA_DB_DIR[0], "names.dmp")),
-        #nodes = protected(os.path.join(BASTA_DB_DIR[0], "nodes.dmp"))
+        names = protected(os.path.join(BASTA_DB_DIR[0], "names.dmp")),
+        nodes = protected(os.path.join(BASTA_DB_DIR[0], "nodes.dmp"))
     params:
         tax_dir = BASTA_DB_DIR[0]
     conda:
