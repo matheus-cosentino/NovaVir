@@ -18,14 +18,39 @@
 #################################################
 # --- 1. Map Proteins Id Diamond for Taxid --- #
 ################################################ 
+rule download_prot:
+  """
+  Download Protein acc to taxid data
+  """
+  output:
+    gz = protected(os.path.join(TAXONOMY_DIR[0], "prot.accession2taxid.gz")),
+    nodes = protected(os.path.join(TAXONOMY_DIR[0], "nodes.dmp")),
+    names = protected(os.path.join(TAXONOMY_DIR[0], "names.dmp"))
+  log:
+    os.path.join(OUT_DIR, "log", "tax_download_mapping.log")
+  params:
+    taxon_gz = protected(os.path.join(TAXONOMY_DIR[0], "taxdump.tar.gz")),
+    #tax_dir = TAXONOMY_DIR[0]
+  conda:
+    DOWNLOAD
+  shell:
+    """
+    wget -c https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.gz -O {output.gz} 2> {log}
+    wget -c https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz -O {params.taxon_gz} 2>> {log}
+    tar -zxvf {params.taxon_gz} -C {TAXONOMY_DIR[0]} names.dmp nodes.dmp 2>> {log}
+    """
 
+
+#################################################
+# --- 2. Map Proteins Id Diamond for Taxid --- #
+################################################ 
 rule map_accession_to_taxid:
     """
     Maps protein IDs (Subject ID, column 2 of DIAMOND) to TaxIDs.
     """
     input:
         hit_file = os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt"),
-        taxid_map = rules.basta_download_mapping.output.gz
+        taxid_map = rules.download_prot.output.gz
     output:
         ids = os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_hits_with_taxid.tmp")
     shadow: 
@@ -37,7 +62,7 @@ rule map_accession_to_taxid:
 
 
 ##################################################
-# --- 2. Split Hits for Taxid and Not Found --- #
+# --- 3. Split Hits for Taxid and Not Found --- #
 ################################################# 
 rule split_hits_by_taxid:
     """
@@ -75,7 +100,9 @@ rule split_hits_by_taxid:
         """
 
 
-# 3. Append Lineage to Diamond Results
+##################################################
+# --- 3. Split Hits for Taxid and Not Found --- #
+################################################# 
 rule append_lineage:
     input:
         valid_hits = rules.split_hits_by_taxid.output.valid_hits

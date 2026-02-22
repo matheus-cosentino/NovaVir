@@ -34,6 +34,7 @@ modules:
   darkmatter: false #Perform palm annot identification (default: false)
   reads_kraken2: false #Perform reads taxonomic identification (default: false)
   reads_diamond: false #Perform reads taxonomic identification (default: false)
+  basta: false #perform basta LCA Algo
   
 
 ### De novo tools to be requested
@@ -69,11 +70,14 @@ envs:
 ### databases and resources for the workflow
 resources:
   diamond: 
-   #diamond workflow used for the database
-   - "resources/diamond/" 
-   #kraken2 folder with all the files
+  #diamond workflow used for the database
+   - "resources/diamond" 
+  #kraken2 folder with all the files
   kraken2: 
-   - "resources/kraken2/" 
+   - "resources/kraken2"
+  # prot2taxid info
+  taxonomy:
+   - "resources/taxonomy"
   basta_db:
     - "resources/basta_db"
   #palm annot resources

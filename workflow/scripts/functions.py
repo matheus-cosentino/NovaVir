@@ -104,15 +104,32 @@ def get_final_outputs():
         final_outputs.extend(expand("{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Report_Diversity.html", 
                 out_dir=OUT_DIR, sample=sample, tool=current_tools))
 
-  # 4. Reads (Diamond & Basta)
+  # 4. Reads (Diamond)
   if MODULES["reads_diamond"]:
-    final_outputs.extend(expand("{out_dir}/{sample}/basta_reads/{sample}_reads_lca.tsv", out_dir=OUT_DIR, sample=SAMPLE))
-    #final_outputs.extend(expand("{out_dir}/{sample}/diamond_reads/{sample}_reads_hits_with_lineage.tsv", out_dir=OUT_DIR, sample=SAMPLE))
-    final_outputs.extend(expand("{out_dir}/{sample}/krona_reads/{sample}_reads_basta_krona.html", out_dir=OUT_DIR, sample=SAMPLE))
-    #final_outputs.extend(expand("{out_dir}/{sample}/krona_reads/{sample}_reads_diamond_krona.html", out_dir=OUT_DIR, sample=SAMPLE))
-    final_outputs.append(expand("{out_dir}/basta_all/Basta_Rarefaction_Curve.pdf", out_dir=OUT_DIR))
+    final_outputs.extend(expand("{out_dir}/{sample}/diamond_reads/{sample}_reads_hits_with_lineage.tsv", out_dir=OUT_DIR, sample=SAMPLE))
+    final_outputs.extend(expand("{out_dir}/{sample}/krona_reads/{sample}_reads_diamond_krona.html", out_dir=OUT_DIR, sample=SAMPLE))
 
-  # 5. Reads (Kraken2)
+  #5. Basta (LCA Algorythim)
+  if MODULES["basta"]:
+    final_outputs.extend(expand("{out_dir}/{sample}/basta_reads/{sample}_reads_lca.tsv", out_dir=OUT_DIR, sample=SAMPLE))
+    final_outputs.extend(expand("{out_dir}/{sample}/krona_reads/{sample}_reads_basta_krona.html", out_dir=OUT_DIR, sample=SAMPLE))
+    final_outputs.append(expand("{out_dir}/basta_all/Basta_Rarefaction_Curve.pdf", out_dir=OUT_DIR))
+    for sample, meta in SAMPLE_META.items():
+        current_tools = []
+        if meta['mode'] == 'CONTIGS':
+            current_tools.append(PRE_ASSEMBLED_LABEL)
+        else:
+            for tool in assembler_list:
+                if tool == "spades":
+                    kmer_list = config["spades"]["kmer"]
+                    for k in kmer_list:
+                        current_tools.append(f"spades_k{k}")
+                else:
+                    current_tools.append(tool)
+        final_outputs.extend(expand("{out_dir}/{sample}/basta_{tool}/{sample}_{tool}_lca.tsv",out_dir=OUT_DIR, sample=sample, tool=current_tools))
+        final_outputs.extend(expand("{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_basta_krona.html",out_dir=OUT_DIR, sample=sample, tool=current_tools))
+
+  # 6. Reads (Kraken2)
   if MODULES["reads_kraken2"]:
     for sample in SAMPLE:
         meta = SAMPLE_META.get(sample)
@@ -151,22 +168,8 @@ def get_final_outputs():
 
           # 7. Contigs (Diamond)
           if MODULES["diamond"]:
-              final_outputs.extend(expand(
-                  "{out_dir}/{sample}/basta_{tool}/{sample}_{tool}_lca.tsv",
-                  out_dir=OUT_DIR, sample=sample, tool=current_tools
-              ))
-              #final_outputs.extend(expand(
-              #    "{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_hits_with_lineage.tsv",
-              #    out_dir=OUT_DIR, sample=sample, tool=current_tools
-              #))
-              #final_outputs.extend(expand(
-              #    "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_basta_krona.html",
-              #    out_dir=OUT_DIR, sample=sample, tool=current_tools
-              #))
-              #final_outputs.extend(expand(
-              #    "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_diamond_krona.html",
-              #    out_dir=OUT_DIR, sample=sample, tool=current_tools
-              #))
+              final_outputs.extend(expand("{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_hits_with_lineage.tsv", out_dir=OUT_DIR, sample=sample, tool=current_tools))
+              final_outputs.extend(expand("{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_diamond_krona.html",out_dir=OUT_DIR, sample=sample, tool=current_tools))
 
   return final_outputs
 

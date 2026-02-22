@@ -293,6 +293,7 @@ mod_assembly="false"
 mod_kraken2="false"
 mod_diamond="false"
 mod_darkmatter="false"
+mod_basta="false"
 mod_reads_kraken2="false"
 mod_reads_diamond="false"
 mod_download_only="false"
@@ -318,6 +319,7 @@ while [[ $# -gt 0 ]]; do
         --kraken2) mod_kraken2="true"; shift ;;
         --diamond) mod_diamond="true"; shift ;;
         --darkmatter) mod_darkmatter="true"; shift ;;
+        --basta) mod_basta="true"; shift ;;
         --download-only) mod_download_only="true" ; mod_keep_download="true"; shift ;;
 
         # --- Negative Flags ---
