@@ -146,9 +146,9 @@ rule fev2tsv_single:
 ############################################## 
 rule report_summarize:
     input:
-        fasta = os.path.join(OUT_DIR, "{sample}", "spades", "kmer_auto", "contigs.fasta"),
-        # MUDANÇA: Usamos o output do BASTA (lca.tsv) em vez do Diamond Lineage
-        basta_lca = os.path.join(OUT_DIR, "{sample}", "basta_{tool}", "{sample}_{tool}_lca.tsv"),
+        fasta = os.path.join(OUT_DIR, "{sample}", "spades", "kmer_auto", "contigs.fasta"), 
+        lineages = os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_hits_with_lineage.tsv")
+        #basta_lca = os.path.join(OUT_DIR, "{sample}", "basta_{tool}", "{sample}_{tool}_lca.tsv"),
         dusk = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_RdRp.tsv")
     output:
         html = os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}", "{sample}_Report_Diversity.html")
@@ -166,7 +166,7 @@ rule report_summarize:
         Rscript workflow/scripts/generate_report.R \
             --sample_name {wildcards.sample} \
             --fasta_path {input.fasta} \
-            --diamond_path {input.basta_lca} \
+            --diamond_path {input.lineages} \
             --duskmatter_path {input.dusk} \
             --output_dir {params.out_dir} \
             --report_name $(basename {output.html}) \
