@@ -106,22 +106,23 @@ rule krona_reads_kraken:
         rm -rf $TMP_DB
         """
 
-rule krona_basta:
-    input:
-        lca = os.path.join(OUT_DIR, "{sample}", "basta_{source}", "{sample}_{source}_lca.tsv")
-    output:
-        html = os.path.join(OUT_DIR, "{sample}", "krona_{source}", "{sample}_{source}_basta_krona.html")
-    conda:
-        KRONA
-    log:
-        os.path.join(OUT_DIR, "{sample}", "log", "krona_basta_{source}_{sample}.log")
-    shell:
-        """
-        cut -f 2 {input.lca} | \
-        sed 's/; /\\t/g' | \
-        ktImportText -o {output.html} - \
-        > {log} 2>&1
-        """
+if config["modules"]["basta"]:
+    rule krona_basta:
+        input:
+            lca = os.path.join(OUT_DIR, "{sample}", "basta_{source}", "{sample}_{source}_lca.tsv")
+        output:
+            html = os.path.join(OUT_DIR, "{sample}", "krona_{source}", "{sample}_{source}_basta_krona.html")
+        conda:
+            KRONA
+        log:
+            os.path.join(OUT_DIR, "{sample}", "log", "krona_basta_{source}_{sample}.log")
+        shell:
+            """
+            cut -f 2 {input.lca} | \
+            sed 's/; /\\t/g' | \
+            ktImportText -o {output.html} - \
+            > {log} 2>&1
+            """
 
 rule krona_diamond_reads:
     input:

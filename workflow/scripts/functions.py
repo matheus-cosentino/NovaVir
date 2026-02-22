@@ -710,6 +710,8 @@ def get_all_kraken_reports(wildcards):
     return paths
 
 def get_all_basta_read_outputs(wildcards):
+    if not MODULES["basta"]:
+        return []
     paths = []
     for s in SAMPLE:
         meta = SAMPLE_META.get(s)
