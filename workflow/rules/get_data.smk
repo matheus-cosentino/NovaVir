@@ -51,7 +51,6 @@ rule download_sra_data_paired:
         
         fasterq-dump \
             --split-3 \
-            --gzip \
             --outdir {params.out_dir} \
             {wildcards.sample} >> {log} 2>&1
         """
@@ -78,7 +77,6 @@ rule download_sra_single:
         echo "Starting SINGLE download (Low Disk Mode) for {wildcards.sample}..." > {log}
         
         fasterq-dump \
-            --gzip \
             --outdir {params.out_dir} \
             {wildcards.sample} >> {log} 2>&1
             

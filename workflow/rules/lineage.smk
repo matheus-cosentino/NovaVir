@@ -111,7 +111,7 @@ rule append_lineage:
     params:
         base_header="qseqid\tsseqid\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore\tTaxid",
         lineage_header="Lineage\tCelular\tAcelular\tRealm\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies",
-        nodes=os.path.join(BASTA_DB_DIR[0], "nodes.dmp")
+        nodes=os.path.join(TAXONOMY_DIR[0], "nodes.dmp")
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_diamond_lineages.log")
     conda:
