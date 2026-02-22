@@ -80,14 +80,14 @@ The following must appear on your screen:
 
  Module Toggles (Enable/Disable Analysis):
    
-- **`--reads-kraken`** <font size="2">*(Default: `False`)*</font>: Enables taxonomic classification of raw reads using Kraken2. This is useful for getting a quick overview of the taxonomic composition of your samples.
-- **`--reads-diamond`** <font size="2">*(Default: `False`)*</font>: Enables taxonomic classification of raw reads using DIAMOND. This is a more sensitive alternative to Kraken2, but it is also more computationally intensive.
-- **`--assembly`** <font size="2">*(Default: `False`)*</font>: Enable *de novo* assembly of reads into contigs. This is a core step for viral discovery.
-- **`--kraken2`** <font size="2">*(Default: `False`)*</font>: Enable taxonomic classification of assembled contigs using Kraken2.
-- **`--diamond`** <font size="2">*(Default: `False`)*</font>: Enable taxonomic classification of assembled contigs using DIAMOND. This is the main approach for identifying viral contigs.
-- **`--darkmatter`** <font size="2">*(Default: `False`)*</font>: Enable the "dark matter" discovery module, which searches for novel viruses in the contigs that were not identified by DIAMOND. This module uses the `palm_annot` tool to search for RdRp signatures.
-- **`--basta`** <font size="2">*(Default: `False`)*</font>: Enable BASTA taxonomic classification of assembled contigs.
-- **`--remove-download`** <font size="2">*(Default: `False`)*</font>: Remove the SRA files after they are downloaded. This is useful for saving disk space.
+- **`--reads-kraken`**: Enables taxonomic classification of raw reads using Kraken2.
+- **`--reads-diamond`**: Enables taxonomic classification of raw reads using DIAMOND.
+- **`--assembly`**: Enables *de novo* assembly of reads into contigs.
+- **`--kraken2`**: Enables taxonomic classification of assembled contigs using Kraken2.
+- **`--diamond`**: Enables taxonomic classification of assembled contigs using DIAMOND.
+- **`--darkmatter`**: Enables the "dark matter" module to search for RdRp signatures.
+- **`--basta`**: Enables BASTA taxonomic classification of assembled contigs.
+- **`--remove-download`**: Removes SRA files after download.
 
  
  Flags:
