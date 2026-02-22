@@ -7,8 +7,5 @@ dependencies:
   - hmmer=3.4
   - emboss=6.6.0
   - cd-hit=4.8.1
-<<<<<<< HEAD
   - diamond=2.1.13
   - python=3.10
-=======
->>>>>>> b490abfa4c6c42f3c0bcec2d6f21b0f0bc0fc077
