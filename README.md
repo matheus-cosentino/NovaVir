@@ -86,6 +86,7 @@ The following must appear on your screen:
 - **`--kraken2`** <font size="2">*(Default: `False`)*</font>: Enable taxonomic classification of assembled contigs using Kraken2.
 - **`--diamond`** <font size="2">*(Default: `False`)*</font>: Enable taxonomic classification of assembled contigs using DIAMOND. This is the main approach for identifying viral contigs.
 - **`--darkmatter`** <font size="2">*(Default: `False`)*</font>: Enable the "dark matter" discovery module, which searches for novel viruses in the contigs that were not identified by DIAMOND. This module uses the `palm_annot` tool to search for RdRp signatures.
+- **`--basta`** <font size="2">*(Default: `False`)*</font>: Enable BASTA taxonomic classification of assembled contigs.
 - **`--remove-download`** <font size="2">*(Default: `False`)*</font>: Remove the SRA files after they are downloaded. This is useful for saving disk space.
 
  
