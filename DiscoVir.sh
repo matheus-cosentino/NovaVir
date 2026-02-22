@@ -379,6 +379,7 @@ modules:
   kraken2: $mod_kraken2
   diamond: $mod_diamond
   darkmatter: $mod_darkmatter
+  basta: $mod_basta
   reads_kraken2: $mod_reads_kraken2
   reads_diamond: $mod_reads_diamond
 EOF
