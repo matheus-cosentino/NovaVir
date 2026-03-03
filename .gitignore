@@ -20,9 +20,10 @@ data/
 # ignore paper folder
 paper/
 #ignore slurm tests
-slurm_scripts/
+slurm_scripts/*
 slurm_scripts/crab_discovir.slurm
 slurm_scripts/itro_discovir.slurm
 slurm_scripts/crab_discovir.slurm
 
- workflow/scripts/__pycache__/functions.cpython-313.pyc
+workflow/scripts/__pycache__/functions.cpython-313.pyc
+

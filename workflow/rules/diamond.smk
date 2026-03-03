@@ -16,10 +16,8 @@
 ###################################################################################
 
 rule diamond_blastx_contigs:
-  # Permite ferramentas padrão E k-mers (ex: spades_kauto, spades_k21)
   wildcard_constraints:
     tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
-    
   input:
     contigs = get_contigs_path
   output:
@@ -29,34 +27,32 @@ rule diamond_blastx_contigs:
     db = get_diamond_db_name,
     outfmt = config["diamond"]["outfmt"],
     max_target_seqs = config["diamond"]["max_target_seqs"],
-    sensitivity=config["diamond"]["sensitivity"]
+    sensitivity = config["diamond"]["sensitivity"]
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "diamond_{tool}_{sample}.log")
   conda:
     DIAMOND
   shell:
     """
-    # Force creation of the log file immediately to satisfy Snakemake's file check
-    mkdir -p $(dirname {log})
-    touch {log} 
-
-    # Buffer output to a temporary file first to avoid file locking issues on network drives
-    TMP_LOG=$(mktemp)
-
-    echo "[INFO] Starting Diamond BlastX for Contigs..." > "$TMP_LOG"
-    echo "[INFO] Input: {input.contigs}" >> "$TMP_LOG"
+    exec > {log} 2>&1  # Tudo a partir daqui vai para o log automaticamente
     
-    # DB Check
+    echo "[INFO] Starting Diamond BlastX for Contigs..."
+    echo "[INFO] Input: {input.contigs}"
+    
     DB_PATH="resources/diamond/{params.db}"
     
+    # Checagem extra de versão (ajuda muito no debug)
+    echo "[INFO] Diamond Version:"
+    diamond --version
+    
     if [ ! -f "$DB_PATH" ] && [ ! -f "$DB_PATH.dmnd" ]; then
-        echo "[ERROR] Diamond database not found at: $DB_PATH" >> {log}
-        ls -l resources/diamond/ >> {log} 2>&1
+        echo "[ERROR] Diamond database not found at: $DB_PATH"
         exit 1
     fi
 
-    echo "[INFO] DB: $DB_PATH" >> {log}
-    # Run Diamond
+    echo "[INFO] DB: $DB_PATH"
+    
+    # Execução direta (sem TMP_LOG para não perder o erro em caso de crash)
     diamond blastx \
       --query {input.contigs} \
       --db "$DB_PATH" \
@@ -65,19 +61,9 @@ rule diamond_blastx_contigs:
       --outfmt {params.outfmt} \
       --max-target-seqs {params.max_target_seqs} \
       {params.sensitivity} \
-      >> "$TMP_LOG" 2>&1
+      --log
     
-    EXIT_CODE=$?
-
-    # Move temp log to final destination
-    cat "$TMP_LOG" > {log}
-    rm "$TMP_LOG"
-    
-    # Also copy to the output.log defined in the rule
     cp {log} {output.log}
-
-    # Exit with the actual diamond exit code
-    exit $EXIT_CODE
     """
 
 rule diamond_blastx_reads:
