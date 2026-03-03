@@ -106,7 +106,7 @@ spades:
   algorithm:
    #- '--isolate'     # Highly recommended for high-coverage isolate and multi-cell data
    #- '--sc'          # Required for MDA (single-cell) data
-   #- '--meta'        # Required for metagenomic data. Currently metaSPAdes supports only a single short-read library which has to be paired-end
+   - '--meta'        # Required for metagenomic data. Currently metaSPAdes supports only a single short-read library which has to be paired-end
    #- '--bio'         # Required for biosyntheticSPAdes mode
    #- '--corona'      # Required for coronaSPAdes mode, a special mode of rnaviralSPAdes specifically aimed for SARS-CoV-2 de novo assembly
    #- '--rna'         # Required for RNA-Seq data
@@ -116,7 +116,7 @@ spades:
                       # They run similar pipelines that slightly differ in the simplification step.
                       # Another difference is that for metaviral mode we output linear putative extrachromosomal contigs (unlike for metaplasmid mode).
    #- '--metaplasmid' # Runs metaplasmidSPAdes pipeline for plasmid detection in metagenomic datasets (equivalent for --meta --plasmid)
-   - '--rnaviral'    # Enables virus assembly with a de novo assembler tailored for RNA viral datasets (transcriptome, metatranscriptome and metavirome) 
+   #- '--rnaviral'    # Enables virus assembly with a de novo assembler tailored for RNA viral datasets (transcriptome, metatranscriptome and metavirome) 
 
   kmer:               # list of k-mer sizes, must be odd and less than 128 (Default: 21,33,55)
     - 'auto'          # SPAdes works by building de Bruijngraphs for several values of k. Let its “machine learning” choose the best values to use.
@@ -124,8 +124,8 @@ spades:
     #- '33'
     #- '127'           # Maximum value
     #- '111'           # Custom or your choice (https://www.chilimath.com/lessons/introductory-algebra/list-of-odd-numbers)
-    #- '21_33'
-    - '21_33_55'   # If you have enough coverage (+50x), then you may want to try to set this k-mer lengths
+    - '21_33'
+    #- '21_33_55'   # If you have enough coverage (+50x), then you may want to try to set this k-mer lengths
     #- '21_33_55_77_99'
     #- '21_33_55_77_99_111'
     #- '21_33_55_77_99_111_127'
