@@ -285,7 +285,7 @@ set -e -o pipefail
 input="data"
 jobs=15
 profile="profile_slurm"
-temp_dir="/tmp"
+temp_dir="/scratch-ib"
 
 # Module Defaults (Must match the keys in your config.yaml)
 mod_keep_download="true"   # lowercase for yaml
