@@ -34,14 +34,12 @@ rule diamond_blastx_contigs:
     DIAMOND
   shell:
     """
-    exec > {log} 2>&1  # Tudo a partir daqui vai para o log automaticamente
-    
+    exec > {log} 2>&1    
     echo "[INFO] Starting Diamond BlastX for Contigs..."
     echo "[INFO] Input: {input.contigs}"
     
     DB_PATH="resources/diamond/{params.db}"
     
-    # Checagem extra de versão (ajuda muito no debug)
     echo "[INFO] Diamond Version:"
     diamond --version
     
@@ -49,11 +47,9 @@ rule diamond_blastx_contigs:
         echo "[ERROR] Diamond database not found at: $DB_PATH"
         exit 1
     fi
-
     echo "[INFO] DB: $DB_PATH"
     
-    # Execução direta (sem TMP_LOG para não perder o erro em caso de crash)
-    diamond blastx \
+     diamond blastx \
       --query {input.contigs} \
       --db "$DB_PATH" \
       --out {output.hits} \
