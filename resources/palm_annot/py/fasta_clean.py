@@ -8,6 +8,7 @@ Usage = \
 import sys
 import argparse
 import fasta
+import re
 
 AP = argparse.ArgumentParser(description = Usage)
 
@@ -112,10 +113,9 @@ def OnSeq(Label, Seq):
 				break
 	assert FixedLabel not in LabelSet
 	LabelSet.add(FixedLabel)
-	Seq = Seq.replace("*", "X")
-	Seq = Seq.replace(".", "X")
-	Seq = Seq.replace("?", "X")
-	fasta.WriteSeq(fOut, Seq, FixedLabel)
+	# Replace any non-alphabetic characters with 'X' and convert to uppercase.
+	Seq = re.sub(r'[^a-zA-Z]', 'X', Seq)
+	fasta.WriteSeq(fOut, Seq.upper(), FixedLabel)
 
 fasta.ReadSeqsOnSeq(InputFileName, OnSeq)
 
