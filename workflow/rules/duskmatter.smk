@@ -145,7 +145,7 @@ rule fev2tsv_single:
 ############################################## 
 rule report_summarize:
     input:
-        contigs = get_contigs_path,
+        fasta = get_contigs_path,
         lineages = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_lineage.tsv"),
         #basta_lca = os.path.join(OUT_DIR, "{sample}", "basta_{tool}", "{sample}_{tool}_lca.tsv"),
         dusk = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_RdRp.tsv")
