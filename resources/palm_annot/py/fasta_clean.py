@@ -113,6 +113,8 @@ def OnSeq(Label, Seq):
 	assert FixedLabel not in LabelSet
 	LabelSet.add(FixedLabel)
 	Seq = Seq.replace("*", "X")
+	Seq = Seq.replace(".", "X")
+	Seq = Seq.replace("?", "X")
 	fasta.WriteSeq(fOut, Seq, FixedLabel)
 
 fasta.ReadSeqsOnSeq(InputFileName, OnSeq)
