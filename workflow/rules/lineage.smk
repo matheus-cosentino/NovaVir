@@ -44,21 +44,24 @@ rule download_prot:
 #################################################
 # --- 2. Map Proteins Id Diamond for Taxid --- #
 ################################################ 
+
 rule map_accession_to_taxid:
     """
     Maps protein IDs (Subject ID, column 2 of DIAMOND) to TaxIDs.
     """
+    wildcard_constraints:
+      tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
-        hit_file = os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_report.txt"),
-        taxid_map = rules.download_prot.output.gz
+      hit_file = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
+      taxid_map = rules.download_prot.output.gz
     output:
-        ids = os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_hits_with_taxid.tmp")
+      ids = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_taxid.tmp")
     shadow: 
-        "minimal"
+      "minimal"
     log:
-        os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_map_acc_prot.log")
+      os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{tool}_map_acc_prot.log")
     script:
-        "../scripts/map_acc_to_taxid.py"
+      "../scripts/map_acc_to_taxid.py"
 
 
 ##################################################
@@ -69,14 +72,14 @@ rule split_hits_by_taxid:
     Splits the input file into two: one with valid taxids and one with "NOT_FOUND".
     """
     input:
-        os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_hits_with_taxid.tmp")
+        os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_taxid.tmp")
     output:
-        valid_hits = temp(os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_hits_with_header.tsv")),
-        no_lineage = temp(os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_hits_no_lineage.temp"))
+        valid_hits = temp(os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_header.tsv")),
+        no_lineage = temp(os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_no_lineage.temp"))
     params:
         header="qseqid\tsseqid\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore\ttaxid"
     log:
-        os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_split_hits.log")
+        os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{tool}_split_hits.log")
     shell:
         """
         # Create output files with headers
@@ -107,13 +110,13 @@ rule append_lineage:
     input:
         valid_hits = rules.split_hits_by_taxid.output.valid_hits
     output:
-        lineages = os.path.join(OUT_DIR, "{sample}", "diamond_{source}", "{sample}_{source}_hits_with_lineage.tsv")
+        lineages = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_lineage.tsv")
     params:
         base_header="qseqid\tsseqid\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore\tTaxid",
         lineage_header="Lineage\tCelular\tAcelular\tRealm\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies",
         nodes=os.path.join(TAXONOMY_DIR[0], "nodes.dmp")
     log:
-        os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{source}_diamond_lineages.log")
+        os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{tool}_diamond_lineages.log")
     conda:
         TAXONKIT
     shell:
