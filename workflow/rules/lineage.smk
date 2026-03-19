@@ -71,6 +71,8 @@ rule split_hits_by_taxid:
     """
     Splits the input file into two: one with valid taxids and one with "NOT_FOUND".
     """
+    wildcard_constraints:
+      tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
         os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_taxid.tmp")
     output:
@@ -107,6 +109,8 @@ rule split_hits_by_taxid:
 # --- 3. Split Hits for Taxid and Not Found --- #
 ################################################# 
 rule append_lineage:
+    wildcard_constraints:
+      tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
         valid_hits = rules.split_hits_by_taxid.output.valid_hits
     output:
