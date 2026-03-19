@@ -82,8 +82,10 @@ rule diamond_blastx_reads:
   shell:
     """
     exec > {log} 2>&1    
-    echo "[INFO] Starting Diamond BlastX for Contigs..."
-    echo "[INFO] Input: {input.contigs}"
+    echo "[INFO] Starting Diamond BlastX for Reads..."
+    echo "[INFO] Input R1: {input.r1}"
+    echo "[INFO] Input R2: {input.r2}"
+    echo "[INFO] Input Extra: {input.extra}"
     
     DB_PATH="resources/diamond/{params.db}"
     
@@ -96,8 +98,17 @@ rule diamond_blastx_reads:
     fi
     echo "[INFO] DB: $DB_PATH"
     
+    # Concatenate available inputs into a single temporary file for Diamond
+    TMP_READS="{output.hits}.tmp.fastq.gz"
+    > "$TMP_READS"
+    for f in {input.r1} {input.r2} {input.extra}; do
+        if [ -s "$f" ]; then
+            cat "$f" >> "$TMP_READS"
+        fi
+    done
+    
      diamond blastx \
-      --query {input.contigs} \
+      --query "$TMP_READS" \
       --db "$DB_PATH" \
       --out {output.hits} \
       --threads {resources.threads} \
@@ -107,5 +118,6 @@ rule diamond_blastx_reads:
       --log
     
     cp {log} {output.log}
+    rm -f "$TMP_READS"
     
     """
