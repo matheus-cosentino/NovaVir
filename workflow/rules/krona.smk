@@ -106,84 +106,32 @@ rule krona_reads_kraken:
         rm -rf $TMP_DB
         """
 
-if config["modules"]["basta"]:
-    rule krona_basta:
-        input:
-            lca = os.path.join(OUT_DIR, "{sample}", "basta_{source}", "{sample}_{source}_lca.tsv")
-        output:
-            html = os.path.join(OUT_DIR, "{sample}", "krona_{source}", "{sample}_{source}_basta_krona.html")
-        conda:
-            KRONA
-        log:
-            os.path.join(OUT_DIR, "{sample}", "log", "krona_basta_{source}_{sample}.log")
-        shell:
-            """
-            cut -f 2 {input.lca} | \
-            sed 's/; /\\t/g' | \
-            ktImportText -o {output.html} - \
-            > {log} 2>&1
-            """
 
-rule krona_diamond_reads:
-    input:
-        report = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads_report.txt"),
-        tax_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted"),
-        tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
-    output:
-        html = os.path.join(OUT_DIR, "{sample}", "krona_reads", "{sample}_reads_diamond_krona.html")
-    conda:
-        KRONA
-    log:
-        os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_reads_{sample}.log")
-    shell:
-        """
-        TMP_DB="{wildcards.sample}_reads_diamond_krona_db"
-        mkdir -p $TMP_DB
-        ln -sf $(readlink -f {input.tax_sorted}) $TMP_DB/accession2taxid.sorted
-        ln -sf $(readlink -f {input.tax_tab}) $TMP_DB/taxonomy.tab
 
-        ktImportBLAST \
-            {input.report} \
-            -tax $TMP_DB \
-            -o {output.html} \
-            > {log} 2>&1
-            
-        rm -rf $TMP_DB
-        """
-
-rule krona_diamond_contigs:
+rule krona_diamond:
     wildcard_constraints:
-        tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
+        tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled|reads"
     input:
-        report = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
-        # Arquivos na raiz do DB
-        tax_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted"),
-        tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
+        tax_hits = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_taxid.tmp"),
+        tax_tab  = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_diamond_krona.html")
     conda:
         KRONA
     params:
-        tax_dir=KRONA_DB_DIR[0]
+        tax_dir = KRONA_DB_DIR[0]
     log:
-        os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_contigs_{tool}_{sample}.log")
+        os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_{tool}_{sample}.log")
     shell:
         """
-        echo "[INFO] Initializing Krona..." > {log}
-
-        DB_ROOT=$(readlink -f {params.tax_dir})
-        KRONA_PM=$(find $CONDA_PREFIX -name KronaTools.pm | head -n 1)
+        echo "[INFO] Executing ktImportTaxonomy..." > {log}
         
-        echo "[INFO] Applying patch in: $KRONA_PM" >> {log}      
-        sed -i 's/my $fileTaxByAcc = .*/my $fileTaxByAcc = "accession2taxid.sorted";/' "$KRONA_PM"
-
-        echo "[INFO] Executing ktImportBLAST..." >> {log}
-        
-        export LC_ALL=C
-        
-        ktImportBLAST \
-            {input.report} \
-            -tax "$DB_ROOT" \
+        # Extrai a coluna 1 (QueryID) e a 13 (TaxID) e passa direto para o Krona
+        cut -f 1,13 {input.tax_hits} | \
+        ktImportTaxonomy \
+            -tax {params.tax_dir} \
             -o {output.html} \
-            >> {log} 2>&1
+            - >> {log} 2>&1
+            
+        echo "[INFO] Krona HTML generated successfully." >> {log}
         """
