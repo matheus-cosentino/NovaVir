@@ -50,7 +50,7 @@ rule map_accession_to_taxid:
     Maps protein IDs (Subject ID, column 2 of DIAMOND) to TaxIDs.
     """
     wildcard_constraints:
-      tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
+      tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled|reads"
     input:
       hit_file = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
       taxid_map = rules.download_prot.output.gz
@@ -72,7 +72,7 @@ rule split_hits_by_taxid:
     Splits the input file into two: one with valid taxids and one with "NOT_FOUND".
     """
     wildcard_constraints:
-      tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
+      tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled|reads"
     input:
         os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_taxid.tmp")
     output:
@@ -110,7 +110,7 @@ rule split_hits_by_taxid:
 ################################################# 
 rule append_lineage:
     wildcard_constraints:
-      tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
+      tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled|reads"
     input:
         valid_hits = rules.split_hits_by_taxid.output.valid_hits
     output:

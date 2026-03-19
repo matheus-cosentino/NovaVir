@@ -81,36 +81,31 @@ rule diamond_blastx_reads:
     DIAMOND
   shell:
     """
-    # Garante diretório de log aqui também por segurança
-    mkdir -p $(dirname {log})
-
-    # 1. Define Temp Dir (Better perfomance)
-    LOCAL_TMP=${{SLURM_TMPDIR:-/tmp}}
-    MERGED_QUERY="$LOCAL_TMP/{wildcards.sample}_merged_query.fastq.gz"
-
-    echo "[INFO] Using temp dir: $LOCAL_TMP" > {log}
-
-    # 2. Concat in the disk
-    echo "[INFO] Concatecating reads..." >> {log}
-    cat {input.r1} {input.r2} {input.extra} > "$MERGED_QUERY"
-
-    # 3. Run DIAMOND
-    echo "[INFO] Diamond BlastX Reads..." >> {log}
+    exec > {log} 2>&1    
+    echo "[INFO] Starting Diamond BlastX for Contigs..."
+    echo "[INFO] Input: {input.contigs}"
     
-    diamond blastx \
-      --query "$MERGED_QUERY" \
-      --db resources/diamond/{params.db} \
+    DB_PATH="resources/diamond/{params.db}"
+    
+    echo "[INFO] Diamond Version:"
+    diamond --version
+    
+    if [ ! -f "$DB_PATH" ] && [ ! -f "$DB_PATH.dmnd" ]; then
+        echo "[ERROR] Diamond database not found at: $DB_PATH"
+        exit 1
+    fi
+    echo "[INFO] DB: $DB_PATH"
+    
+     diamond blastx \
+      --query {input.contigs} \
+      --db "$DB_PATH" \
       --out {output.hits} \
       --threads {resources.threads} \
       --outfmt {params.outfmt} \
       --max-target-seqs {params.max_target_seqs} \
       {params.sensitivity} \
-      --tmpdir "$LOCAL_TMP" \
-      >> {log} 2>&1
-
-    # 4. Limpeza do disco local
-    rm -f "$MERGED_QUERY"
+      --log
     
-    # Copia o log final para o output esperado
     cp {log} {output.log}
+    
     """
