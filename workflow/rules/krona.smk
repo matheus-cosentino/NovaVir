@@ -50,7 +50,7 @@ rule krona_update_taxonomy:
         
         zcat {input.acc2tax} | \
         cut -f 2,3 | \
-        sort -k 1,1 > {output.acc_sorted} 2>> {log}
+        sort -T {params.tax_dir} -k 1,1 > {output.acc_sorted} 2>> {log}
         
         echo "[INFO] Concluído." >> {log}
         """
