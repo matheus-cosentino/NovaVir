@@ -412,7 +412,7 @@ echo -e "\n${green}> Snakemake: Starting main execution...${nc}"
 # This forces Snakemake to write its heavy temporary shadow files to /scratch
 # Caso não esteja no Slurm, usa 'local' como ID
 JOB_ID=${SLURM_JOB_ID:-local}
-SHADOW_DIR="/scratch-ib/${USER}/discovir_shadow/${JOB_ID}"
+SHADOW_DIR="/scratch/${USER}/discovir_${JOB_ID}"
 mkdir -p "$SHADOW_DIR"
 CONDA_DIR="$workdir/.snakemake/conda"
 #SHADOW_DIR="${temp_dir}/${USER}/discovir_shadow/${SLURM_JOB_ID}"
@@ -424,7 +424,7 @@ echo -e "${blu}[INFO]${nc} Tool temp directory set to: ${ylo}$temp_dir${nc}"
 # --- MODIFIED COMMAND ---
 snakemake --profile $profile \
     --jobs $jobs \
-    --use-conda \
+    --use-conda --use-envmodules \
     --conda-prefix "$CONDA_DIR" \
     --configfile "$main_config" "$run_overrides" \
     --shadow-prefix "$SHADOW_DIR" \
@@ -434,7 +434,7 @@ echo -e "\n${green}> Snakemake: Creating DAG & Report...${nc}"
 
 snakemake --report --profile $profile \
     --jobs $jobs \
-    --use-conda \
+    --use-conda --use-envmodules \
     --configfile "$main_config" "$run_overrides" \
     --keep-going 
 

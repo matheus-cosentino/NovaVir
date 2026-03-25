@@ -30,8 +30,8 @@ rule diamond_blastx_contigs:
     sensitivity = config["diamond"]["sensitivity"]
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "diamond_{tool}_{sample}.log")
-  conda:
-    DIAMOND
+  envmodules:
+    "diamond/2.0.15"
   shell:
     """
     exec > {log} 2>&1    
@@ -77,8 +77,8 @@ rule diamond_blastx_reads:
     sensitivity=config["diamond"]["sensitivity"]
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "diamond_reads_{sample}.log")
-  conda:
-    DIAMOND
+  envmodules:
+    "diamond/2.0.15"
   shell:
     """
     exec > {log} 2>&1    
