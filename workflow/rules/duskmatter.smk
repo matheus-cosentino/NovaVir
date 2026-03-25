@@ -59,20 +59,22 @@ rule find_orfs:
     # Limpa arquivo de saida
     > {output.orfs}
 
+    # Evita falha do getorf caso o arquivo de entrada nao possua sequencias
+    if [ ! -s {input.fasta} ]; then
+        echo "[INFO] Nenhum nohit identificado. Gerando arquivo vazio." >> {log}
+        exit 0
+    fi
+
     # Lista explicita para evitar erro de expansao do shell
     for table in 1 3 4 5 6 11 16; do
-        tmp_file="Orfs_{wildcards.sample}_Table${{table}}.fasta"
-        
-        # Roda getorf
-        getorf -sequence {input.fasta} -minsize 600 -table "$table" -find 0 -outseq "$tmp_file" 2>> {log}
-        
-        # Verifica se gerou algo antes de rodar o sed
+        tmp_file="$(dirname {output.orfs})/tmp_Orfs_{wildcards.sample}_{wildcards.tool}_Table${{table}}.fasta"     
+        getorf -sequence {input.fasta} -minsize 600 -table "$table" -find 0 -outseq "$tmp_file" 2>> {log} || true
         if [ -s "$tmp_file" ]; then
-            sed -i "s/^>/>gc_${{table}}_/g" "$tmp_file" 2>> {log}
+            sed -i.bak "s/^>/>gc_${{table}}_/g" "$tmp_file" 2>> {log}
             cat "$tmp_file" >> {output.orfs}
         fi
         
-        rm -f "$tmp_file"
+        rm -f "$tmp_file" "$tmp_file.bak"
     done
     """
 
@@ -93,12 +95,17 @@ rule cd_hit:
     PALM
   shell:
     """
-    #remove duplicated orfs
-    cd-hit -i {input.fasta} -o {output.orfs} -c 0.9 -d 1 -T {resources.threads} >> {log} 2>&1
+    if [ -s {input.fasta} ]; then
+        #remove duplicated orfs
+        cd-hit -i {input.fasta} -o {output.orfs} -c 0.9 -d 1 -T {resources.threads} >> {log} 2>&1
 
-    #substitute spaces per _
-    sed -i.bak '/^>/ s/ /_/g' {output.orfs} >> {log} 2>&1
-    rm -f {output.orfs}.bak
+        #substitute spaces per _
+        sed -i.bak '/^>/ s/ /_/g' {output.orfs} >> {log} 2>&1
+        rm -f {output.orfs}.bak
+    else
+        echo "[INFO] Nenhuma sequência para agrupar. Criando arquivo vazio." > {log}
+        touch {output.orfs}
+    fi
     """
 
 ###################################################

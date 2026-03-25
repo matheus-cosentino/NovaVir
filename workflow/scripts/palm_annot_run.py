@@ -10,6 +10,15 @@ palm_dir_raw = s.params.palm_annot_dir
 palm_dir = str(palm_dir_raw[0]) if isinstance(palm_dir_raw, list) else str(palm_dir_raw)
 log_file = s.log[0]
 
+# --- 0. Check for Empty Input ---
+# Se o arquivo FASTA estiver vazio, cria os arquivos de saída em branco e sai com sucesso
+if os.path.getsize(s.input.fasta) == 0:
+    with open(log_file, "w") as log_handle:
+        log_handle.write("[INFO] Input FASTA vazio. Pulando palm_annot.\n")
+    open(s.output.fev, "w").close()
+    open(s.output.rdrp, "w").close()
+    sys.exit(0)
+
 # --- 1. Determine the Correct Python Executable ---
 # Use the python that is currently executing this script (which should be the Conda one)
 python_exe = sys.executable 
