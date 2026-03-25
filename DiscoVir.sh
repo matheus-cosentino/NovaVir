@@ -387,6 +387,15 @@ EOF
 # --- Workflow Execution Steps ---
 # We pass BOTH config files. Snakemake loads them in order.
 # The second file (overrides) updates the values of the first (main).
+# guarantee it works
+mkdir -p "$temp_dir"
+export TMPDIR="$temp_dir"
+export TEMP="$temp_dir"
+export TMP="$temp_dir"
+
+echo -e "${blu}[INFO]${nc} Global TMPDIR set to: ${ylo}$TMPDIR${nc}"
+
+
 echo -e "\n${green}> Snakemake: Unlocking working directory...${nc}"
 snakemake --profile $profile --configfile "$main_config" "$run_overrides" --unlock --quiet
 
@@ -401,7 +410,10 @@ echo -e "\n${green}> Snakemake: Starting main execution...${nc}"
 
 #SHADOW DIR within the node of submission, avoiding pipeline killed by lack of IO
 # This forces Snakemake to write its heavy temporary shadow files to /scratch
-SHADOW_DIR="/scratch-ib/${USER}/discovir_shadow/${SLURM_JOB_ID}"
+# Caso não esteja no Slurm, usa 'local' como ID
+JOB_ID=${SLURM_JOB_ID:-local}
+SHADOW_DIR="/scratch-ib/${USER}/discovir_shadow/${JOB_ID}"
+mkdir -p "$SHADOW_DIR"
 CONDA_DIR="$workdir/.snakemake/conda"
 #SHADOW_DIR="${temp_dir}/${USER}/discovir_shadow/${SLURM_JOB_ID}"
 #mkdir -p "$SHADOW_DIR" # Tenta criar (vai funcionar no Orchestrator, e nos jobs o Snakemake cria)
