@@ -285,7 +285,7 @@ set -e -o pipefail
 input="data"
 jobs=15
 profile="profile_slurm"
-temp_dir="/scratch-ib"
+temp_dir="/scratch-ib/${USER}/"
 
 # Module Defaults (Must match the keys in your config.yaml)
 mod_keep_download="true"   # lowercase for yaml
@@ -401,9 +401,9 @@ echo -e "\n${green}> Snakemake: Starting main execution...${nc}"
 
 #SHADOW DIR within the node of submission, avoiding pipeline killed by lack of IO
 # This forces Snakemake to write its heavy temporary shadow files to /scratch
-#SHADOW_DIR="/scratch-ib/${USER}/discovir_shadow/${SLURM_JOB_ID}"
+SHADOW_DIR="/scratch-ib/${USER}/discovir_shadow/${SLURM_JOB_ID}"
 CONDA_DIR="$workdir/.snakemake/conda"
-SHADOW_DIR="${temp_dir}/${USER}/discovir_shadow/${SLURM_JOB_ID}"
+#SHADOW_DIR="${temp_dir}/${USER}/discovir_shadow/${SLURM_JOB_ID}"
 #mkdir -p "$SHADOW_DIR" # Tenta criar (vai funcionar no Orchestrator, e nos jobs o Snakemake cria)
 
 echo -e "${blu}[INFO]${nc} Shadow directory set to: ${ylo}$SHADOW_DIR${nc}"
