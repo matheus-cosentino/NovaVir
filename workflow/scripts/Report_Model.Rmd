@@ -280,11 +280,12 @@ if (is_basta) {
   # Lógica original para arquivos Diamond/TaxonKit com Header
   data <- read.table(params$diamond_file, sep = "\t", fill = T, header = T, na.strings = "", as.is = T)
   
+
   data <- data %>%
-    mutate(
-      Overall = coalesce(Realm, Acelular, Kingdom, "Unclassified")
-    )
-}
+      mutate(
+        Overall = coalesce(as.character(Realm), as.character(Acelular), as.character(Kingdom), "Unclassified")
+      )
+  }
 
 
 # 3. Split contigs into groups: With Hits (tax) and Without Hits (notax)
