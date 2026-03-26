@@ -56,7 +56,7 @@ rule map_accession_to_taxid:
         tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled|reads"
     input:
         hit_file = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
-        taxid_map = rules.download_prot.output.gz
+        taxid_map = ancient(rules.download_prot.output.gz)
     output:
         ids = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_taxid.tmp")
     shadow: 
