@@ -57,6 +57,7 @@ OUT_DIR = config["output_dir"]
 BASTA_DB_DIR = config["resources"]["basta_db"]
 KRONA_DB_DIR = config["resources"]["krona"]
 TAXONOMY_DIR = config["resources"]["taxonomy"]
+DIAMOND_DIR = config["resources"]["diamond"]
 
 with open(config["sample_list"], "r") as file:
     SAMPLE = [line.strip() for line in file if line.strip()]

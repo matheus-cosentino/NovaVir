@@ -24,7 +24,7 @@ rule diamond_blastx_contigs:
     hits = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
     log  = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "diamond.log")
   params:
-    db = get_diamond_db_name,
+    db = os.path.join(DIAMOND_DIR[0],get_diamond_db_name),
     outfmt = config["diamond"]["outfmt"],
     max_target_seqs = config["diamond"]["max_target_seqs"],
     sensitivity = config["diamond"]["sensitivity"]
@@ -38,7 +38,7 @@ rule diamond_blastx_contigs:
     echo "[INFO] Starting Diamond BlastX for Contigs..."
     echo "[INFO] Input: {input.contigs}"
     
-    DB_PATH="resources/diamond/{params.db}"
+    DB_PATH="{params.db}"
     
     echo "[INFO] Diamond Version:"
     diamond --version
