@@ -44,10 +44,6 @@ rule diamond_blastx_contigs:
     echo "[INFO] Diamond Version:"
     diamond --version
     
-    if [ ! -f "$DB_PATH" ] && [ ! -f "$DB_PATH.dmnd" ]; then
-        echo "[ERROR] Diamond database not found at: $DB_PATH"
-        exit 1
-    fi
     echo "[INFO] DB: $DB_PATH"
     
      diamond blastx \
