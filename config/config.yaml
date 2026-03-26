@@ -27,13 +27,13 @@ sample_list: "accessions.txt"
 ### Modules of Analysis to be requested
 modules: 
   keep_download: true  #Remove data download from SRA (default: false)
-  download_only: true #Only download data from SRA (default: false)
-  assembly: false # Perform de novo assembly for reads (default: false)
-  kraken2: false #Perform taxonomic assignment for Kraken2 (default: false)
-  diamond: false #Perform taxonomic assignment for Diamond against nr5 for Reads(default: false)
-  darkmatter: false #Perform palm annot identification (default: false)
-  reads_kraken2: false #Perform reads taxonomic identification (default: false)
-  reads_diamond: false #Perform reads taxonomic identification (default: false)
+  download_only: false #Only download data from SRA (default: false)
+  assembly: true # Perform de novo assembly for reads (default: false)
+  kraken2: true #Perform taxonomic assignment for Kraken2 (default: false)
+  diamond: true #Perform taxonomic assignment for Diamond against nr5 for Reads(default: false)
+  darkmatter: true #Perform palm annot identification (default: false)
+  reads_kraken2: true #Perform reads taxonomic identification (default: false)
+  reads_diamond: true #Perform reads taxonomic identification (default: false)
   basta: false #perform basta LCA Algo
   
 
@@ -230,6 +230,10 @@ kraken_biom:
     #- "G"
     #- "S"
     #- "SS"
+
+# Rarefaction Curve
+rarefaction:
+  tax_level: "Genus" # Taxonomic level for rarefaction (e.g., Family, Genus, Species)
 
 #  Dark Matter Search
 palm_annot: 

@@ -108,6 +108,7 @@ def get_final_outputs():
   if MODULES["reads_diamond"]:
     final_outputs.extend(expand("{out_dir}/{sample}/diamond_reads/{sample}_reads_hits_with_lineage.tsv", out_dir=OUT_DIR, sample=SAMPLE))
     final_outputs.extend(expand("{out_dir}/{sample}/krona_reads/{sample}_reads_diamond_krona.html", out_dir=OUT_DIR, sample=SAMPLE))
+    final_outputs.append(os.path.join(OUT_DIR, "diamond_all", "Diamond_Rarefaction_Curve.pdf"))
 
   #5. Basta (LCA Algorythim)
   if MODULES["basta"]:
@@ -719,4 +720,13 @@ def get_all_basta_read_outputs(wildcards):
              is_paired = (meta['mode'] == 'PAIRED') or (meta['mode'] == 'SRA' and len(meta['files']) == 2)
              label = "paired" if is_paired else "unpaired"
              paths.append(os.path.join(OUT_DIR, s, "basta_reads", f"{s}_reads_lca.tsv"))
+    return paths
+
+def get_all_diamond_lineage_for_reads(wildcards):
+    """
+    Returns a list of all paths to the final diamond lineage files for the 'reads' tool.
+    """
+    if not MODULES["reads_diamond"]:
+        return []
+    paths = expand(os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads_hits_with_lineage.tsv"), sample=SAMPLE)
     return paths
