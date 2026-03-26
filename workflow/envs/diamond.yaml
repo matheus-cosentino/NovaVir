@@ -2,8 +2,8 @@ name: diamond
 channels:
   - conda-forge
   - bioconda
-  - defaults
+  - nodefaults
 dependencies:
-  - diamond=v2.1.8.162
+  - diamond=2.1.13
 
   

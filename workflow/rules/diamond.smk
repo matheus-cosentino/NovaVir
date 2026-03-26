@@ -31,8 +31,6 @@ rule diamond_blastx_contigs:
     sensitivity = config["diamond"]["sensitivity"]
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "diamond_{tool}_{sample}.log")
-  conda:
-    DIAMOND
   shell:
     """
     exec > {log} 2>&1    
@@ -42,11 +40,11 @@ rule diamond_blastx_contigs:
     DB_PATH="{params.db}"
     
     echo "[INFO] Diamond Version:"
-    diamond --version
+    /data04/projects04/MarceloSoares/viromapn/bin/diamond --version
     
     echo "[INFO] DB: $DB_PATH"
     
-     diamond blastx \
+     /data04/projects04/MarceloSoares/viromapn/bin/diamond blastx \
       --query {input.contigs} \
       --db "$DB_PATH" \
       --out {output.hits} \
