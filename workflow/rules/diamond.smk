@@ -72,8 +72,6 @@ rule diamond_blastx_reads:
     sensitivity=config["diamond"]["sensitivity"]
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "diamond_reads_{sample}.log")
-  envmodules:
-    "diamond/2.0.15"
   shell:
     """
     exec > {log} 2>&1    
@@ -82,17 +80,12 @@ rule diamond_blastx_reads:
     echo "[INFO] Input R2: {input.r2}"
     echo "[INFO] Input Extra: {input.extra}"
     
-    DB_PATH="resources/diamond/{params.db}"
-    
-    echo "[INFO] Diamond Version:"
-    diamond --version
-    
-    if [ ! -f "$DB_PATH" ] && [ ! -f "$DB_PATH.dmnd" ]; then
-        echo "[ERROR] Diamond database not found at: $DB_PATH"
-        exit 1
-    fi
+    DB_PATH="{params.db}"
     echo "[INFO] DB: $DB_PATH"
     
+    echo "[INFO] Diamond Version:"
+    /data04/projects04/MarceloSoares/viromapn/bin/diamond  --version
+        
     # Concatenate available inputs into a single temporary file for Diamond
     TMP_READS="{output.hits}.tmp.fastq.gz"
     > "$TMP_READS"
@@ -102,7 +95,7 @@ rule diamond_blastx_reads:
         fi
     done
     
-     diamond blastx \
+     /data04/projects04/MarceloSoares/viromapn/bin/diamond  blastx \
       --query "$TMP_READS" \
       --db "$DB_PATH" \
       --out {output.hits} \
