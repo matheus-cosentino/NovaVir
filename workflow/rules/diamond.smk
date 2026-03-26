@@ -23,30 +23,27 @@ rule diamond_blastx_contigs:
   output:
     hits = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
     log  = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "diamond.log")
-  params:
-    db = get_diamond_db_name,
+  params: 
+    db_name = get_diamond_db_name,
+    db = lambda wildcards: os.path.join(DIAMOND_DIR[0], get_diamond_db_name(wildcards)),
     outfmt = config["diamond"]["outfmt"],
     max_target_seqs = config["diamond"]["max_target_seqs"],
     sensitivity = config["diamond"]["sensitivity"]
-  log:
-    os.path.join(OUT_DIR, "{sample}", "log", "diamond_{tool}_{sample}.log")
   conda:
     DIAMOND
+  log:
+    os.path.join(OUT_DIR, "{sample}", "log", "diamond_{tool}_{sample}.log")
   shell:
     """
     exec > {log} 2>&1    
     echo "[INFO] Starting Diamond BlastX for Contigs..."
     echo "[INFO] Input: {input.contigs}"
     
-    DB_PATH="resources/diamond/{params.db}"
+    DB_PATH="{params.db}"
     
     echo "[INFO] Diamond Version:"
     diamond --version
     
-    if [ ! -f "$DB_PATH" ] && [ ! -f "$DB_PATH.dmnd" ]; then
-        echo "[ERROR] Diamond database not found at: $DB_PATH"
-        exit 1
-    fi
     echo "[INFO] DB: $DB_PATH"
     
      diamond blastx \
@@ -77,7 +74,7 @@ rule diamond_blastx_reads:
     sensitivity=config["diamond"]["sensitivity"]
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "diamond_reads_{sample}.log")
-  conda:
+  conda: 
     DIAMOND
   shell:
     """
@@ -87,17 +84,12 @@ rule diamond_blastx_reads:
     echo "[INFO] Input R2: {input.r2}"
     echo "[INFO] Input Extra: {input.extra}"
     
-    DB_PATH="resources/diamond/{params.db}"
-    
-    echo "[INFO] Diamond Version:"
-    diamond --version
-    
-    if [ ! -f "$DB_PATH" ] && [ ! -f "$DB_PATH.dmnd" ]; then
-        echo "[ERROR] Diamond database not found at: $DB_PATH"
-        exit 1
-    fi
+    DB_PATH="{params.db}"
     echo "[INFO] DB: $DB_PATH"
     
+    echo "[INFO] Diamond Version:"
+    diamond  --version
+        
     # Concatenate available inputs into a single temporary file for Diamond
     TMP_READS="{output.hits}.tmp.fastq.gz"
     > "$TMP_READS"
@@ -107,7 +99,7 @@ rule diamond_blastx_reads:
         fi
     done
     
-     diamond blastx \
+     diamond  blastx \
       --query "$TMP_READS" \
       --db "$DB_PATH" \
       --out {output.hits} \

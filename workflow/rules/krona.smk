@@ -20,9 +20,9 @@ rule krona_update_taxonomy:
         tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab"),
         acc_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted")
     input:
-        names = os.path.join(TAXONOMY_DIR[0], "names.dmp"),
-        nodes = os.path.join(TAXONOMY_DIR[0], "nodes.dmp"),
-        acc2tax = os.path.join(TAXONOMY_DIR[0], "prot.accession2taxid.gz")
+        names = ancient(os.path.join(TAXONOMY_DIR[0], "names.dmp")),
+        nodes = ancient(os.path.join(TAXONOMY_DIR[0], "nodes.dmp")),
+        acc2tax = ancient(os.path.join(TAXONOMY_DIR[0], "prot.accession2taxid.gz"))
     params:
         tax_dir=KRONA_DB_DIR[0]
     conda:

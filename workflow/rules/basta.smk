@@ -128,9 +128,11 @@ rule basta_rarefaction_plot:
         table = os.path.join(OUT_DIR, "basta_all", "all_samples_basta_counts.tsv")
     output:
         pdf = os.path.join(OUT_DIR, "basta_all", "Basta_Rarefaction_Curve.pdf")
+    params:
+        title = "BASTA Rarefaction Curves (LCA)"
     conda:
         R_RAREFACTION
     log:
         os.path.join(OUT_DIR, "log", "basta_rarefaction_plot.log")
     script:
-        "../scripts/plot_rarefaction_basta.R"
+        "../scripts/plot_rarefaction.R"

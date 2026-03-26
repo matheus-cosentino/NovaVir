@@ -97,7 +97,7 @@ rule cd_hit:
     """
     if [ -s {input.fasta} ]; then
         #remove duplicated orfs
-        cd-hit -i {input.fasta} -o {output.orfs} -c 0.9 -d 1 -T {resources.threads} -M {resources.mem_mb} 2>> {log} 2>&1
+        cd-hit -i {input.fasta} -o {output.orfs} -c 0.9 -d 1 -T {resources.threads} -M {resources.mem_mb} >> {log} 2>&1
 
         #substitute spaces per _
         sed -i.bak '/^>/ s/ /_/g' {output.orfs} >> {log} 2>&1
