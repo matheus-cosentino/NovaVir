@@ -4,6 +4,6 @@ channels:
   - bioconda
   - nodefaults
 dependencies:
-  - diamond=2.1.13
+  - diamond=v2.1.8.162
 
   
