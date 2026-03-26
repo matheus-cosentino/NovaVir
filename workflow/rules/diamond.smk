@@ -23,8 +23,9 @@ rule diamond_blastx_contigs:
   output:
     hits = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
     log  = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "diamond.log")
-  params:
-    db = os.path.join(DIAMOND_DIR[0],get_diamond_db_name),
+  params: 
+    db_name = get_diamond_db_name,
+    db = os.path.join(DIAMOND_DIR[0],db_name),
     outfmt = config["diamond"]["outfmt"],
     max_target_seqs = config["diamond"]["max_target_seqs"],
     sensitivity = config["diamond"]["sensitivity"]
