@@ -68,7 +68,8 @@ rule diamond_blastx_reads:
     hits = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads_report.txt"),
     log  = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "diamond.log")
   params:
-    db = get_diamond_db_name,
+    db_name = get_diamond_db_name,
+    db = lambda wildcards: os.path.join(DIAMOND_DIR[0], get_diamond_db_name(wildcards)),
     outfmt = config["diamond"]["outfmt"],
     max_target_seqs = config["diamond"]["max_target_seqs"],
     sensitivity=config["diamond"]["sensitivity"]
@@ -83,6 +84,8 @@ rule diamond_blastx_reads:
     echo "[INFO] Input R1: {input.r1}"
     echo "[INFO] Input R2: {input.r2}"
     echo "[INFO] Input Extra: {input.extra}"
+    
+    
     
     DB_PATH="{params.db}"
     echo "[INFO] DB: $DB_PATH"
