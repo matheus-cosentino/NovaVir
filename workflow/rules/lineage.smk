@@ -15,6 +15,9 @@
 #                              version: 12.2025                                   #
 ###################################################################################
 
+# Get rarefaction taxonomic level, with a default value
+RAREFACTION_TAX_LEVEL = config.get('rarefaction', {}).get('tax_level', 'Genus')
+
 #################################################
 # --- 1. Map Proteins Id Diamond for Taxid --- #
 ################################################ 
@@ -158,9 +161,9 @@ rule diamond_merge_counts:
     input:
         lineage_files = get_all_diamond_lineage_for_reads
     output:
-        table = os.path.join(OUT_DIR, "diamond_all", f"all_samples_diamond_counts_by_{config['rarefaction']['tax_level']}.tsv")
+        table = os.path.join(OUT_DIR, "diamond_all", f"all_samples_diamond_counts_by_{RAREFACTION_TAX_LEVEL}.tsv")
     params:
-        tax_level = config['rarefaction']['tax_level']
+        tax_level = RAREFACTION_TAX_LEVEL
     log:
         os.path.join(OUT_DIR, "log", "diamond_merge_counts.log")
     run:
@@ -200,7 +203,7 @@ rule diamond_rarefaction_plot:
     output:
         pdf = os.path.join(OUT_DIR, "diamond_all", "Diamond_Rarefaction_Curve.pdf")
     params:
-        title = f"Diamond Rarefaction Curves (by {config['rarefaction']['tax_level']})"
+        title = f"Diamond Rarefaction Curves (by {RAREFACTION_TAX_LEVEL})"
     conda:
         R_RAREFACTION
     log:
