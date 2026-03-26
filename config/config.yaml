@@ -234,6 +234,14 @@ kraken_biom:
 # Rarefaction Curve
 rarefaction:
   tax_level: "Genus" # Taxonomic level for rarefaction (e.g., Family, Genus, Species)
+    #- Realm
+    #- Kingdom
+    #- Phylum
+    #- Class
+    #- Order
+    #- Family 
+    #- Genus #standard
+    #- Species
 
 #  Dark Matter Search
 palm_annot: 
