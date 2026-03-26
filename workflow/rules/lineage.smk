@@ -115,20 +115,20 @@ rule append_lineage:
     wildcard_constraints:
         tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled|reads"
     input:
-        valid_hits = rules.split_hits_by_taxid.output.valid_hits
+        valid_hits = rules.split_hits_by_taxid.output.valid_hits,
+        nodes = ancient(os.path.join(TAXONOMY_DIR[0], "nodes.dmp"))
     output:
         lineages = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_lineage.tsv")
     params:
         base_header="qseqid\tsseqid\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore\tTaxid",
-        lineage_header="Lineage\tCelular\tAcelular\tRealm\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies",
-        nodes=os.path.join(TAXONOMY_DIR[0], "nodes.dmp")
+        lineage_header="Lineage\tCelular\tAcelular\tRealm\tKingdom\tPhylum\tClass\tOrder\tFamily\tGenus\tSpecies"
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{tool}_diamond_lineages.log")
     conda:
         TAXONKIT
     shell:
         """
-        DB_DIR=$(dirname {params.nodes})
+        DB_DIR=$(dirname {input.nodes})
         
         # Skip header (criado na regra anterior) e extrai apenas a coluna TaxID (13)
         tail -n +2 {input.valid_hits} | cut -f 13 > {output}.taxids.tmp
