@@ -180,3 +180,38 @@ rule report_summarize:
             --input workflow/scripts/Report_Model.Rmd \
             > {log} 2>&1
         """
+
+#########################################################
+# --- 7. Extract ORFs Putative Raw RdRp and Contigs --- #
+#########################################################
+rule dm_validate:
+  input:
+    fasta = get_contigs_path,
+    orfs  = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_ORFs.fasta"),
+    dusk  = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_RdRp.tsv")
+  output:
+    raw_rdrp    = os.path.join(OUT_DIR, "{sample}", "darkmatter_to_validate_{tool}", "{sample}_RdRp_Orfs.fasta"),
+    raw_contigs = os.path.join(OUT_DIR, "{sample}", "darkmatter_to_validate_{tool}", "{sample}_RdRp_contigs.fasta")
+  log:
+    os.path.join(OUT_DIR, "{sample}", "log", "{sample}_dm_validate_{tool}.log")
+  conda:
+    REPORT
+  run:
+    import pandas as pd
+    from Bio import SeqIO
+    df = pd.read_csv(input.dusk, sep='\t')
+    target_orfs = set(df['Label'].astype(str).tolist())
+    target_contigs = set()
+    for label in target_orfs:
+      parts = label.split('_')
+      if len(parts) > 3:
+        contig_id = "_".join(parts[2:-1])
+        target_contigs.add(contig_id)
+        with open(output.raw_rdrp, "w") as out_orf:
+          for record in SeqIO.parse(input.orfs, "fasta"):
+            if record.id in target_orfs:
+              SeqIO.write(record, out_orf, "fasta")
+    with open(output.raw_contigs, "w") as out_contig:
+      for record in SeqIO.parse(input.fasta, "fasta"):
+        if record.id in target_contigs:
+          SeqIO.write(record, out_contig, "fasta")
