@@ -85,7 +85,7 @@ parse_args <- function(args) {
 input_params <- parse_args(args)
 
 # --- Check for missing required parameters ---
-REQUIRED_PARAMS <- c("sample_name", "fasta_path", "diamond_path", "duskmatter_path", "output_dir", "report_name", "logos", "input")
+REQUIRED_PARAMS <- c("sample_name", "fasta_path", "diamond_path", "darkmatter_path", "output_dir", "report_name", "logos", "input")
 missing_params <- REQUIRED_PARAMS[!(REQUIRED_PARAMS %in% names(input_params))]
 
 if (length(missing_params) > 0) {
@@ -96,7 +96,7 @@ if (length(missing_params) > 0) {
 sample_name <- input_params$sample_name
 fasta_path <- input_params$fasta_path
 diamond_path <- input_params$diamond_path
-duskmatter_path <- input_params$duskmatter_path
+darkmatter_path <- input_params$darkmatter_path
 output_dir <- input_params$output_dir
 report_name <- input_params$report_name
 logo_dirs_string <- input_params$logos
@@ -109,14 +109,14 @@ logo_dirs <- str_trim(logo_dirs)
 # --- 3. Validation and Setup ---
 fasta_path_abs <- tools::file_path_as_absolute(fasta_path)
 diamond_path_abs <- tools::file_path_as_absolute(diamond_path)
-duskmatter_path_abs <- tools::file_path_as_absolute(duskmatter_path)
+darkmatter_path_abs <- tools::file_path_as_absolute(darkmatter_path)
 template_path_abs <- tools::file_path_as_absolute(template_path)
 output_dir_abs <- tools::file_path_as_absolute(output_dir) # Resolve output dir too
 
 # Validate data input files existence (Use ABSOLUTE paths for validation)
 if (!file.exists(fasta_path_abs)) stop(paste("ERROR: FASTA input file not found:", fasta_path_abs))
 if (!file.exists(diamond_path_abs)) stop(paste("ERROR: DIAMOND annotation file not found:", diamond_path_abs))
-if (!file.exists(duskmatter_path_abs)) stop(paste("ERROR: RdRp/Duskmatter annotation file not found:", duskmatter_path_abs))
+if (!file.exists(darkmatter_path_abs)) stop(paste("ERROR: RdRp/Darkmatter annotation file not found:", darkmatter_path_abs))
 
 # Validate Rmd template existence
 if (!file.exists(template_path_abs)) stop(paste("CRITICAL ERROR: R Markdown template file not found at expected path:", template_path_abs))
@@ -172,7 +172,7 @@ tryCatch({
       # CRITICAL: Pass absolute paths for all data files/directories
       fasta_file = fasta_path_abs,
       diamond_file = diamond_path_abs,
-      duskmatter_file = duskmatter_path_abs,
+      darkmatter_file = darkmatter_path_abs,
       output_dir = output_dir_abs, # Rmd chunks use this for file writes
       logos = logos_absolute # This is already an absolute path
     ),

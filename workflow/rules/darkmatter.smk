@@ -173,7 +173,7 @@ rule report_summarize:
             --sample_name {wildcards.sample} \
             --fasta_path {input.fasta} \
             --diamond_path {input.lineages} \
-            --duskmatter_path {input.dusk} \
+            --darkmatter_path {input.dusk} \
             --output_dir {params.out_dir} \
             --report_name $(basename {output.html}) \
             --logos {params.logos} \
