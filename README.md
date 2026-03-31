@@ -40,7 +40,7 @@ graph TD;
     E -->|Contigs| G(Kraken2 Annotation);
     E -->|Contigs| H(Dark Matter Module);
     
-    H -->|ORF Prediction & HMM| I(RVDB Screening);
+    H -->|ORF Prediction & HMM| I(PalmAnnot2 & RVDB Screening);
     I -->|Taxonomy Summarization| J[Final RdRp Hits & Annotations];
 
     D --> K[Krona Dashboards];
