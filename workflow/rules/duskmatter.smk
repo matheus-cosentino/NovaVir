@@ -198,20 +198,39 @@ rule dm_validate:
     REPORT
   run:
     import pandas as pd
+    import re
     from Bio import SeqIO
+    
+    # Carrega o TSV com os resultados do RdRp
     df = pd.read_csv(input.dusk, sep='\t')
     target_orfs = set(df['Label'].astype(str).tolist())
     target_contigs = set()
+
+    # Lógica para extrair o ID do Contig a partir do Label do ORF
+    # Exemplo Label: gc_1_NODE_244_length_2206_cov_6.211439_1_[2204_-_3]_(REVERSE_SENSE)_
+    # Queremos extrair: NODE_244_length_2206_cov_6.211439
     for label in target_orfs:
-      parts = label.split('_')
-      if len(parts) > 3:
-        contig_id = "_".join(parts[2:-1])
-        target_contigs.add(contig_id)
-        with open(output.raw_rdrp, "w") as out_orf:
-          for record in SeqIO.parse(input.orfs, "fasta"):
+        # Regex explica: 
+        # ^gc_\d+_ -> Remove o prefixo inicial (ex: gc_1_)
+        # (.+?)    -> Captura o nome do contig (non-greedy)
+        # _\d+_\[  -> Para quando encontrar o índice do ORF seguido do colchete de coordenadas
+        match = re.search(r'^gc_\d+_(.+?)_\d+_\[', label)
+        if match:
+            contig_id = match.group(1)
+            target_contigs.add(contig_id)
+        else:
+            # Fallback caso o formato mude ligeiramente
+            with open(log[0], "a") as f:
+                f.write(f"[WARNING] Não foi possível parsear o contig ID do label: {label}\n")
+
+    # Salva os ORFs identificados
+    with open(output.raw_rdrp, "w") as out_orf:
+        for record in SeqIO.parse(input.orfs, "fasta"):
             if record.id in target_orfs:
-              SeqIO.write(record, out_orf, "fasta")
+                SeqIO.write(record, out_orf, "fasta")
+
+    # Salva os Contigs originais correspondentes
     with open(output.raw_contigs, "w") as out_contig:
-      for record in SeqIO.parse(input.fasta, "fasta"):
-        if record.id in target_contigs:
-          SeqIO.write(record, out_contig, "fasta")
+        for record in SeqIO.parse(input.fasta, "fasta"):
+            if record.id in target_contigs:
+                SeqIO.write(record, out_contig, "fasta")
