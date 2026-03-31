@@ -105,7 +105,7 @@ def get_final_outputs():
                 out_dir=OUT_DIR, sample=sample, tool=current_tools))
         final_outputs.extend(expand("{out_dir}/{sample}/darkmatter_to_validate_{tool}/{sample}_RdRp_Orfs.fasta", 
                 out_dir=OUT_DIR, sample=sample, tool=current_tools))
-        final_outputs.extend(expand("{out_dir}/{sample}/rvdb_to_validate_{tool}/{sample}_RVD_contigs.fasta", 
+        final_outputs.extend(expand("{out_dir}/{sample}/rvdb_to_validate_{tool}/{sample}_RVDB_contigs.fasta", 
                 out_dir=OUT_DIR, sample=sample, tool=current_tools))
 
   # 4. Reads (Diamond)
