@@ -12,7 +12,7 @@
 # o888bood8P'   o888o 8""888P' `Y8bod8P' `Y8bod8P'       `8'       o888o d888b    #
 #                                                                                 #
 ###################################################################################
-#                              version: 12.2025                                   #
+#                              version: 03.2026                                   #
 ###################################################################################
 
 ###############################
@@ -25,11 +25,11 @@ rule spades:
         r2 = get_denovo_r2,
         extra = get_denovo_unpaired
     output:
-        contigs = "{out_dir}/{sample}/spades/kmer_{kmer_val}/contigs.fasta"
+        contigs = os.path.join(OUT_DIR, "{sample}", "spades", "kmer_{kmer_val}", "contigs.fasta")
     log:
-        "{out_dir}/{sample}/log/kmer_{kmer_val}_spades_assembly.log"
+        os.path.join(OUT_DIR, "{sample}", "log", "kmer_{kmer_val}_spades_assembly.log")
     params:
-        outdir = "{out_dir}/{sample}/spades/kmer_{kmer_val}",
+        outdir = os.path.join(OUT_DIR, "{sample}", "spades", "kmer_{kmer_val}"),
         input_args = get_spades_params,
         extra = config["spades"]["algorithm"],
         #kmer = lambda wildcards: wildcards.kmer_val
@@ -68,11 +68,11 @@ rule megahit:
         r2 = get_denovo_r2,
         extra = get_denovo_unpaired
     output:
-        contigs = "{out_dir}/{sample}/megahit/final.contigs.fa"
+        contigs = os.path.join(OUT_DIR, "{sample}", "megahit", "final.contigs.fa")
     log:
-        "{out_dir}/{sample}/log/meghit_assembly.log"
+        os.path.join(OUT_DIR, "{sample}", "log", "meghit_assembly.log")
     params:
-        outdir = "{out_dir}/{sample}/megahit",
+        outdir = os.path.join(OUT_DIR, "{sample}", "megahit"),
         input_args = get_megahit_params,
     conda:
         DENOVO
@@ -100,11 +100,11 @@ rule flye:
     input:
         reads = get_ONP_input
     output:
-        contigs = "{out_dir}/{sample}/flye/assembly.fasta"
+        contigs = os.path.join(OUT_DIR, "{sample}", "flye", "assembly.fasta")
     log:
-        "{out_dir}/{sample}/log/flye_assembly.log"
+        os.path.join(OUT_DIR, "{sample}", "log", "flye_assembly.log")
     params:
-        outdir = "{out_dir}/{sample}/flye",
+        outdir = os.path.join(OUT_DIR, "{sample}", "flye"),
         extra = config["flye"]["type"]
     conda:
         DENOVO
@@ -134,9 +134,9 @@ rule raven:
     input:
         reads = get_ONP_input
     output:
-        contigs = "{out_dir}/{sample}/raven/assembly.fasta"
+        contigs = os.path.join(OUT_DIR, "{sample}", "raven", "assembly.fasta")
     log:
-        "{out_dir}/{sample}/log/raven_assembly.log"
+        os.path.join(OUT_DIR, "{sample}", "log", "raven_assembly.log")
     conda:
         DENOVO
     shell:
@@ -152,15 +152,15 @@ rule raven:
 rule medaka_polish:
     input:
         reads = get_ONP_input,
-        draft = "{out_dir}/{sample}/{assembler}/assembly.fasta"
+        draft = os.path.join(OUT_DIR, "{sample}", "{assembler}", "assembly.fasta")
     output:
-        consensus = "{out_dir}/{sample}/medaka_{assembler}/consensus.fasta"
+        consensus = os.path.join(OUT_DIR, "{sample}", "medaka_{assembler}", "consensus.fasta")
     params:
         # Defina o modelo aqui ou no config.yaml
         model = config["medaka_model"],
-        outdir = "{out_dir}/{sample}/medaka_{assembler}"
+        outdir = os.path.join(OUT_DIR, "{sample}", "medaka_{assembler}")
     log:
-        "{out_dir}/{sample}/log/medaka_{assembler}.log"
+        os.path.join(OUT_DIR, "{sample}", "log", "medaka_{assembler}.log")
     shell:
         """
         rm -rf {params.outdir}

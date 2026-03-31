@@ -12,7 +12,7 @@
 # o888bood8P'   o888o 8""888P' `Y8bod8P' `Y8bod8P'       `8'       o888o d888b    #
 #                                                                                 #
 ###################################################################################
-#                              version: 12.2025                                   #
+#                              version: 03.2026                                   #
 ###################################################################################
 
 
@@ -30,9 +30,9 @@ rule get_nohit_fasta:
     fasta = get_contigs_path,
     diamond = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_lineage.tsv")  
   output:
-    nohits = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_{tool}_nohit.fasta")
+    nohits = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_{tool}_nohit.fasta")
   log:
-    os.path.join(OUT_DIR, "{sample}", "log", "duskmatter_{tool}_{sample}_nohits.log")
+    os.path.join(OUT_DIR, "{sample}", "log", "darkmatter_{tool}_{sample}_nohits.log")
   conda:
     CORE
   script:
@@ -44,11 +44,11 @@ rule get_nohit_fasta:
 ################################################ 
 rule find_orfs:
   input: 
-    fasta = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_{tool}_nohit.fasta")
+    fasta = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_{tool}_nohit.fasta")
   output:
-    orfs = temp(os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_ORFs.fasta.temp"))
+    orfs = temp(os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_ORFs.fasta.temp"))
   log:
-    os.path.join(OUT_DIR, "{sample}", "log", "duskmatter_{tool}_{sample}_orfs.log")
+    os.path.join(OUT_DIR, "{sample}", "log", "darkmatter_{tool}_{sample}_orfs.log")
   conda:
     PALM
   shell:
@@ -86,11 +86,11 @@ rule cd_hit:
   Remove duplicated ORFs using CD-HIT.
   """
   input:
-    fasta = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_ORFs.fasta.temp")
+    fasta = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_ORFs.fasta.temp")
   output:  
-    orfs = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_ORFs.fasta")
+    orfs = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_ORFs.fasta")
   log:
-    os.path.join(OUT_DIR, "{sample}", "log", "duskmatter_{tool}_{sample}_cdhit.log")
+    os.path.join(OUT_DIR, "{sample}", "log", "darkmatter_{tool}_{sample}_cdhit.log")
   conda:
     PALM
   shell:
@@ -113,10 +113,10 @@ rule cd_hit:
 ################################################## 
 rule palm_annot:
   input:
-    fasta = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_ORFs.fasta")
+    fasta = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_ORFs.fasta")
   output:
-    fev  = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_RdRp.fev"),
-    rdrp = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_RdRp.fasta")
+    fev  = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_RdRp.fev"),
+    rdrp = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_RdRp.fasta")
   params:
     seqtype = config["palm_annot"]["seqtype"],
     minscore = config["palm_annot"]["minscore"],
@@ -125,7 +125,7 @@ rule palm_annot:
   conda:
     PALM
   log:
-    os.path.join(OUT_DIR, "{sample}", "log", "duskmatter_{tool}_{sample}_palmannot.log")  
+    os.path.join(OUT_DIR, "{sample}", "log", "darkmatter_{tool}_{sample}_palmannot.log")  
   script:
     "../scripts/palm_annot_run.py"
   
@@ -135,15 +135,15 @@ rule palm_annot:
 
 rule fev2tsv_single:
   input:
-    fev = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_RdRp.fev")
+    fev = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_RdRp.fev")
   output:
-    tsv = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_RdRp.tsv")
+    tsv = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_RdRp.tsv")
   params:
     palm_annot_dir = config["resources"]["palm_annot_dir"]
   conda:
     PALM
   log:
-    os.path.join(OUT_DIR, "{sample}", "log", "duskmatter_{tool}_{sample}_fev2tsv.log")
+    os.path.join(OUT_DIR, "{sample}", "log", "darkmatter_{tool}_{sample}_fev2tsv.log")
   script:
     "../scripts/fev2tsv_run.py"
 
@@ -155,11 +155,11 @@ rule report_summarize:
         fasta = get_contigs_path,
         lineages = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_lineage.tsv"),
         #basta_lca = os.path.join(OUT_DIR, "{sample}", "basta_{tool}", "{sample}_{tool}_lca.tsv"),
-        dusk = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_RdRp.tsv")
+        dusk = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_RdRp.tsv")
     output:
-        html = os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}", "{sample}_Report_Diversity.html")
+        html = os.path.join(OUT_DIR, "{sample}", "darkmatter_report_{tool}", "{sample}_Report_Diversity.html")
     params:
-        out_dir = directory(os.path.join(OUT_DIR, "{sample}", "duskmatter_report_{tool}")),
+        out_dir = directory(os.path.join(OUT_DIR, "{sample}", "darkmatter_report_{tool}")),
         logos = "resources/logo/"
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_report_summarize_{tool}.log")
@@ -187,8 +187,8 @@ rule report_summarize:
 rule dm_validate:
   input:
     fasta = get_contigs_path,
-    orfs  = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_ORFs.fasta"),
-    dusk  = os.path.join(OUT_DIR, "{sample}", "duskmatter_{tool}", "{sample}_RdRp.tsv")
+    orfs  = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_ORFs.fasta"),
+    dusk  = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_RdRp.tsv")
   output:
     raw_rdrp    = os.path.join(OUT_DIR, "{sample}", "darkmatter_to_validate_{tool}", "{sample}_RdRp_Orfs.fasta"),
     raw_contigs = os.path.join(OUT_DIR, "{sample}", "darkmatter_to_validate_{tool}", "{sample}_RdRp_contigs.fasta")

@@ -12,7 +12,7 @@
 # o888bood8P'   o888o 8""888P' `Y8bod8P' `Y8bod8P'       `8'       o888o d888b    #
 #                                                                                 #
 ###################################################################################
-#                              version: 12.2025                                   #
+#                              version: 03.2026                                   #
 ###################################################################################
 
 rule kraken2_contigs:
@@ -22,13 +22,13 @@ rule kraken2_contigs:
     input:
         contigs = get_contigs_path
     output:
-        report = "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_report.txt",
-        out    = "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_output.txt"
+        report = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_report.txt"),
+        out    = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_output.txt")
     params:
         db = config["resources"]["kraken2"],        
         confidence = config["kraken2"]["confidence"]
     log:
-        "{out_dir}/{sample}/log/kraken2_contigs_{tool}_{sample}.log"
+        os.path.join(OUT_DIR, "{sample}", "log", "kraken2_contigs_{tool}_{sample}.log")
     conda:
         KRAKEN2 # Verifique se o nome do env está correto no seu config
     shell:
@@ -50,11 +50,11 @@ rule kraken_biom_contig:
     wildcard_constraints:
         tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
-        report = "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_report.txt",
+        report = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_report.txt"),
     output:
-        biom = "{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_biom.txt",
+        biom = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_biom.txt"),
     log:
-        "{out_dir}/{sample}/log/kraken2_contigs_{tool}_{sample}_biom.log"
+        os.path.join(OUT_DIR, "{sample}", "log", "kraken2_contigs_{tool}_{sample}_biom.log")
     params:
         maximun = config["kraken_biom"]["max"],
         minimum = config["kraken_biom"]["min"],
@@ -78,15 +78,15 @@ rule kraken2_reads_paired:
      r2 = os.path.join(OUT_DIR, "{sample}", "trimmed" , "{sample}_2.fastq.gz"),
      extra = os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_orphans.fastq.gz")
     output:
-      report= "{out_dir}/{sample}/kraken2_reads/{sample}_paired_reads_report.txt",
-      out="{out_dir}/{sample}/kraken2_reads/{sample}_paired_reads_output.txt"
+      report= os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_paired_reads_report.txt"),
+      out=os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_paired_reads_output.txt")
     params:
       #db=f"{workflow.basedir}/{config["resources"]["kraken2"]}",
       db=config["resources"]["kraken2"],        
       confidence=config["kraken2"]["confidence"],
       int_file=temp(os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}.fastq.gz"))
     log:
-      "{out_dir}/{sample}/log/kraken2_paired_reads_{sample}.log"
+      os.path.join(OUT_DIR, "{sample}", "log", "kraken2_paired_reads_{sample}.log")
     conda:
       KRAKEN2        
     shell:
@@ -107,14 +107,14 @@ rule kraken2_reads_unpaired:
     input:   
       r1= os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_unp.fastq.gz")
     output:
-      report= "{out_dir}/{sample}/kraken2_reads/{sample}_unpaired_reads_report.txt",
-      out="{out_dir}/{sample}/kraken2_reads/{sample}_unpaired_reads_output.txt"
+      report= os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_unpaired_reads_report.txt"),
+      out=os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_unpaired_reads_output.txt")
     params:
       #db=f"{workflow.basedir}/{config["resources"]["kraken2"]}",
       db=config["resources"]["kraken2"],        
       confidence=config["kraken2"]["confidence"]
     log:
-      "{out_dir}/{sample}/log/kraken2_paired_reads_{sample}.log"
+      os.path.join(OUT_DIR, "{sample}", "log", "kraken2_paired_reads_{sample}.log")
     conda:
       KRAKEN2        
     shell:
@@ -132,15 +132,15 @@ rule kraken2_reads_unpaired:
 
 rule kraken_biom_reads:
     input:
-      report= "{out_dir}/{sample}/kraken2_reads/{sample}_{paired}_reads_report.txt"
+      report= os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_{paired}_reads_report.txt")
     output:
-      biom= "{out_dir}/{sample}/kraken2_reads/{sample}_{paired}_reads_biom.txt",
+      biom= os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_{paired}_reads_biom.txt"),
     params:
       maximun=config["kraken_biom"]["max"],
       minimum=config["kraken_biom"]["min"],
       out_format=config["kraken_biom"]["format"]
     log:
-        "{out_dir}/{sample}/log/kraken2_biom_{paired}_reads_{sample}.log"
+        os.path.join(OUT_DIR, "{sample}", "log", "kraken2_biom_{paired}_reads_{sample}.log")
     conda:
         KRAKEN2_BIOM
     shell:

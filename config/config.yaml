@@ -12,7 +12,7 @@
 # o888bood8P'   o888o 8""888P' `Y8bod8P' `Y8bod8P'       `8'       o888o d888b    #
 #                                                                                 #
 ###################################################################################
-#                              version: 12.2025                                   #
+#                              version: 03.2026                                   #
 ###################################################################################
                                                                                
 ### Main output directory
@@ -65,6 +65,7 @@ envs:
   basta: "envs/basta.yaml"
   krona: "envs/krona.yaml"
   r_rarefaction: "envs/r_rarefaction.yaml"
+  hmmer: "envs/hmmer.yaml"
 
 
 ### databases and resources for the workflow
@@ -89,6 +90,8 @@ resources:
  #krona db
   krona: 
     - "resources/krona/taxonomy"
+  rvdb:
+    - "resources/rvdb"
 
 ### Parameters for each tool used within the dataset ###
 
@@ -168,6 +171,13 @@ diamond:
     #- "--mid-sensitive"
     #- "--more-sensitive"
     - "--sensitive"
+
+hmmscan:
+  evalue: 
+    #- 1e-3 #exploratory
+    - 1e-5 #standart
+    #- 1e-10 #higher precision, putative homology
+    #- 1e-20 #High Homology!!
 
 
 #LCA algorythim

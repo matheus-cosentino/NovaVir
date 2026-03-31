@@ -13,12 +13,12 @@ params:
   sample_name: "DefaultSample" 
   fasta_file: "path/to/fasta"
   diamond_file: "path/to/diamond"
-  duskmatter_file: "path/to/duskmatter"
+  darkmatter_file: "path/to/darkmatter"
   logos: "path/to/logo/" 
   output_dir: "path/to/output"
 ---
 
-🔍This report aims to provide a detailed view of the Library **`r params$sample_name`** contig assembly, comparing the overall sequence quality with the success of **taxonomic annotation via Diamond** against the nr5 NCBI Database & iddentification on putative Viral agents that compose the **Viral Dusk Matter** within the non-iddentifiaded contigs.
+🔍This report aims to provide a detailed view of the Library **`r params$sample_name`** contig assembly, comparing the overall sequence quality with the success of **taxonomic annotation via Diamond** against the nr5 NCBI Database & iddentification on putative Viral agents that compose the **Viral Dark Matter** within the non-iddentifiaded contigs.
 
 The analysis is structured into four parts: 
 
@@ -610,9 +610,9 @@ if (nrow(virus_data) > 0) {
 }
 ```
 
-## 🦠🌌 Viral Dusk Matter Putative Members Iddentification
+## 🦠🌌 Viral Dark Matter Putative Members Iddentification
 
-Among contigs genomic fragments that remain unclassified by standard taxonomic methods, a bioinformatic strategy of iddentification of putative members of the **Viral Dusk Matter** was implemented. The primary marker used for identification is the **RNA-dependent RNA Polymerase (RdRp)** sequence. The RdRp gene is highly conserved across numerous RNA viruses, making it an ideal marker for identifying novel or divergent viral sequences characteristic of the VDM.
+Among contigs genomic fragments that remain unclassified by standard taxonomic methods, a bioinformatic strategy of iddentification of putative members of the **Viral Dark Matter** was implemented. The primary marker used for identification is the **RNA-dependent RNA Polymerase (RdRp)** sequence. The RdRp gene is highly conserved across numerous RNA viruses, making it an ideal marker for identifying novel or divergent viral sequences characteristic of the VDM.
 
 
 ***Contig Pool**: The starting material consists of non-taxonomically classified contigs derived from metagenomic sequencing.
@@ -622,7 +622,7 @@ Among contigs genomic fragments that remain unclassified by standard taxonomic m
 ***Pipeline**: The strategy to RdRp iddentificatted was thorugh the Palm_annot pipeline ([https://github.com/rcedgar/palm](https://github.com/rcedgar/palm)\_annot.git).
 
 
-```{r dusk_matter_functions, echo=FALSE}
+```{r dark_matter_functions, echo=FALSE}
 PlotPP <- function(ps){
   # Bind Local Variables
   segstrt <- segend <- segment <- NULL
@@ -688,9 +688,9 @@ pp.col.canonical <- c("#440154", "gray60", "#3b528b", "gray60", "#fde725")
 ```
 ### Putative RdRp Iddentified
 
-```{r dusk_matter_analysis, echo=FALSE,  warning=FALSE, fig.width=10, fig.height=4, out.width="50%"}
+```{r dark_matter_analysis, echo=FALSE,  warning=FALSE, fig.width=10, fig.height=4, out.width="50%"}
 # Carregar a tabela
-fev <- read.table(file = params$duskmatter_file, header = T, sep = "\t")
+fev <- read.table(file = params$darkmatter_file, header = T, sep = "\t")
 
 # AQUI ESTA A CORRECAO: Verificar se a tabela tem dados
 if (nrow(fev) > 0) {
@@ -785,7 +785,7 @@ if (nrow(fev) > 0) {
     }
 
 } else {
-    cat("**No putative RdRp sequences identified in this sample (Dusk Matter Analysis).**")
+    cat("**No putative RdRp sequences identified in this sample (Dark Matter Analysis).**")
 }
 ```
 

@@ -12,7 +12,7 @@
 # o888bood8P'   o888o 8""888P' `Y8bod8P' `Y8bod8P'       `8'       o888o d888b    #
 #                                                                                 #
 ###################################################################################
-#                              version: 12.2025.basta                             #
+#                              version: 03.2026.basta                             #
 ###################################################################################
 
 ###########################################
@@ -101,7 +101,7 @@ def get_final_outputs():
                 else:
                     current_tools.append(tool)
 
-        final_outputs.extend(expand("{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Report_Diversity.html", 
+        final_outputs.extend(expand("{out_dir}/{sample}/darkmatter_report_{tool}/{sample}_Report_Diversity.html", 
                 out_dir=OUT_DIR, sample=sample, tool=current_tools))
         final_outputs.extend(expand("{out_dir}/{sample}/darkmatter_to_validate_{tool}/{sample}_RdRp_Orfs.fasta", 
                 out_dir=OUT_DIR, sample=sample, tool=current_tools))
@@ -114,7 +114,7 @@ def get_final_outputs():
   #5. Basta (LCA Algorythim)
   if MODULES["basta"]:
     final_outputs.extend(expand("{out_dir}/{sample}/basta_reads/{sample}_reads_lca.tsv", out_dir=OUT_DIR, sample=SAMPLE))
-    final_outputs.extend(expand("{out_dir}/{sample}/krona_reads/{sample}_reads_basta_krona.html", out_dir=OUT_DIR, sample=SAMPLE))
+    # final_outputs.extend(expand("{out_dir}/{sample}/krona_reads/{sample}_reads_basta_krona.html", out_dir=OUT_DIR, sample=SAMPLE))
     final_outputs.append(expand("{out_dir}/basta_all/Basta_Rarefaction_Curve.pdf", out_dir=OUT_DIR))
     for sample, meta in SAMPLE_META.items():
         current_tools = []
@@ -129,7 +129,7 @@ def get_final_outputs():
                 else:
                     current_tools.append(tool)
         final_outputs.extend(expand("{out_dir}/{sample}/basta_{tool}/{sample}_{tool}_lca.tsv",out_dir=OUT_DIR, sample=sample, tool=current_tools))
-        final_outputs.extend(expand("{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_basta_krona.html",out_dir=OUT_DIR, sample=sample, tool=current_tools))
+        # final_outputs.extend(expand("{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_basta_krona.html",out_dir=OUT_DIR, sample=sample, tool=current_tools))
 
   # 6. Reads (Kraken2)
   if MODULES["reads_kraken2"]:
@@ -674,7 +674,11 @@ def get_diamond_db_name(wildcards):
         return prefix
         
     # Fallback genérico: pega o nome do primeiro arquivo sem extensão
-    first_file = os.path.basename(glob.glob(os.path.join(db_dir, "*"))[0])
+    all_files = glob.glob(os.path.join(db_dir, "*"))
+    if not all_files:
+        print(f"[WARNING] Diamond DB directory '{db_dir}' is empty. Returning placeholder for dry-run.", file=sys.stderr)
+        return "missing_db"
+    first_file = os.path.basename(all_files[0])
     return first_file.split('.')[0]
 
 ########################################################
