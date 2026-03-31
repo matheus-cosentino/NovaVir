@@ -127,7 +127,7 @@ spades:
     #- '33'
     #- '127'           # Maximum value
     #- '111'           # Custom or your choice (https://www.chilimath.com/lessons/introductory-algebra/list-of-odd-numbers)
-    - '21_33'
+    #- '21_33'
     #- '21_33_55'   # If you have enough coverage (+50x), then you may want to try to set this k-mer lengths
     #- '21_33_55_77_99'
     #- '21_33_55_77_99_111'
