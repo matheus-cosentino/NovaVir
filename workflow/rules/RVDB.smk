@@ -79,10 +79,13 @@ rule rvdb_search:
 
 rule rvdb_summarize:
   input:
+    tbl = os.path.join(OUT_DIR, "{sample}", "rvdb_{tool}", "{sample}_RVDB_results.tsv"),
+    sqlite = os.path.join(RVDB_DIR[0], "U-RVDBv31.0-prot-hmm.sqlite")
   output:
-  params:
+    csv = os.path.join(OUT_DIR, "{sample}", "rvdb_{tool}", "{sample}_RVDB_Summary.csv")
   log:
+    os.path.join(OUT_DIR, "{sample}", "log", "rvdb_summarize_{tool}_{sample}.log")
   conda:
     CORE
-  run:
-    pass
+  script:
+    "../scripts/rvdb_summarize.py"
