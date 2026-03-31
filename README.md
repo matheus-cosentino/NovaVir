@@ -43,7 +43,7 @@ graph TD;
     H -->|ORF Prediction & HMM| I(PalmAnnot2 & RVDB Screening);
     I -->|Taxonomy Summarization| J[Final RdRp Hits & Annotations];
 
-    D --> K[Krona Dashboards];
+    D --> K[Krona & Report Dashboards];
     F --> K;
     J --> K;
 ```
