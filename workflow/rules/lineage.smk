@@ -23,13 +23,13 @@ rule download_prot:
   Download Protein acc to taxid data
   """
   output:
-    gz = protected(os.path.join(TAXONOMY_DIR[0], "prot.accession2taxid.gz")),
-    nodes = protected(os.path.join(TAXONOMY_DIR[0], "nodes.dmp")),
-    names = protected(os.path.join(TAXONOMY_DIR[0], "names.dmp"))
+    gz = os.path.join(TAXONOMY_DIR[0], "prot.accession2taxid.gz"),
+    nodes = os.path.join(TAXONOMY_DIR[0], "nodes.dmp"),
+    names = os.path.join(TAXONOMY_DIR[0], "names.dmp")
   log:
     os.path.join(OUT_DIR, "log", "tax_download_mapping.log")
   params:
-    taxon_gz = protected(os.path.join(TAXONOMY_DIR[0], "taxdump.tar.gz")),
+    taxon_gz = os.path.join(TAXONOMY_DIR[0], "taxdump.tar.gz"),
     #tax_dir = TAXONOMY_DIR[0]
   conda:
     DOWNLOAD
