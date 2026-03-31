@@ -111,26 +111,6 @@ def get_final_outputs():
     final_outputs.extend(expand("{out_dir}/{sample}/diamond_reads/{sample}_reads_hits_with_lineage.tsv", out_dir=OUT_DIR, sample=SAMPLE))
     final_outputs.extend(expand("{out_dir}/{sample}/krona_reads/{sample}_reads_diamond_krona.html", out_dir=OUT_DIR, sample=SAMPLE))
 
-  #5. Basta (LCA Algorythim)
-  if MODULES["basta"]:
-    final_outputs.extend(expand("{out_dir}/{sample}/basta_reads/{sample}_reads_lca.tsv", out_dir=OUT_DIR, sample=SAMPLE))
-    # final_outputs.extend(expand("{out_dir}/{sample}/krona_reads/{sample}_reads_basta_krona.html", out_dir=OUT_DIR, sample=SAMPLE))
-    final_outputs.append(expand("{out_dir}/basta_all/Basta_Rarefaction_Curve.pdf", out_dir=OUT_DIR))
-    for sample, meta in SAMPLE_META.items():
-        current_tools = []
-        if meta['mode'] == 'CONTIGS':
-            current_tools.append(PRE_ASSEMBLED_LABEL)
-        else:
-            for tool in assembler_list:
-                if tool == "spades":
-                    kmer_list = config["spades"]["kmer"]
-                    for k in kmer_list:
-                        current_tools.append(f"spades_k{k}")
-                else:
-                    current_tools.append(tool)
-        final_outputs.extend(expand("{out_dir}/{sample}/basta_{tool}/{sample}_{tool}_lca.tsv",out_dir=OUT_DIR, sample=sample, tool=current_tools))
-        # final_outputs.extend(expand("{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_basta_krona.html",out_dir=OUT_DIR, sample=sample, tool=current_tools))
-
   # 6. Reads (Kraken2)
   if MODULES["reads_kraken2"]:
     for sample in SAMPLE:
@@ -713,16 +693,4 @@ def get_all_kraken_reports(wildcards):
              is_paired = (meta['mode'] == 'PAIRED') or (meta['mode'] == 'SRA' and len(meta['files']) == 2)
              label = "paired" if is_paired else "unpaired"
              paths.append(os.path.join(OUT_DIR, s, "kraken2_reads", f"{s}_{label}_reads_report.txt"))
-    return paths
-
-def get_all_basta_read_outputs(wildcards):
-    if not MODULES["basta"]:
-        return []
-    paths = []
-    for s in SAMPLE:
-        meta = SAMPLE_META.get(s)
-        if meta:
-             is_paired = (meta['mode'] == 'PAIRED') or (meta['mode'] == 'SRA' and len(meta['files']) == 2)
-             label = "paired" if is_paired else "unpaired"
-             paths.append(os.path.join(OUT_DIR, s, "basta_reads", f"{s}_reads_lca.tsv"))
     return paths

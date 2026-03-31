@@ -47,14 +47,12 @@ from scripts.functions import get_diamond_db_name
 from scripts.functions import get_header_check
 from scripts.functions import get_multiqc_inputs
 from scripts.functions import get_all_kraken_reports
-from scripts.functions import get_all_basta_read_outputs
 
 ###########################################################
 # --- 3. Define workflown directory and local infos  --- #
 ##########################################################
 DATA = config["data_dir"]
 OUT_DIR = config["output_dir"]
-BASTA_DB_DIR = config["resources"]["basta_db"]
 KRONA_DB_DIR = config["resources"]["krona"]
 TAXONOMY_DIR = config["resources"]["taxonomy"]
 RVDB_DIR = config["resources"]["rvdb"]
@@ -100,7 +98,6 @@ functions.get_sra_layout = get_sra_layout
 functions.get_header_check = get_header_check
 functions.get_multiqc_inputs = get_multiqc_inputs 
 functions.get_all_kraken_reports = get_all_kraken_reports
-functions.get_all_basta_read_outputs = get_all_basta_read_outputs
 functions.config = config
 
 ##############################################
@@ -119,7 +116,6 @@ REPORT = workflow.source_path(config["envs"]["report"])
 PALM = workflow.source_path(config["envs"]["palm_annot"])
 MULTIQC = workflow.source_path(config["envs"]["multiqc"])
 SPADES_ENV = workflow.source_path(config["envs"]["spades"])
-BASTA = workflow.source_path(config["envs"]["basta"])
 KRONA = workflow.source_path(config["envs"]["krona"])
 R_RAREFACTION = workflow.source_path(config["envs"]["r_rarefaction"])
 HMMER = workflow.source_path(config["envs"]["hmmer"])
@@ -134,7 +130,6 @@ include: "rules/fastp.smk"
 include: "rules/denovo.smk"
 include: "rules/diamond.smk"
 include: "rules/kraken2.smk"
-include: "rules/basta.smk"
 include: "rules/lineage.smk"
 include: "rules/darkmatter.smk"
 include: "rules/reporting.smk"
