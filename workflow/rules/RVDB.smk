@@ -16,10 +16,6 @@
 ###################################################################################
 
 rule get_rvdb:
-  message:
-    """
-    Download RVDB v.31.0 HMM & SQLite files
-    """
   output:
     hmm = os.path.join(RVDB_DIR[0], "U-RVDBv31.0-prot.hmm.xz"),
     sql =  os.path.join(RVDB_DIR[0], "U-RVDBv31.0-prot-hmm.sqlite.xz")
@@ -34,10 +30,6 @@ rule get_rvdb:
     """
 
 rule prepare_rvdb:
-  message:
-    """
-    Decompressing and Indexing RVDB HMM Database
-    """
   input:
     hmm = os.path.join(RVDB_DIR[0], "U-RVDBv31.0-prot.hmm.xz"),
     sql = os.path.join(RVDB_DIR[0], "U-RVDBv31.0-prot-hmm.sqlite.xz")
