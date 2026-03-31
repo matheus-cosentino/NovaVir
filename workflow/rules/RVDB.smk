@@ -81,3 +81,54 @@ rule rvdb_summarize:
     CORE
   script:
     "../scripts/rvdb_summarize.py"
+
+rule rvdb_validate:
+  input:
+    fasta = get_contigs_path,
+    orfs  = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_ORFs.fasta"),
+    tsv   = os.path.join(OUT_DIR, "{sample}", "rvdb_{tool}", "{sample}_RVDB_Summary.csv")
+  output:
+    raw_rvdb_orfs    = os.path.join(OUT_DIR, "{sample}", "rvdb_to_validate_{tool}", "{sample}_RVDB_Orfs.fasta"),
+    raw_rvdb_contigs = os.path.join(OUT_DIR, "{sample}", "rvdb_to_validate_{tool}", "{sample}_RVDB_contigs.fasta")
+  log:
+    os.path.join(OUT_DIR, "{sample}", "log", "{sample}_rvdb_validate_{tool}.log")
+  conda:
+    REPORT
+  run:
+    import pandas as pd
+    import re
+    from Bio import SeqIO
+    
+    # Carrega o CSV sumarizado do RVDB
+    try:
+        df = pd.read_csv(input.tsv, sep='\t')
+        target_orfs = set(df['Sequence_ID'].astype(str).tolist())
+    except (pd.errors.EmptyDataError, KeyError):
+        target_orfs = set()
+        
+    target_contigs = set()
+
+    # Logica para extrair o ID do Contig a partir do Label do ORF
+    # Queremos resgatar o ID original do Seq (NODE_244_length_2206_cov_6.211439)
+    for label in target_orfs:
+        match = re.search(r'^gc_\d+_(.+?)_\d+_\[', label)
+        if match:
+            contig_id = match.group(1)
+            target_contigs.add(contig_id)
+        else:
+            with open(log[0], "a") as f:
+                f.write(f"[WARNING] Nao foi possivel parsear o contig ID do label: {label}\n")
+
+    # Salva os ORFs identificados
+    with open(output.raw_rvdb_orfs, "w") as out_orf:
+        if len(target_orfs) > 0:
+            for record in SeqIO.parse(input.orfs, "fasta"):
+                if record.id in target_orfs:
+                    SeqIO.write(record, out_orf, "fasta")
+
+    # Salva os Contigs originais correspondentes
+    with open(output.raw_rvdb_contigs, "w") as out_contig:
+        if len(target_contigs) > 0:
+            for record in SeqIO.parse(input.fasta, "fasta"):
+                if record.id in target_contigs:
+                    SeqIO.write(record, out_contig, "fasta")

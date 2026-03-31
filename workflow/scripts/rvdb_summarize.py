@@ -4,26 +4,30 @@ import re
 import urllib.request
 import json
 import time
+from datetime import datetime
 import sys
 
-# Snakemake Configurações
-ARQUIVO_TBL = snakemake.input.tbl
-BANCO_SQLITE = snakemake.input.sqlite
-SAIDA_CSV = snakemake.output.csv
+# --- CONFIGURAÇÕES (Snakemake) ---
+INPUT_TBL = snakemake.input.tbl
+DATABASE = snakemake.input.sqlite
+OUTPUT_FILE = snakemake.output.csv
 LOG_FILE = snakemake.log[0]
 
 sys.stdout = open(LOG_FILE, "w")
 sys.stderr = sys.stdout
 
-# Palavras que queremos ignorar para obter uma descrição melhor
-BLACKLIST = {'protein', 'hypothetical', 'unnamed', 'predicted', 'unknown', 'virus', 'sequence', 'structure', 'homolog', 'orf'}
+# Palavras-chave que não agregam valor biológico
+BLACKLIST = {
+    'protein', 'hypothetical', 'unnamed', 'predicted', 'unknown', 
+    'virus', 'sequence', 'structure', 'homolog', 'orf', 'rna', 'type', 'like'
+}
 
-# Cache para não perguntar ao NCBI a mesma coisa várias vezes (mais rápido)
+# Cache para evitar consultas repetidas ao NCBI
 tax_cache = {}
 
 def get_scientific_name(taxid):
-    """Consulta a API do NCBI para traduzir o TaxID em Nome Científico"""
-    if taxid == "N/A" or not taxid: return "N/A"
+    """Consulta o nome científico no NCBI via API"""
+    if not taxid or taxid == "N/A": return "Unknown"
     if taxid in tax_cache: return tax_cache[taxid]
     
     try:
@@ -32,64 +36,85 @@ def get_scientific_name(taxid):
             data = json.loads(response.read().decode())
             name = data['result'][str(taxid)]['scientificname']
             tax_cache[taxid] = name
-            time.sleep(0.1) # Evita ser bloqueado pelo NCBI
+            time.sleep(0.1) # Respeitar limites do NCBI
             return name
     except:
         return f"TaxID:{taxid}"
 
-def extrair_id_familia(nome_alvo):
-    match = re.search(r'FAM(\d+)', str(nome_alvo))
-    return int(match.group(1)) if match else None
+def process_results():
+    print("1. A ler ficheiro HMMER...")
+    # O HMMER usa espaços variáveis, por isso usamos sep='\s+'
+    cols = ["Target_ID", "query_name", "E_value", "Score"]
+    try:
+        df = pd.read_csv(INPUT_TBL, comment='#', header=None, sep=r'\s+', 
+                         usecols=[0, 2, 4, 5], names=cols)
+    except Exception as e:
+        print(f"Erro ao ler .tbl: {e}")
+        return
 
-def buscar_metadados(fam_id, conn):
-    # 1. Buscar keywords e filtrar as genéricas
-    query_kw = f"""
-        SELECT k.str FROM keyword k
-        JOIN fam_kw_seqnames fks ON k.id = fks.kwId
-        WHERE fks.famId = {fam_id}
-        ORDER BY fks.freq DESC
-    """
-    kws = pd.read_sql_query(query_kw, conn)
+    print(f"2. Cruzando com SQLite ({len(df)} hits encontrados)...")
+    conn = sqlite3.connect(DATABASE)
+    final_data = []
+
+    for _, row in df.iterrows():
+        # Extrair número do ID (FAM012345 -> 12345)
+        match = re.search(r'FAM(\d+)', str(row['Target_ID']))
+        if not match: continue
+        fam_id = int(match.group(1))
+
+        # Query 1: Melhor palavra-chave (ignorando a blacklist)
+        kw_query = f"""
+            SELECT k.str FROM keyword k
+            JOIN fam_kw_seqnames fks ON k.id = fks.kwId
+            WHERE fks.famId = {fam_id}
+            ORDER BY fks.freq DESC
+        """
+        kws = pd.read_sql_query(kw_query, conn)
+        desc = "Unknown Protein"
+        for word in kws['str']:
+            if word.lower() not in BLACKLIST:
+                desc = word
+                break
+
+        # Query 2: TaxID (LCA - Last Common Ancestor)
+        tax_query = f"SELECT LCAtaxid FROM family WHERE id = {fam_id}"
+        tax_res = pd.read_sql_query(tax_query, conn)
+        taxid = tax_res['LCAtaxid'].iloc[0] if not tax_res.empty else "N/A"
+
+        # Calcular nível de confiança
+        e_val = float(row['E_value'])
+        conf = "High" if e_val < 1e-10 else ("Medium" if e_val < 1e-5 else "Low")
+
+        final_data.append({
+            'Sequence_ID': row['query_name'],
+            'HMM_Family': row['Target_ID'],
+            'E_value': e_val,
+            'Bit_Score': row['Score'],
+            'Annotation': desc,
+            'TaxID': taxid,
+            'Confidence': conf
+        })
+
+    conn.close()
     
-    descricao = "N/A"
-    for word in kws['str']:
-        if word.lower() not in BLACKLIST:
-            descricao = word
-            break
-            
-    # 2. Buscar o TaxID (usando o LCA da tabela family para maior precisão taxonómica)
-    query_tax = f"SELECT LCAtaxid FROM family WHERE id = {fam_id}"
-    tax = pd.read_sql_query(query_tax, conn)
-    taxid = tax['LCAtaxid'].iloc[0] if not tax.empty else None
-    
-    return descricao, taxid
+    # Criar DataFrame final
+    df_final = pd.DataFrame(final_data)
 
-print(f"-> A processar resultados de: {ARQUIVO_TBL}...")
-cols_hmmer = ["target_name", "query_name", "e_value", "score"]
-df = pd.read_csv(ARQUIVO_TBL, comment='#', header=None, sep=r'\s+', usecols=[0,2,4,5], names=cols_hmmer)
+    print("3. Filtrando melhores hits (Best Hit per Query)...")
+    # Mantém apenas a linha com o menor E-value para cada sequência
+    df_best = df_final.sort_values('E_value').drop_duplicates('Sequence_ID')
 
-conn = sqlite3.connect(BANCO_SQLITE)
-results = []
+    print("4. Traduzindo TaxIDs para nomes científicos (pode demorar)...")
+    df_best['Scientific_Name'] = df_best['TaxID'].apply(get_scientific_name)
 
-for idx, row in df.iterrows():
-    fam_id = extrair_id_familia(row['target_name'])
-    desc, tid = buscar_metadados(fam_id, conn)
-    nome_sci = get_scientific_name(tid)
-    
-    results.append({
-        'Query': row['query_name'],
-        'Family': row['target_name'],
-        'E-value': row['e_value'],
-        'Description': desc,
-        'TaxID': tid,
-        'Scientific_Name': nome_sci
-    })
-    if idx % 10 == 0 and idx > 0: 
-        print(f"Processados {idx} hits...")
+    # Reorganizar colunas para o relatório
+    ordem = ['Sequence_ID', 'Annotation', 'Scientific_Name', 'Confidence', 'E_value', 'Bit_Score', 'HMM_Family', 'TaxID']
+    df_best = df_best[ordem]
 
-df_final = pd.DataFrame(results)
-df_final.to_csv(SAIDA_CSV, index=False)
-conn.close()
+    # Salvar
+    df_best.to_csv(OUTPUT_FILE, sep='\t', index=False)
+    print(f"--- SUCESSO ---\nRelatório final guardado em: {OUTPUT_FILE}")
 
-print(f"-> Concluído! Verifique o ficheiro: {SAIDA_CSV}")
-sys.stdout.close()
+if __name__ == "__main__":
+    process_results()
+    sys.stdout.close()
