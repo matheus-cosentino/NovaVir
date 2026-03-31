@@ -103,8 +103,8 @@ def get_final_outputs():
 
         final_outputs.extend(expand("{out_dir}/{sample}/duskmatter_report_{tool}/{sample}_Report_Diversity.html", 
                 out_dir=OUT_DIR, sample=sample, tool=current_tools))
-        final_outputs.extend(expand("{out_dir}/{sample}/darkmatter_to_validate_{tool}/{sample}_RdRp_Orfs.fasta"), 
-                out_dir=OUT_DIR, sample=sample, tool=current_tools)
+        final_outputs.extend(expand("{out_dir}/{sample}/darkmatter_to_validate_{tool}/{sample}_RdRp_Orfs.fasta", 
+                out_dir=OUT_DIR, sample=sample, tool=current_tools))
 
   # 4. Reads (Diamond)
   if MODULES["reads_diamond"]:
