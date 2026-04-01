@@ -89,4 +89,7 @@ set-resources:
   krona_update_taxonomy:
     mem_mb: 32000
     threads: 8
-
+  ncbi_rvdb_search:
+    mem_mb: 120000
+    threads: 12
+ 
