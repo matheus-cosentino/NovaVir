@@ -377,7 +377,7 @@ for p in paths:
                 if t:
                     print(str(t).strip())
                     sys.exit(0)
-        except: pass
+        except Exception: pass
 print('/scratch-ib/${USER}/') # fallback
 ")
     # Limpa possíveis quebras de linha que possam quebrar o mkdir no bash
