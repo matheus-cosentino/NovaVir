@@ -100,9 +100,9 @@ def process_results():
     # Criar DataFrame final
     df_final = pd.DataFrame(final_data)
 
-    print("3. Filtrando melhores hits (Best Hit per Query)...")
-    # Mantém apenas a linha com o menor E-value para cada sequência
-    df_best = df_final.sort_values('E_value').drop_duplicates('Sequence_ID')
+    print("3. Organizando hits (Todos os hits mantidos)...")
+    # Mantém todos os hits ordenados por qualidade (descrescentemente por E-value)
+    df_best = df_final.sort_values(['Sequence_ID', 'E_value'])
 
     print("4. Traduzindo TaxIDs para nomes científicos (pode demorar)...")
     df_best['Scientific_Name'] = df_best['TaxID'].apply(get_scientific_name)
