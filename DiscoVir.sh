@@ -285,7 +285,7 @@ set -e -o pipefail
 input="data"
 jobs=15
 profile="profile_slurm"
-temp_dir="/scratch-ib/${USER}/"
+temp_dir=""
 
 # Module Defaults (Must match the keys in your config.yaml)
 mod_keep_download="true"   # lowercase for yaml
@@ -357,6 +357,31 @@ fi
 
 # 2. Generate the DYNAMIC Override Config
 # This file only contains what changes per run (inputs, outputs, modules)
+
+# Discover the true tmpdir from the selected profile if the user didn't explicitly pass --temp-dir
+if [[ -z "$temp_dir" ]]; then
+    echo -e "${blu}[INFO]${nc} Discovering tmpdir from profile: ${ylo}$profile${nc}"
+    temp_dir=$(python3 -c "
+import yaml, sys, os
+prof = '$profile'
+paths = [
+    os.path.join(prof, 'config.yaml'),
+    os.path.join('profiles', prof, 'config.yaml')
+]
+for p in paths:
+    if os.path.exists(p):
+        try:
+            with open(p) as f:
+                d = yaml.safe_load(f)
+                t = d.get('default-resources', {}).get('tmpdir', '')
+                if t:
+                    print(t)
+                    sys.exit(0)
+        except: pass
+print('/scratch-ib/${USER}/') # fallback
+")
+fi
+
 run_overrides="$workdir/run_overrides.yaml"
 
 echo -e "${blu}[INFO]${nc} Generating run overrides: ${ylo}$run_overrides${nc}"
@@ -409,7 +434,7 @@ echo -e "\n${green}> Snakemake: Starting main execution...${nc}"
 # This forces Snakemake to write its heavy temporary shadow files to /scratch
 # Caso não esteja no Slurm, usa 'local' como ID
 JOB_ID=${SLURM_JOB_ID:-local}
-SHADOW_DIR="${temp_dir}/${USER}/discovir_shadow/${JOB_ID}"
+SHADOW_DIR="${temp_dir}/discovir_shadow/${JOB_ID}"
 mkdir -p "$SHADOW_DIR"
 CONDA_DIR="$workdir/.snakemake/conda"
 
