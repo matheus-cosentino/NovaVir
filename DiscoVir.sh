@@ -375,11 +375,13 @@ for p in paths:
                 d = yaml.safe_load(f)
                 t = d.get('default-resources', {}).get('tmpdir', '')
                 if t:
-                    print(t)
+                    print(str(t).strip())
                     sys.exit(0)
         except: pass
 print('/scratch-ib/${USER}/') # fallback
 ")
+    # Limpa possíveis quebras de linha que possam quebrar o mkdir no bash
+    temp_dir=$(echo "$temp_dir" | tr -d '\r\n')
 fi
 
 # Garante que o usuário possua sua própria pasta para evitar colisão de permissões
