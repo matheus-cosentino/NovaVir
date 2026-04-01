@@ -104,14 +104,19 @@ rule rvdb_validate:
         # Nota: Ajuste 'sep' se o seu summarize.py gerar CSV (,) em vez de TSV (\t) [cite: 13]
         df = pd.read_csv(input.tsv, sep='\t')
         
+        # --- FILTRO DE CONFIANÇA ---
+        if 'Confidence' in df.columns:
+            df = df[df['Confidence'] == 'High']
+
         # --- FILTRO BASEADO NA INSPEÇÃO DO SQLITE ---
         # Definimos o padrão com base nos termos encontrados: polymerase e transcriptase
         # Isso engloba: polymerase, transcriptase, polymerases, transcriptases e retrotranscriptase
         pol_pattern = r'polymerase|transcriptase'
         
         # Verifique se o nome da coluna no seu CSV é 'Description', 'str' ou 'Annotation'
-        # Aqui assumimos 'Description' como padrão de saída comum em summarizers
-        if 'Description' in df.columns:
+        if 'Annotation' in df.columns:
+            df = df[df['Annotation'].str.contains(pol_pattern, case=False, na=False)]
+        elif 'Description' in df.columns:
             df = df[df['Description'].str.contains(pol_pattern, case=False, na=False)]
         elif 'str' in df.columns:
             df = df[df['str'].str.contains(pol_pattern, case=False, na=False)]
