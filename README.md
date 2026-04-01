@@ -62,9 +62,6 @@ The pipeline uses Conda to manage its dependencies. We recommend having any vers
 Due to the large size of the databases used and their common presence within HPC clusters, the paths to the databases must be provided before running the pipeline. Their download is not part of this pipeline. If you have any doubts, please open an issue or get in touch with your HPC support team for proper installation.
  - [nr](https://ftp.ncbi.nlm.nih.gov/blast/db/v5/) (For Diamond)
  - [Kraken2](https://benlangmead.github.io/aws-indexes/k2)
- - [RVDB](https://rvdb.pasteur.fr/) (Reference Viral DataBase HMMs)
-
-The `prot.accession2taxid.gz` file, which is used for taxonomic classification, is downloaded automatically by the workflow.
 
 ## Installation
 The `DiscoVir.sh` script is responsible for managing the run, automatically downloading and creating the necessary Conda environments, as well as managing Conda versions for the pipeline to work.
