@@ -116,21 +116,21 @@ rule rvdb_validate:
         elif 'str' in df.columns:
             df = df[df['str'].str.contains(pol_pattern, case=False, na=False)]
             
-        target_orfs = set(df['Sequence_ID'].astype(str).tolist()) [cite: 13]
+        target_orfs = set(df['Sequence_ID'].astype(str).tolist())
     except (pd.errors.EmptyDataError, KeyError):
         target_orfs = set()
         
     target_contigs = set()
 
-    # Logica para extrair o ID do Contig a partir do Label do ORF [cite: 14]
+    # Logica para extrair o ID do Contig a partir do Label do ORF
     for label in target_orfs:
-        match = re.search(r'^gc_\d+_(.+?)_\d+_\[', label) [cite: 14]
+        match = re.search(r'^gc_\d+_(.+?)_\d+_\[', label)
         if match:
             contig_id = match.group(1)
             target_contigs.add(contig_id)
         else:
             with open(log[0], "a") as f:
-                f.write(f"[WARNING] Nao foi possivel parsear o contig ID do label: {label}\n") [cite: 15]
+                f.write(f"[WARNING] Nao foi possivel parsear o contig ID do label: {label}\n")
 
     # Salva os ORFs identificados que passaram no filtro de polimerase 
     with open(output.raw_rvdb_orfs, "w") as out_orf:
