@@ -101,32 +101,45 @@ rule rvdb_validate:
     
     # Carrega o CSV sumarizado do RVDB
     try:
+        # Nota: Ajuste 'sep' se o seu summarize.py gerar CSV (,) em vez de TSV (\t) [cite: 13]
         df = pd.read_csv(input.tsv, sep='\t')
-        target_orfs = set(df['Sequence_ID'].astype(str).tolist())
+        
+        # --- FILTRO BASEADO NA INSPEÇÃO DO SQLITE ---
+        # Definimos o padrão com base nos termos encontrados: polymerase e transcriptase
+        # Isso engloba: polymerase, transcriptase, polymerases, transcriptases e retrotranscriptase
+        pol_pattern = r'polymerase|transcriptase'
+        
+        # Verifique se o nome da coluna no seu CSV é 'Description', 'str' ou 'Annotation'
+        # Aqui assumimos 'Description' como padrão de saída comum em summarizers
+        if 'Description' in df.columns:
+            df = df[df['Description'].str.contains(pol_pattern, case=False, na=False)]
+        elif 'str' in df.columns:
+            df = df[df['str'].str.contains(pol_pattern, case=False, na=False)]
+            
+        target_orfs = set(df['Sequence_ID'].astype(str).tolist()) [cite: 13]
     except (pd.errors.EmptyDataError, KeyError):
         target_orfs = set()
         
     target_contigs = set()
 
-    # Logica para extrair o ID do Contig a partir do Label do ORF
-    # Queremos resgatar o ID original do Seq (NODE_244_length_2206_cov_6.211439)
+    # Logica para extrair o ID do Contig a partir do Label do ORF [cite: 14]
     for label in target_orfs:
-        match = re.search(r'^gc_\d+_(.+?)_\d+_\[', label)
+        match = re.search(r'^gc_\d+_(.+?)_\d+_\[', label) [cite: 14]
         if match:
             contig_id = match.group(1)
             target_contigs.add(contig_id)
         else:
             with open(log[0], "a") as f:
-                f.write(f"[WARNING] Nao foi possivel parsear o contig ID do label: {label}\n")
+                f.write(f"[WARNING] Nao foi possivel parsear o contig ID do label: {label}\n") [cite: 15]
 
-    # Salva os ORFs identificados
+    # Salva os ORFs identificados que passaram no filtro de polimerase 
     with open(output.raw_rvdb_orfs, "w") as out_orf:
         if len(target_orfs) > 0:
             for record in SeqIO.parse(input.orfs, "fasta"):
                 if record.id in target_orfs:
                     SeqIO.write(record, out_orf, "fasta")
 
-    # Salva os Contigs originais correspondentes
+    # Salva os Contigs originais correspondentes 
     with open(output.raw_rvdb_contigs, "w") as out_contig:
         if len(target_contigs) > 0:
             for record in SeqIO.parse(input.fasta, "fasta"):
