@@ -382,6 +382,12 @@ print('/scratch-ib/${USER}/') # fallback
 ")
 fi
 
+# Garante que o usuário possua sua própria pasta para evitar colisão de permissões
+# caso o parâmetro recuperado (ex: /scr) não possua identificação.
+if [[ "$temp_dir" != *"${USER}"* ]]; then
+    temp_dir="${temp_dir%/}/${USER}/"
+fi
+
 run_overrides="$workdir/run_overrides.yaml"
 
 echo -e "${blu}[INFO]${nc} Generating run overrides: ${ylo}$run_overrides${nc}"
