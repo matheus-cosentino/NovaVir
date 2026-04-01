@@ -159,7 +159,7 @@ rule rvdb_validate_pol:
         df = pd.read_csv(input.tsv, sep='\t')
         
         # --- FILTRO BASEADO APENAS EM POLIMERASE/TRANSCRIPTASE ---
-        pol_pattern = r'polymerase|transcriptase'
+        pol_pattern = r'\bpol\b|polymerase|transcriptase|polyprotein|rdrp'
         
         if 'Annotation' in df.columns:
             df = df[df['Annotation'].str.contains(pol_pattern, case=False, na=False)]
