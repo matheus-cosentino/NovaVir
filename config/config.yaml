@@ -244,7 +244,7 @@ kraken_biom:
 #  Dark Matter Search
 palm_annot: 
   seqtype: "aa" 
-  minscore: 50
+  minscore: 75
   minpssmscore: 10
 
 # Medaka correction
