@@ -40,6 +40,7 @@ rule fastp_paired:
     params:
         length_required=config['fastp']['length_required'],
         quality=config['fastp']['qualified_quality_phred']
+    threads: 1
     conda:
         FASTP
     shell:
@@ -71,6 +72,7 @@ rule fastp_unpaired:
     params:
         length_required=config['fastp']['length_required'],
         quality=config['fastp']['qualified_quality_phred']
+    threads: 1
     conda:
         FASTP
     shell:

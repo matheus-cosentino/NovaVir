@@ -29,6 +29,7 @@ rule krona_update_taxonomy:
         KRONA
     log:
         os.path.join(OUT_DIR, "log", "krona_update_taxonomy.log")
+    threads: 1
     shell:
         """
         echo "[INFO] Configurando diretórios..." > {log}
@@ -68,6 +69,7 @@ rule krona_kraken2:
         KRONA
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken2_{tool}_{sample}.log")
+    threads: 1
     shell:
         """
         ktImportTaxonomy \
@@ -90,6 +92,7 @@ rule krona_reads_kraken:
         KRONA
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken_reads_{read_type}_{sample}.log")
+    threads: 1
     shell:
         """
         TMP_DB="{wildcards.sample}_{wildcards.read_type}_reads_krona_db"
@@ -122,6 +125,7 @@ rule krona_diamond:
         tax_dir = KRONA_DB_DIR[0]
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_{tool}_{sample}.log")
+    threads: 1
     shell:
         """
         echo "[INFO] Executing ktImportTaxonomy..." > {log}

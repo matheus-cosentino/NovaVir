@@ -60,6 +60,7 @@ rule map_accession_to_taxid:
       "minimal"
     log:
       os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{tool}_map_acc_prot.log")
+    threads: 1
     script:
       "../scripts/map_acc_to_taxid.py"
 
@@ -121,6 +122,7 @@ rule append_lineage:
         nodes=os.path.join(TAXONOMY_DIR[0], "nodes.dmp")
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{tool}_diamond_lineages.log")
+    threads: 1
     conda:
         TAXONKIT
     shell:
@@ -132,8 +134,8 @@ rule append_lineage:
         
         # 1. Get lineage information
         # TaxonKit retorna: TaxID <TAB> Lineage <TAB> Realm <TAB> Kingdom ...
-        taxonkit lineage --data-dir "${{DB_DIR}}" {output}.taxids.tmp 2>> {log} | \\
-        taxonkit reformat --data-dir "${{DB_DIR}}" \\
+        taxonkit lineage --threads {threads} --data-dir "${{DB_DIR}}" {output}.taxids.tmp 2>> {log} | \\
+        taxonkit reformat --threads {threads} --data-dir "${{DB_DIR}}" \\
             -f "{{C}}\\t{{a}}\\t{{d}}\\t{{k}}\\t{{p}}\\t{{c}}\\t{{o}}\\t{{f}}\\t{{g}}\\t{{s}}" \\
             -F \
              2>> {log} > {output}.lineage.tmp
