@@ -86,6 +86,9 @@ set-resources:
   cd_hit:
     mem_mb: 16000
     threads: 4
+  rvdb_search:
+    mem_mb: 60000
+    threads: 12
 
 
  

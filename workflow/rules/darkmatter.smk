@@ -91,13 +91,14 @@ rule cd_hit:
     orfs = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_ORFs.fasta")
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "darkmatter_{tool}_{sample}_cdhit.log")
+  threads: 1
   conda:
     PALM
   shell:
     """
     if [ -s {input.fasta} ]; then
         #remove duplicated orfs
-        cd-hit -i {input.fasta} -o {output.orfs} -c 0.9 -d 1 -T {resources.threads} -M {resources.mem_mb} 2>> {log} 2>&1
+        cd-hit -i {input.fasta} -o {output.orfs} -c 0.9 -d 1 -T {threads} -M {resources.mem_mb} 2>> {log} 2>&1
 
         #substitute spaces per _
         sed -i.bak '/^>/ s/ /_/g' {output.orfs} >> {log} 2>&1
