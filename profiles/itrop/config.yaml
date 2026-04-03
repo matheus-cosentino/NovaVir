@@ -21,7 +21,7 @@
 ###########################
 
 # cluster params, number of jobs to be ran simullteniously
-jobs: 15
+jobs: 5
 
 #snakemake params
 executor: slurm
@@ -39,8 +39,8 @@ show-failed-logs: true
 default-resources:
   slurm_account: transvihmi
   tmpdir: /scratch-ib
-  threads: 2
-  mem_mb: 8000
+  threads: 1
+  mem_mb: 4000
   constraint: infiniband
 
 
@@ -61,23 +61,23 @@ set-resources:
     threads: 12
     #slurm_partition: normal
   diamond_blastx_contigs:
-    mem_mb: 120000
-    threads: 24
+    mem_mb: 60000
+    threads: 12
     #slurm_partition: normal
   diamond_blastx_reads:
-    mem_mb: 120000
+    mem_mb: 60000
     threads: 24
     #slurm_partition: normal
   kraken2_contigs:
-    mem_mb: 80000
+    mem_mb: 60000
     threads: 16
     #slurm_partition: normal
   kraken2_reads_unpaired:
-    mem_mb: 80000
+    mem_mb: 60000
     threads: 16
     #slurm_partition: normal
   kraken2_reads_paired:
-    mem_mb: 80000
+    mem_mb: 60000
     threads: 16
     #slurm_partition: normal
   map_accession_to_taxid:
@@ -86,10 +86,6 @@ set-resources:
   cd_hit:
     mem_mb: 16000
     threads: 4
-  krona_update_taxonomy:
-    mem_mb: 32000
-    threads: 8
-  rvdb_search:
-    mem_mb: 120000
-    threads: 12
+
+
  
