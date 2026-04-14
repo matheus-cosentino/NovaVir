@@ -12,3 +12,4 @@ dependencies:
   - pandas=2.3.2
   - biopython=1.86
   - conda>=24.7.1
+  - graphviz=14.1.2
