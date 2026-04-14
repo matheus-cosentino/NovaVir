@@ -60,14 +60,13 @@ rule rvdb_search:
     result = os.path.join(OUT_DIR, "{sample}", "rvdb_{tool}", "{sample}_RVDB_results.tsv")
   params:
     evalue=config['hmmscan']['evalue']
-  threads: 1
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "rvdb_search_{tool}_{sample}.log")
   conda:
     HMMER
   shell:
     """
-    hmmscan --cpu {threads} -E {params.evalue} --tblout {output.result} {input.hmm} {input.orfs} 2>> {log}
+    hmmscan --cpu {resources.threads} -E {params.evalue} --tblout {output.result} {input.hmm} {input.orfs} 2>> {log}
     """   
 
 rule rvdb_summarize:

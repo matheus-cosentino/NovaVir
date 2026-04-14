@@ -40,7 +40,6 @@ rule fastp_paired:
     params:
         length_required=config['fastp']['length_required'],
         quality=config['fastp']['qualified_quality_phred']
-    threads: 1
     conda:
         FASTP
     shell:
@@ -49,7 +48,7 @@ rule fastp_paired:
             --in1 {input.r1} --in2 {input.r2} --out1 {output.r1} --out2 {output.r2} --unpaired1 {output.orphans} --unpaired2 {output.orphans} \
             --html {output.html} \
             --json {output.json} \
-            --thread {threads} \
+            --thread {resources.threads} \
             --length_required {params.length_required} \
             --qualified_quality_phred {params.quality} \
             2> {log}
@@ -72,7 +71,6 @@ rule fastp_unpaired:
     params:
         length_required=config['fastp']['length_required'],
         quality=config['fastp']['qualified_quality_phred']
-    threads: 1
     conda:
         FASTP
     shell:
@@ -81,7 +79,7 @@ rule fastp_unpaired:
             --in1 {input.reads} --out1 {output.r1} \
             --html {output.html} \
             --json {output.json} \
-            --thread {threads} \
+            --thread {resources.threads} \
             --length_required {params.length_required} \
             --qualified_quality_phred {params.quality} \
             --dedup --trim_poly_g --trim_poly_x \

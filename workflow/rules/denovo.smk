@@ -34,7 +34,6 @@ rule spades:
         extra = config["spades"]["algorithm"],
         #kmer = lambda wildcards: wildcards.kmer_val
         kmer = lambda wildcards: wildcards.kmer_val.replace("_", ",")
-    threads: 1
     conda:
         SPADES_ENV
     shadow:
@@ -50,7 +49,7 @@ rule spades:
         # 2. Run SPAdes with --tmp-dir pointing to LOCAL storage
         spades.py \
             {params.extra} \
-            --threads {threads} \
+            --threads {resources.threads} \
             --memory $mem_gb \
             {params.input_args} \
             -o {params.outdir} \
@@ -75,7 +74,6 @@ rule megahit:
     params:
         outdir = os.path.join(OUT_DIR, "{sample}", "megahit"),
         input_args = get_megahit_params,
-    threads: 1
     conda:
         DENOVO
     shell:
@@ -83,7 +81,7 @@ rule megahit:
         megahit \
           {params.input_args} \
           -o {params.outdir} \
-          -t {threads} \
+          -t {resources.threads} \
           -f \
           > {log} 2>&1
              
@@ -108,7 +106,6 @@ rule flye:
     params:
         outdir = os.path.join(OUT_DIR, "{sample}", "flye"),
         extra = config["flye"]["type"]
-    threads: 1
     conda:
         DENOVO
     shell:
@@ -120,7 +117,7 @@ rule flye:
 
         flye --{params.extra} {input.reads} \
          --out-dir {params.outdir} \
-         --threads {threads} \
+         --threads {resources.threads} \
          --meta \
          > {log} 2>&1
         """
@@ -140,13 +137,12 @@ rule raven:
         contigs = os.path.join(OUT_DIR, "{sample}", "raven", "assembly.fasta")
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "raven_assembly.log")
-    threads: 1
     conda:
         DENOVO
     shell:
         """
         # Run commands 
-        raven --threads {threads} {input.reads} > {output.contigs} 2> {log}
+        raven --threads {resources.threads} {input.reads} > {output.contigs} 2> {log}
         """
 
 ###############################
@@ -163,7 +159,6 @@ rule medaka_polish:
         # Defina o modelo aqui ou no config.yaml
         model = config["medaka_model"],
         outdir = os.path.join(OUT_DIR, "{sample}", "medaka_{assembler}")
-    threads: 1
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "medaka_{assembler}.log")
     shell:
@@ -172,7 +167,7 @@ rule medaka_polish:
         medaka_consensus -i {input.reads} \
                          -d {input.draft} \
                          -o {params.outdir} \
-                         -t {threads} \
+                         -t {resources.threads} \
                          -m {params.model} \
         > {log} 2>&1
         

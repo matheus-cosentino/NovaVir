@@ -28,7 +28,6 @@ rule diamond_blastx_contigs:
     outfmt = config["diamond"]["outfmt"],
     max_target_seqs = config["diamond"]["max_target_seqs"],
     sensitivity = config["diamond"]["sensitivity"]
-  threads: 1
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "diamond_{tool}_{sample}.log")
   conda:
@@ -54,7 +53,7 @@ rule diamond_blastx_contigs:
       --query {input.contigs} \
       --db "$DB_PATH" \
       --out {output.hits} \
-      --threads {threads} \
+      --threads {resources.threads} \
       --outfmt {params.outfmt} \
       --max-target-seqs {params.max_target_seqs} \
       {params.sensitivity} \
@@ -76,7 +75,6 @@ rule diamond_blastx_reads:
     outfmt = config["diamond"]["outfmt"],
     max_target_seqs = config["diamond"]["max_target_seqs"],
     sensitivity=config["diamond"]["sensitivity"]
-  threads: 1
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "diamond_reads_{sample}.log")
   conda:
@@ -113,7 +111,7 @@ rule diamond_blastx_reads:
       --query "$TMP_READS" \
       --db "$DB_PATH" \
       --out {output.hits} \
-      --threads {threads} \
+      --threads {resources.threads} \
       --outfmt {params.outfmt} \
       --max-target-seqs {params.max_target_seqs} \
       {params.sensitivity} \

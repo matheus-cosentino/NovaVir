@@ -27,7 +27,6 @@ rule kraken2_contigs:
     params:
         db = config["resources"]["kraken2"],        
         confidence = config["kraken2"]["confidence"]
-    threads: 1
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "kraken2_contigs_{tool}_{sample}.log")
     conda:
@@ -39,7 +38,7 @@ rule kraken2_contigs:
         --db {params.db} \
         --confidence {params.confidence} \
         --report {output.report} \
-        --threads {threads} \
+        --threads {resources.threads} \
         --memory-mapping \
         --output {output.out} \
         {input.contigs} \
@@ -86,7 +85,6 @@ rule kraken2_reads_paired:
       db=config["resources"]["kraken2"],        
       confidence=config["kraken2"]["confidence"],
       int_file=temp(os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}.fastq.gz"))
-    threads: 1
     log:
       os.path.join(OUT_DIR, "{sample}", "log", "kraken2_paired_reads_{sample}.log")
     conda:
@@ -98,7 +96,7 @@ rule kraken2_reads_paired:
       --db {params.db} \
       --confidence {params.confidence} \
       --report {output.report} \
-      --threads {threads} \
+      --threads {resources.threads} \
       --memory-mapping \
       --output {output.out} \
       {params.int_file} \
@@ -115,7 +113,6 @@ rule kraken2_reads_unpaired:
       #db=f"{workflow.basedir}/{config["resources"]["kraken2"]}",
       db=config["resources"]["kraken2"],        
       confidence=config["kraken2"]["confidence"]
-    threads: 1
     log:
       os.path.join(OUT_DIR, "{sample}", "log", "kraken2_paired_reads_{sample}.log")
     conda:
@@ -126,7 +123,7 @@ rule kraken2_reads_unpaired:
       --db {params.db} \
       --confidence {params.confidence} \
       --report {output.report} \
-      --threads {threads} \
+      --threads {resources.threads} \
       --memory-mapping \
       --output {output.out} \
       {input.r1} \
