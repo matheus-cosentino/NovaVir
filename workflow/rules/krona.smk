@@ -57,9 +57,7 @@ rule krona_update_taxonomy:
 
 rule krona_kraken2:
     input:
-        report = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_output.txt"),
-        tax_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted"),
-        tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
+        report = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_output.txt")
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_{tool}", "{sample}_{tool}_kraken2_krona.html")
     params:
@@ -81,32 +79,23 @@ rule krona_reads_kraken:
     wildcard_constraints:
         read_type="paired|unpaired"
     input:
-        report = os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_{read_type}_reads_output.txt"),
-        tax_sorted = os.path.join(KRONA_DB_DIR[0], "accession2taxid.sorted"),
-        tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
+        report = os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_{read_type}_reads_output.txt")
     output:
         html = os.path.join(OUT_DIR, "{sample}", "krona_reads", "{sample}_{read_type}_kraken2_krona.html")
     conda:
         KRONA
+    params:
+        tax_dir=KRONA_DB_DIR[0]    
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_kraken_reads_{read_type}_{sample}.log")
     shell:
         """
-        TMP_DB="{wildcards.sample}_{wildcards.read_type}_reads_krona_db"
-        mkdir -p $TMP_DB
-        ln -sf $(readlink -f {input.tax_sorted}) $TMP_DB/accession2taxid.sorted
-        ln -sf $(readlink -f {input.tax_tab}) $TMP_DB/taxonomy.tab
-
         ktImportTaxonomy \
-            -tax $TMP_DB \
+            -tax {params.tax_dir} \
             -o {output.html} \
             {input.report} \
             > {log} 2>&1
-        
-        rm -rf $TMP_DB
         """
-
-
 
 rule krona_diamond:
     wildcard_constraints:
