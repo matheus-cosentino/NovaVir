@@ -163,8 +163,8 @@ manage_environment(){
 
     if conda env list | grep -q "^${ENV_NAME} "; then
         echo -e "       > Environment found: ${green}Yes${nc}"
-        echo -e "${blu}[INFO]${nc} Updating environment from ${ylo}$ENV_FILE${nc}..."
-        run_with_spinner conda env update --name "$ENV_NAME" --file "$ENV_FILE" --prune --quiet
+        echo -e "${blu}[INFO]${nc} Activating environment from ${ylo}$ENV_FILE${nc}..."
+        #run_with_spinner conda env update --name "$ENV_NAME" --file "$ENV_FILE" --prune --quiet
     else 
         echo -e "       > Environment found: ${red}No${nc}"
         echo -e "${blu}[INFO]${nc} Creating environment from ${ylo}$ENV_FILE${nc}..."
