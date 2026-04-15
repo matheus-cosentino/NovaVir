@@ -157,9 +157,9 @@ rule report_summarize:
         #basta_lca = os.path.join(OUT_DIR, "{sample}", "basta_{tool}", "{sample}_{tool}_lca.tsv"),
         dusk = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_RdRp.tsv")
     output:
-        html = os.path.join(OUT_DIR, "{sample}", "darkmatter_report_{tool}", "{sample}_Report_Diversity.html")
+        html = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_Report_Diversity.html")
     params:
-        out_dir = directory(os.path.join(OUT_DIR, "{sample}", "darkmatter_report_{tool}")),
+        out_dir = directory(os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}")),
         logos = "resources/logo/"
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_report_summarize_{tool}.log")
@@ -190,8 +190,8 @@ rule dm_validate:
     orfs  = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_ORFs.fasta"),
     dusk  = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_RdRp.tsv")
   output:
-    raw_rdrp    = os.path.join(OUT_DIR, "{sample}", "darkmatter_to_validate_{tool}", "{sample}_RdRp_Orfs.fasta"),
-    raw_contigs = os.path.join(OUT_DIR, "{sample}", "darkmatter_to_validate_{tool}", "{sample}_RdRp_contigs.fasta")
+    raw_rdrp    = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_RdRp_Orfs.fasta"),
+    raw_contigs = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_RdRp_contigs.fasta")
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "{sample}_dm_validate_{tool}.log")
   conda:

@@ -88,8 +88,8 @@ rule rvdb_validate_structural:
     orfs  = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_ORFs.fasta"),
     tsv   = os.path.join(OUT_DIR, "{sample}", "rvdb_{tool}", "{sample}_RVDB_Summary.csv")
   output:
-    raw_rvdb_orfs    = os.path.join(OUT_DIR, "{sample}", "rvdb_structural_{tool}", "{sample}_structural_Orfs.fasta"),
-    raw_rvdb_contigs = os.path.join(OUT_DIR, "{sample}", "rvdb_structural_{tool}", "{sample}_structural_contigs.fasta")
+    raw_rvdb_orfs    = os.path.join(OUT_DIR, "{sample}", "rvdb_{tool}", "{sample}_structural_Orfs.fasta"),
+    raw_rvdb_contigs = os.path.join(OUT_DIR, "{sample}", "rvdb_{tool}", "{sample}_structural_contigs.fasta")
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "{sample}_rvdb_validate_structural_{tool}.log")
   conda:
@@ -143,8 +143,8 @@ rule rvdb_validate_pol:
     orfs  = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_ORFs.fasta"),
     tsv   = os.path.join(OUT_DIR, "{sample}", "rvdb_{tool}", "{sample}_RVDB_Summary.csv")
   output:
-    raw_rvdb_orfs    = os.path.join(OUT_DIR, "{sample}", "rvdb_pol_{tool}", "{sample}_pol_Orfs.fasta"),
-    raw_rvdb_contigs = os.path.join(OUT_DIR, "{sample}", "rvdb_pol_{tool}", "{sample}_pol_contigs.fasta")
+    raw_rvdb_orfs    = os.path.join(OUT_DIR, "{sample}", "rvdb_{tool}", "{sample}_pol_Orfs.fasta"),
+    raw_rvdb_contigs = os.path.join(OUT_DIR, "{sample}", "rvdb_{tool}", "{sample}_pol_contigs.fasta")
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "{sample}_rvdb_validate_pol_{tool}.log")
   conda:

@@ -74,9 +74,9 @@ rule kraken_biom_contig:
 
 rule kraken2_reads_paired:
     input:
-     r1 = os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_1.fastq.gz"),
-     r2 = os.path.join(OUT_DIR, "{sample}", "trimmed" , "{sample}_2.fastq.gz"),
-     extra = os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_orphans.fastq.gz")
+     r1 = os.path.join(OUT_DIR, "{sample}", "fastp", "{sample}_1.fastq.gz"),
+     r2 = os.path.join(OUT_DIR, "{sample}", "fastp" , "{sample}_2.fastq.gz"),
+     extra = os.path.join(OUT_DIR, "{sample}", "fastp", "{sample}_orphans.fastq.gz")
     output:
       report= os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_paired_reads_report.txt"),
       out=os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_paired_reads_output.txt")
@@ -84,7 +84,7 @@ rule kraken2_reads_paired:
       #db=f"{workflow.basedir}/{config["resources"]["kraken2"]}",
       db=config["resources"]["kraken2"],        
       confidence=config["kraken2"]["confidence"],
-      int_file=temp(os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}.fastq.gz"))
+      int_file=temp(os.path.join(OUT_DIR, "{sample}", "fastp", "{sample}.fastq.gz"))
     log:
       os.path.join(OUT_DIR, "{sample}", "log", "kraken2_paired_reads_{sample}.log")
     conda:
@@ -105,7 +105,7 @@ rule kraken2_reads_paired:
 
 rule kraken2_reads_unpaired:
     input:   
-      r1= os.path.join(OUT_DIR, "{sample}", "trimmed", "{sample}_unp.fastq.gz")
+      r1= os.path.join(OUT_DIR, "{sample}", "fastp", "{sample}_unp.fastq.gz")
     output:
       report= os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_unpaired_reads_report.txt"),
       out=os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_unpaired_reads_output.txt")

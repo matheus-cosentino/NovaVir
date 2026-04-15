@@ -169,8 +169,8 @@ results/
 │   ├── diamond_spades_kauto/      # Annotated Diamond outputs vs NR
 │   ├── kraken2_spades_kauto/      # Fast Kraken2 K-mer validations
 │   ├── rvdb_spades_kauto/         # RVDB Summaries containing precise NCBI translation
-│   └── darkmatter_spades_kauto/   # ORFs & Filtered RdRp viral candidates!
-├── krona_spades/                  # Interactive HTML plots of relative abundances
+│   ├── darkmatter_spades_kauto/   # ORFs & Filtered RdRp viral candidates!
+│   └── krona_spades_kauto/        # Interactive HTML plots of relative abundances
 └── multiqc_report.html            # Aggregated sequencing QC metrics dashboard
 ```
 

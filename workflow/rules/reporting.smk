@@ -26,8 +26,8 @@ rule multiqc_aggregate:
         files = [f for s in SAMPLE for f in get_multiqc_inputs(sample=s)],
         final_outputs = get_final_outputs()
     output:
-        report = os.path.join(OUT_DIR, "multiqc_all", "multiqc_report.html"),
-        data_dir = directory(os.path.join(OUT_DIR, "multiqc_all"))
+        report = os.path.join(OUT_DIR, "multiqc_report.html"),
+        data_dir = directory(os.path.join(OUT_DIR, "multiqc_data"))
     params:
         files = [f for s in SAMPLE for f in get_multiqc_inputs(sample=s)],
         #config_override = "sp: { diamond/log: { fn: '*_diamond.log' } }",
@@ -42,7 +42,7 @@ rule multiqc_aggregate:
         --quiet \
         --export \
         --force \
-        --outdir {output.data_dir} \
+        --outdir {OUT_DIR} \
         --filename multiqc_report.html \
         {params.extra} \
         {input.files} > {log} 2>&1 

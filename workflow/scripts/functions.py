@@ -101,13 +101,13 @@ def get_final_outputs():
                 else:
                     current_tools.append(tool)
 
-        final_outputs.extend(expand("{out_dir}/{sample}/darkmatter_report_{tool}/{sample}_Report_Diversity.html", 
+        final_outputs.extend(expand("{out_dir}/{sample}/darkmatter_{tool}/{sample}_Report_Diversity.html", 
                 out_dir=OUT_DIR, sample=sample, tool=current_tools))
-        final_outputs.extend(expand("{out_dir}/{sample}/darkmatter_to_validate_{tool}/{sample}_RdRp_Orfs.fasta", 
+        final_outputs.extend(expand("{out_dir}/{sample}/darkmatter_{tool}/{sample}_RdRp_Orfs.fasta", 
                 out_dir=OUT_DIR, sample=sample, tool=current_tools))
-        final_outputs.extend(expand("{out_dir}/{sample}/rvdb_structural_{tool}/{sample}_structural_contigs.fasta", 
+        final_outputs.extend(expand("{out_dir}/{sample}/rvdb_{tool}/{sample}_structural_contigs.fasta", 
                 out_dir=OUT_DIR, sample=sample, tool=current_tools))
-        final_outputs.extend(expand("{out_dir}/{sample}/rvdb_pol_{tool}/{sample}_pol_contigs.fasta", 
+        final_outputs.extend(expand("{out_dir}/{sample}/rvdb_{tool}/{sample}_pol_contigs.fasta", 
                 out_dir=OUT_DIR, sample=sample, tool=current_tools))
 
   # 4. Reads (Diamond)
@@ -180,7 +180,7 @@ def get_multiqc_inputs(wildcards=None, sample=None):
     fastp_suffix = "paired" if is_paired else "unp"
 
     # Reads QC
-    mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "trimmed", f"{sample_id}_{fastp_suffix}.json"))
+    mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "fastp", f"{sample_id}_{fastp_suffix}.json"))
     if MODULES.get("reads_diamond", False):
         mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "diamond_reads", "diamond.log"))
     if MODULES.get("reads_kraken2", False):
@@ -501,7 +501,7 @@ def get_denovo_r1(wildcards):
     meta = SAMPLE_META.get(wildcards.sample)
     # FIX: Check if len(files) > 1 to ensure it is actually paired
     if meta and meta['mode'] in ['PAIRED', 'SRA'] and len(meta['files']) > 1:
-        return os.path.join(OUT_DIR, wildcards.sample, "trimmed", f"{wildcards.sample}_1.fastq.gz")
+        return os.path.join(OUT_DIR, wildcards.sample, "fastp", f"{wildcards.sample}_1.fastq.gz")
     return []
 
 def get_denovo_r2(wildcards):
@@ -509,7 +509,7 @@ def get_denovo_r2(wildcards):
     meta = SAMPLE_META.get(wildcards.sample)
     # FIX: Check if len(files) > 1 to ensure it is actually paired
     if meta and meta['mode'] in ['PAIRED', 'SRA'] and len(meta['files']) > 1:
-        return os.path.join(OUT_DIR, wildcards.sample, "trimmed", f"{wildcards.sample}_2.fastq.gz")   
+        return os.path.join(OUT_DIR, wildcards.sample, "fastp", f"{wildcards.sample}_2.fastq.gz")   
     return []
 
 def get_denovo_unpaired(wildcards):
@@ -522,7 +522,7 @@ def get_denovo_unpaired(wildcards):
     
     # 1. True Paired (SRA or Local) -> Return Orphans
     if meta and meta['mode'] in ['PAIRED', 'SRA'] and len(meta['files']) > 1:
-        return os.path.join(OUT_DIR, wildcards.sample, "trimmed", f"{wildcards.sample}_orphans.fastq.gz")
+        return os.path.join(OUT_DIR, wildcards.sample, "fastp", f"{wildcards.sample}_orphans.fastq.gz")
     
     # 2. True Single (SRA or Local) -> Return Unpaired Main Reads
     # We check if mode is UNPAIRED OR if mode is SRA with only 1 file
@@ -530,7 +530,7 @@ def get_denovo_unpaired(wildcards):
     
     if meta and (meta['mode'] == 'UNPAIRED' or is_sra_single):
         # This forces Snakemake to use fastp_unpaired because it needs the '_unp' file
-        return os.path.join(OUT_DIR, wildcards.sample, "trimmed", f"{wildcards.sample}_unp.fastq.gz")
+        return os.path.join(OUT_DIR, wildcards.sample, "fastp", f"{wildcards.sample}_unp.fastq.gz")
         
     return []
 
@@ -546,7 +546,7 @@ def get_ONP_input(wildcards):
 
     if meta and (meta['mode'] == 'UNPAIRED' or is_sra_single):
         # For single end, we use the fastp 'unp' output
-        return os.path.join(OUT_DIR, wildcards.sample, "trimmed", f"{wildcards.sample}_unp.fastq.gz")
+        return os.path.join(OUT_DIR, wildcards.sample, "fastp", f"{wildcards.sample}_unp.fastq.gz")
     
     return []
 
