@@ -89,7 +89,7 @@ help(){
  DiscoVir${nc}: Viral Metagenomics & 'Dark Matter' Discovery
 
  ${green}Author${nc}: MSc. Matheus Cosentino 
- ${green}Version${nc}: 12.2025
+ ${green}Version${nc}: 03.2026
 
  ${ylo}Usage:${nc}
   bash DiscoVir.sh --input <DIR> --output <DIR> [OPTIONS]
