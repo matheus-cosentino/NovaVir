@@ -99,8 +99,10 @@ help(){
    --output <DIR>       Directory where results will be saved
 
  ${ylo}Optional Arguments:${nc}
+   -h, --help           Show this help message
+   -v, --version        Show version
    --sra <FILE>         Text file containing SRA Accession IDs for download.
-   --jobs <INT>         Number of jobs (default: 15)
+   --jobs <INT>         Number of total submitted jobs at same time (default: 15)
    --profile <STR>      Snakemake profile (default: profile_slurm)
    --temp-dir <DIR>     Temporary directory (default: /tmp)
 
@@ -117,10 +119,6 @@ help(){
    --remove-download    Remove downloaded data from SRA (Default: Disabled)
    --reads-kraken       Enable Kraken2 analysis on reads (Default: Disabled)
    --reads-diamond      Enable Diamond analysis on reads (Default: Disabled)
- 
- ${ylo}Flags:${nc}
-   -h, --help           Show this help message
-   -v, --version        Show version
  "
 }
 
