@@ -114,7 +114,7 @@ help(){
    --diamond            Enable Diamond ContigsTaxonomy (Default: Disabled)
    --darkmatter         Enable Palm Annot / Dark Matter (Default: Disabled)
    --download-only      Only download data from SRA provided in --sra list (Default: Disabled)
-   --remove-download    Revome downloaded SRA files (Default: Disabled)
+   --remove-download    Remove downloaded data from SRA (Default: Disabled)
    --reads-kraken       Enable Kraken2 analysis on reads (Default: Disabled)
    --reads-diamond      Enable Diamond analysis on reads (Default: Disabled)
  
