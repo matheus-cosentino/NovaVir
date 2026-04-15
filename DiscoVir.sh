@@ -104,17 +104,17 @@ help(){
    --profile <STR>      Snakemake profile (default: profile_slurm)
    --temp-dir <DIR>     Temporary directory (default: /tmp)
 
- ${ylo}Database Overrides (Use external DBs):${nc}
+ ${ylo}Database Overrides (Define External Databases):${nc}
    --diamond_db <FILE>  External Diamond database (.dmnd).
    --kraken2 <DIR>      External Kraken2 database directory (Must contain hash.k2d, opts.k2d, taxo.k2d)
 
  ${ylo}Module Toggles (Enable/Disable Analysis):${nc}
-   --assembly           Enable De Novo Assembly (Default: False)
-   --kraken2            Enable Kraken2 Taxonomy (Default: False)
-   --diamond            Enable Diamond Taxonomy (Default: False)
-   --darkmatter         Enable Palm Annot / Dark Matter (Default: False)
-   --download-only      Only download data from SRA provided in --sra list (skips analysis)
-   --remove-download    Revome downloaded SRA files (Default: Keep)
+   --assembly           Enable De Novo Assembly (Default: Disabled)
+   --kraken2            Enable Kraken2 Contigs Taxonomy (Default: Disabled)
+   --diamond            Enable Diamond ContigsTaxonomy (Default: Disabled)
+   --darkmatter         Enable Palm Annot / Dark Matter (Default: Disabled)
+   --download-only      Only download data from SRA provided in --sra list (Default: Disabled)
+   --remove-download    Revome downloaded SRA files (Default: Disabled)
    --reads-kraken       Enable Kraken2 analysis on reads (Default: Disabled)
    --reads-diamond      Enable Diamond analysis on reads (Default: Disabled)
  
@@ -125,7 +125,7 @@ help(){
 }
 
 version(){
-    echo "DiscoVir v.12.2025"
+    echo "DiscoVir v.03.2026"
 }
 
 ###################################
