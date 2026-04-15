@@ -163,12 +163,51 @@ results/
 ├── log/                           # Main execution logs
 ├── SRR10677983/
 │   ├── fastp/                     # QC & Trimmed adapter reports
+│   │   ├── SRR10677983_1.fastq.gz
+│   │   ├── SRR10677983_2.fastq.gz
+│   │   ├── SRR10677983_unp.fastq.gz
+│   │   ├── SRR10677983_unp.html
+│   │   └── SRR10677983_unp.json
 │   ├── spades/                    # Assembled Fasta contigs
+│   │   └── kmer_auto/
+│   │       └── contigs.fasta
 │   ├── diamond_spades_kauto/      # Annotated Diamond outputs vs NR
+│   │   ├── diamond.log
+│   │   ├── SRR10677983_spades_kauto_report.txt
+│   │   ├── SRR10677983_spades_kauto_hits_with_taxid.tmp
+│   │   ├── SRR10677983_spades_kauto_hits_with_header.tsv
+│   │   ├── SRR10677983_spades_kauto_hits_no_lineage.temp
+│   │   └── SRR10677983_spades_kauto_hits_with_lineage.tsv
 │   ├── kraken2_spades_kauto/      # Fast Kraken2 K-mer validations
+│   │   ├── SRR10677983_spades_kauto_contig_report.txt
+│   │   ├── SRR10677983_spades_kauto_contig_output.txt
+│   │   └── SRR10677983_spades_kauto_contig_biom.txt
 │   ├── rvdb_spades_kauto/         # RVDB Summaries containing precise NCBI translation
+│   │   ├── SRR10677983_RVDB_results.tsv
+│   │   ├── SRR10677983_RVDB_Summary.csv
+│   │   ├── SRR10677983_structural_Orfs.fasta
+│   │   ├── SRR10677983_structural_contigs.fasta
+│   │   ├── SRR10677983_pol_Orfs.fasta
+│   │   └── SRR10677983_pol_contigs.fasta
 │   ├── darkmatter_spades_kauto/   # ORFs & Filtered RdRp viral candidates!
+│   │   ├── SRR10677983_ORFs.fasta                # Multi-table translated ORFs from unmapped contigs
+│   │   ├── SRR10677983_RdRp.fev                  # Palmprint raw structural feature evaluation hits
+│   │   ├── SRR10677983_RdRp.fasta                # Sequence data of putative RdRp alignments
+│   │   ├── SRR10677983_RdRp.tsv                  # Tabular summary of RdRp predictions
+│   │   ├── SRR10677983_Report_Diversity.html     # Comprehensive interactive RMarkdown HTML report
+│   │   ├── SRR10677983_contigs_summary.tsv       # Assembly length metrics (Mean, Quartiles, etc.)
+│   │   ├── SRR10677983_contigs_summary_per_Kingdom.tsv   # Contig taxonomic breakdown at Kingdom level
+│   │   ├── SRR10677983_KINGDOM_Classification_Log10.png  # Barplot comparing Kingdom-level hits
+│   │   ├── SRR10677983_Viral_Diamond.tsv         # Subset of Diamond hits assigned to Viruses
+│   │   ├── SRR10677983_Virus_Classification_Log10.png    # Barplot of Viral Family diversity
+│   │   ├── SRR10677983_viral_contigs_summary.tsv # Assembly metrics exclusively for viral families
+│   │   ├── SRR10677983_{Family_Name}.fasta       # Disaggregated contigs per viral family (e.g., Flaviviridae)
+│   │   ├── SRR10677983_{query}RdRp_Motifs.png    # Palmprint RdRp motif visual diagrams layout per hit
+│   │   ├── SRR10677983_RdRp_Orfs.fasta           # Filtered FASTA containing only target RdRp ORFs
+│   │   └── SRR10677983_RdRp_contigs.fasta        # Original nucleotide contigs embedding the RdRp hit
 │   └── krona_spades_kauto/        # Interactive HTML plots of relative abundances
+│       ├── SRR10677983_spades_kauto_kraken2_krona.html
+│       └── SRR10677983_spades_kauto_diamond_krona.html
 └── multiqc_report.html            # Aggregated sequencing QC metrics dashboard
 ```
 
