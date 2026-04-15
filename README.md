@@ -91,29 +91,27 @@ The following must appear on your screen:
   bash DiscoVir.sh --input <DIR> --output <DIR> [OPTIONS]
 
  Required Arguments:
-   --input <DIR>        Directory containing raw reads (.fastq.gz) or contigs (.fasta)
-   --output <DIR>       Directory where results will be saved
+   --input: <DIR>        Directory containing raw reads (.fastq.gz) or contigs (.fasta)
+   --output: <DIR>       Directory where results will be saved
 
  Optional Arguments:
-   --sra <FILE>         Text file containing SRA Accession IDs for download.
-   --jobs <INT>         Number of jobs (default: 15)
-   --profile <STR>      Snakemake profile (default: profile_slurm)
-   --temp-dir <DIR>     Temporary directory (default: /tmp)
+   --sra: <FILE>         Text file containing SRA Accession IDs for download.
+   --jobs: <INT>         Number of jobs (default: 15)
+   --profile: <STR>      Snakemake profile (default: profile_slurm)
+   --temp-dir: <DIR>     Temporary directory (default: /tmp)
 
  Database Overrides (Use external DBs):
-   --diamond_db <FILE>  External Diamond database (.dmnd).
-   --kraken2 <DIR>      External Kraken2 database directory (Must contain hash.k2d, opts.k2d, taxo.k2d)
+   --diamond_db: <FILE>  External Diamond database (.dmnd).
+   --kraken2: <DIR>      External Kraken2 database directory (Must contain hash.k2d, opts.k2d, taxo.k2d)
 
  Module Toggles (Enable/Disable Analysis):
-   
-- **`--reads-kraken`**: Enables taxonomic classification of raw reads using Kraken2.
-- **`--reads-diamond`**: Enables taxonomic classification of raw reads using DIAMOND.
-- **`--assembly`**: Enables *de novo* assembly of reads into contigs.
-- **`--kraken2`**: Enables taxonomic classification of assembled contigs using Kraken2.
-- **`--diamond`**: Enables taxonomic classification of assembled contigs using DIAMOND.
-- **`--darkmatter`**: Enables the "dark matter" module to search for RdRp signatures & RVDB evaluation.
-- **`--remove-download`**: Removes SRA files after download.
-
+   --reads-kraken: Enables taxonomic classification of raw reads using Kraken2.
+   --reads-diamond: Enables taxonomic classification of raw reads using DIAMOND.
+   --assembly: Enables *de novo* assembly of reads into contigs.
+   --kraken2: Enables taxonomic classification of assembled contigs using Kraken2.
+   --diamond: Enables taxonomic classification of assembled contigs using DIAMOND.
+   --darkmatter: Enables the "dark matter" module to search for RdRp signatures & RVDB evaluation.
+   --remove-download: Removes SRA files after download.
  
  Flags:
    -h, --help           Show this help message

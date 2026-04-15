@@ -25,5 +25,9 @@ slurm_scripts/crab_discovir.slurm
 slurm_scripts/itro_discovir.slurm
 slurm_scripts/crab_discovir.slurm
 
-workflow/scripts/__pycache__/functions.cpython-313.pyc
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
