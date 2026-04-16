@@ -83,7 +83,7 @@ graph TD;
     subgraph Quality_Check ["Quality Check"]
         2["fastp_paired - sample: test"]
     end
-    subgraph Diversity ["Diversity"]
+    subgraph Diversity_Diamond ["Diversity Diamond"]
         4["append_lineage"]
         5["split_hits_by_taxid"]
         6["map_accession_to_taxid"]
@@ -92,6 +92,8 @@ graph TD;
         22["split_hits_by_taxid"]
         23["map_accession_to_taxid - tool: reads"]
         24["diamond_blastx_reads"]
+    end
+    subgraph Diversity_Kraken ["Diversity Kraken"]
         27["kraken_biom_reads - paired: paired"]
         28["kraken2_reads_paired"]
         31["kraken_biom_merge_all"]
