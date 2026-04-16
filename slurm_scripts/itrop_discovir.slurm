@@ -33,6 +33,7 @@ bash DiscoVir.sh \
     --kraken2 \
     --darkmatter \
     --diamond_db /databases/tools/diamond/ncbi-nr.taxonomy.2.1.13.dmnd \
-    --kraken2_db /databases/tools/kraken2/k2_standard_20250714
+    --kraken2_db /databases/tools/kraken2/k2_standard_20250714 \
+    --profile profiles/itrop  
 
 echo "[INFO] Done."
