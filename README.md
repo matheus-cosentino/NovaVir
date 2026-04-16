@@ -167,9 +167,6 @@ results/
 ├── SRR10677983/
 │   ├── log/                       # Sample-specific execution logs
 │   ├── fastp/                     # QC & Trimmed adapter reports
-│   │   ├── SRR10677983_1.fastq.gz                        # Forward quality-filtered reads
-│   │   ├── SRR10677983_2.fastq.gz                        # Reverse quality-filtered reads
-│   │   ├── SRR10677983_unp.fastq.gz                      # Unpaired (orphan) filtered reads
 │   │   ├── SRR10677983_unp.html                          # Fastp interactive HTML report
 │   │   └── SRR10677983_unp.json                          # Fastp metrics in JSON format
 │   ├── kraken2_reads/             # Fast Kraken2 taxonomic classification on reads
@@ -180,7 +177,7 @@ results/
 │   │   ├── SRR10677983_unpaired_reads_output.txt         # Detailed per-read classification output for unpaired reads
 │   │   └── SRR10677983_unpaired_reads_biom.txt           # Kraken2 results in BIOM format for unpaired reads
 │   ├── spades/                    # Assembled Fasta contigs
-│   │   └── kmer_auto/
+│   │   └── kmer_auto/             # De Novo Assemblage done by SPAdes auto kmer definition           
 │   │       └── contigs.fasta                             # Final assembled contigs in FASTA format
 │   ├── diamond_spades_kauto/      # Annotated Diamond outputs vs NR
 │   │   ├── diamond.log                                   # DIAMOND alignment execution log
