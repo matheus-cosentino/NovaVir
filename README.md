@@ -128,6 +128,131 @@ DiscoVir's design is highly modular. The use of specific **flags** triggers diff
 - **Deep Viral Discovery (`--kraken2`, `--diamond`, `--darkmatter`)**: These modules heavily depend on the prior *de novo* assembly of your reads (`--assembly` is usually implicitly run or required). Because they operate on assembled contigs and search for novel sequences, they focus on more computational power and time, yielding highly specific viral insights.
 - **Resource Management (`--profile`)**: **The profile flag is key** to running DiscoVir successfully. It identifies the type of computational resources (CPU, Memory, Time) required for each specific rule. Properly setting your `--profile` (e.g., local execution vs. HPC Slurm) is essential for a smooth first-time experience.
 
+
+## Visualization of the Execution DAG
+
+Below is the visual DAG of execution for your pipeline based on your exact `profiles/itrop` run configuration logic.
+
+```mermaid
+%%{init: {"themeVariables": {"fontSize": "22px"}}}%%
+graph TD;
+    subgraph Quality_Check ["Quality Check"]
+        2["fastp_paired - sample: test"]
+    end
+    subgraph Diversity_Diamond ["Diversity Diamond"]
+        4["append_lineage"]
+        5["split_hits_by_taxid"]
+        6["map_accession_to_taxid"]
+        7["diamond_blastx_contigs - tool: spades_kauto"]
+        21["append_lineage"]
+        22["split_hits_by_taxid"]
+        23["map_accession_to_taxid - tool: reads"]
+        24["diamond_blastx_reads"]
+    end
+    subgraph Diversity_Kraken ["Diversity Kraken"]
+        27["kraken_biom_reads - paired: paired"]
+        28["kraken2_reads_paired"]
+        31["kraken_biom_merge_all"]
+        32["kraken_biom_contig"]
+        33["kraken2_contigs - tool: spades_kauto"]
+    end
+    subgraph Dark_Matter_Search ["Dark Matter Search"]
+        9["fev2tsv_single"]
+        10["palm_annot"]
+        11["cd_hit"]
+        12["find_orfs"]
+        13["get_nohit_fasta"]
+        14["dm_validate"]
+        15["rvdb_validate_structural"]
+        16["rvdb_summarize"]
+        17["rvdb_search"]
+        20["rvdb_validate_pol"]
+    end
+    subgraph Assembly ["Assembly"]
+        1["spades - kmer_val: auto"]
+    end
+    subgraph Reporting ["Reporting"]
+        3["report_summarize"]
+        25["krona_diamond"]
+        29["krona_reads_kraken - read_type: paired"]
+        30["kraken_rarefaction_plot"]
+        34["krona_kraken2"]
+        35["krona_diamond"]
+    end
+    subgraph Setup_Databases ["Setup & Databases"]
+        8["download_prot"]
+        18["prepare_rvdb"]
+        19["get_rvdb"]
+        26["krona_update_taxonomy"]
+    end
+    subgraph Other ["Other"]
+        0["all"]
+    end
+    1 --> 0
+    3 --> 0
+    14 --> 0
+    15 --> 0
+    20 --> 0
+    21 --> 0
+    25 --> 0
+    27 --> 0
+    29 --> 0
+    30 --> 0
+    32 --> 0
+    34 --> 0
+    4 --> 0
+    35 --> 0
+    2 --> 1
+    1 --> 3
+    4 --> 3
+    9 --> 3
+    5 --> 4
+    6 --> 5
+    7 --> 6
+    8 --> 6
+    1 --> 7
+    10 --> 9
+    11 --> 10
+    12 --> 11
+    13 --> 12
+    1 --> 13
+    4 --> 13
+    1 --> 14
+    11 --> 14
+    9 --> 14
+    1 --> 15
+    11 --> 15
+    16 --> 15
+    17 --> 16
+    18 --> 16
+    11 --> 17
+    18 --> 17
+    19 --> 18
+    1 --> 20
+    11 --> 20
+    16 --> 20
+    22 --> 21
+    23 --> 22
+    24 --> 23
+    8 --> 23
+    2 --> 24
+    23 --> 25
+    26 --> 25
+    8 --> 26
+    28 --> 27
+    2 --> 28
+    28 --> 29
+    31 --> 30
+    28 --> 31
+    33 --> 32
+    1 --> 33
+    33 --> 34
+    6 --> 35
+    26 --> 35
+```
+
+
+
 ### Example Workflows
 
 - **Initial Evaluation: Kraken2 & Diamond Reads Identification**

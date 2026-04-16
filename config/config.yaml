@@ -180,25 +180,25 @@ hmmscan:
     #- 1e-20 #High Homology!!
 
 
-#LCA algorythim
-basta:
-  classification:
+#LCA algorythim (DEACTIVATED)
+#basta:
+#  classification:
     #values between 51 and 99 BASTA returns the taxonomy that is shared by at least the given percentage of hits. 
-    - 51    #percentage of best hits 51 (minimum)
+    #- 51    #percentage of best hits 51 (minimum)
     #- 75
     #- 99    
     #- 100 
-  identity: #minimum id to diamond hit to consider to lca basta algorythim
+#  identity: #minimum id to diamond hit to consider to lca basta algorythim
     #- 30
-    - 40
+    #- 40
     #- 50
     #- 60
     #- 70
     #- 80 #basta default
     #- 90
     #- 100
-  lengths: #minimum hit length of orf to be considered to basta lca algorythim
-    - 30 #discovir default to calculate lca for small hits
+#  lengths: #minimum hit length of orf to be considered to basta lca algorythim
+    #- 30 #discovir default to calculate lca for small hits
     #- 40
     #- 50
     #- 60
@@ -206,8 +206,8 @@ basta:
     #- 80
     #- 90
     #- 100 #basta default
-  min_hits: #minimum number of hits within a sequence to be considered to basta lca algorythim
-    - 1
+#  min_hits: #minimum number of hits within a sequence to be considered to basta lca algorythim
+#    - 1
     #- 2
     #- 3 #basta default
     #- 4
