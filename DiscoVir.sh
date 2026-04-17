@@ -13,7 +13,7 @@
 # o888bood8P'   o888o 8""888P' `Y8bod8P' `Y8bod8P'       `8'       o888o d888b    #
 #                                                                                 #
 ###################################################################################
-#                              version: 03.2026                                   #
+#                              version: 1.0.3                                     #
 ###################################################################################
 
 # --- Color Palettes ---
@@ -89,7 +89,7 @@ help(){
  DiscoVir${nc}: Viral Metagenomics & 'Dark Matter' Discovery
 
  ${green}Author${nc}: MSc. Matheus Cosentino 
- ${green}Version${nc}: 03.2026
+ ${green}Version${nc}: 1.0.3
 
  ${ylo}Usage:${nc}
   bash DiscoVir.sh --input <DIR> --output <DIR> [OPTIONS]
@@ -123,7 +123,7 @@ help(){
 }
 
 version(){
-    echo "DiscoVir v.03.2026"
+    echo "DiscoVir v.1.0.3"
 }
 
 ###################################
@@ -131,6 +131,12 @@ version(){
 ###################################
 
 manage_environment(){
+    # Se ja estiver sendo rodado via Conda (o que acontece quando instalado como pacote)
+    if [[ -n "$CONDA_DEFAULT_ENV" && "$CONDA_DEFAULT_ENV" != "base" ]] && command -v snakemake &> /dev/null; then
+        echo -e "${blu}[INFO]${nc} Running inside Conda environment '${ylo}${CONDA_DEFAULT_ENV}${nc}'. Skipping internal environment creation..."
+        return 0
+    fi
+
     echo -e "${blu}[INFO]${nc} Checking Conda environment '${ylo}${ENV_NAME}${nc}'..."
     
     # 1. Try to run conda hook directly

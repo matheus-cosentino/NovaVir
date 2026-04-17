@@ -1,0 +1,28 @@
+package:
+  name: discovir
+  version: 1.0.3
+
+source:
+  path: ..
+
+build:
+  number: 3
+  noarch: generic
+
+requirements:
+  build:
+    - make
+  run:
+    - bash
+    - python >=3.8
+    - snakemake >=9.11.1
+
+test:
+  commands:
+    - discovir --help
+    - discovir --version
+
+about:
+  home: https://github.com/matheus-cosentino/discovir
+  license: GNU GPLv3
+  summary: "A Snakemake Pipeline for Integrated Viral Discovery."

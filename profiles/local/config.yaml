@@ -32,6 +32,7 @@ show-failed-logs: true
 default-resources:
   threads: 1
   mem_mb: 2000
+  tmpdir: "/tmp"
 
 #######################################
 # --- 3. Slurm Specific Resources --- #
