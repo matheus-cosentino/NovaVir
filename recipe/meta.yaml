@@ -16,8 +16,11 @@ requirements:
     - bash
     - python >=3.8
     - snakemake >=9.11.1
+    - snakemake-executor-plugin-slurm>=2.0.0
 
 test:
+  imports:
+    - discovir
   commands:
     - discovir --help
     - discovir --version
