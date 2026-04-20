@@ -1,5 +1,5 @@
 {% set name = "discovir" %}
-{% set version = "1.0.1-beta" %}
+{% set version = "1.0.1.beta" %}
 
 package:
   name: {{ name|lower }}
