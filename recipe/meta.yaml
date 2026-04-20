@@ -5,13 +5,9 @@ package:
   name: {{ name|lower }}
   version: {{ version }}
 
-# O Bioconda não constrói a partir de diretórios locais. Eles puxam via URL.
-# Para testar a receita *LOCALMENTE* antes de abrir um PR, descomente o bloco "path" e comente o "url/sha256".
-# Ao abrir o Pull Request oficial, utilize APENAS o bloco de "url" e o "sha".
 source:
-  #path: ..
-  url: "https://github.com/matheus-cosentino/discovir/releases/tag/v{{ version }}/discovir-{{ version }}.tar.gz"
-  sha256: "4067da96cbe2de92d9a2b6fbbb7e3994404569455c3c61b4e5671b792705b96e"
+  url: "https://github.com/matheus-cosentino/discovir/archive/refs/tags/v{{ version }}.tar.gz"
+  sha256: "79a6b594f16bd6c62148f506cd634be90465f28469901d44251b8bffc55deaea"
 
 build:
   number: 0
@@ -19,10 +15,10 @@ build:
 
 requirements:
   host:
-    - python >=3.8
+    - python >=3.11,<3.13
   run:
     - bash
-    - python >=3.8
+    - python >=3.11,<3.13
     - snakemake >=9.11.1
     - snakemake-executor-plugin-slurm >=2.0.0
     - coreutils
