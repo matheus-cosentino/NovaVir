@@ -10,8 +10,10 @@ package:
 # Ao abrir o Pull Request oficial, utilize APENAS o bloco de "url" e o "sha".
 source:
   #path: ..
-  url: "https://github.com/matheus-cosentino/discovir/archive/refs/tags/v{{ version }}.tar.gz"
+  url: "https://github.com/matheus-cosentino/discovir/releases/tag/v{{ version }}/discovir-{{ version }}.tar.gz"
   sha256: "4067da96cbe2de92d9a2b6fbbb7e3994404569455c3c61b4e5671b792705b96e"
+
+
 
 build:
   number: 0
