@@ -31,3 +31,4 @@ workflow/scripts/__pycache__/*
 *.pyo
 *.pyd
 #Walkthrough.md
+bioconda-recipes/
