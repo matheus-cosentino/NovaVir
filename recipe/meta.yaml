@@ -13,8 +13,6 @@ source:
   url: "https://github.com/matheus-cosentino/discovir/releases/tag/v{{ version }}/discovir-{{ version }}.tar.gz"
   sha256: "4067da96cbe2de92d9a2b6fbbb7e3994404569455c3c61b4e5671b792705b96e"
 
-
-
 build:
   number: 0
   noarch: generic
