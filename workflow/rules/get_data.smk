@@ -44,22 +44,33 @@ rule download_sra_data_paired:
         sample = "|".join(PAIRED_SRA) if PAIRED_SRA else "NO_PAIRED_SAMPLES"
     shell:
         """
-        echo "Creating temp dir for download {wildcards.sample}..." > {log}
-        mkdir -p {params.tmpdir}
-
-        echo "Starting PAIRED download for {wildcards.sample}..." >> {log}
-        fasterq-dump --split-files --threads {resources.threads} -O {params.tmpdir} {wildcards.sample} >> {log} 2>&1
-
-        echo "Compressing fastq to fastq.gz..." >> {log}
-        # FIX 3: Target files inside params.tmpdir
-        gzip "{params.tmpdir}/{wildcards.sample}_1.fastq"
-        gzip "{params.tmpdir}/{wildcards.sample}_2.fastq"
+        exec &> {log}
+        echo "Step 1: Prefetching SRA file for {wildcards.sample}..."
+        prefetch {wildcards.sample} --max-size 100G
         
-        echo "Moving files to final destination..." >> {log}
+        echo "Step 2: Validating SRA integrity..."
+        vdb-validate {wildcards.sample}
+
+        echo "Step 3: Running fasterq-dump from local SRA file..."
+        mkdir -p {params.tmpdir}
+        fasterq-dump {wildcards.sample} \
+            --split-files \
+            --threads {threads} \
+            --temp {params.tmpdir} \
+            --outdir {params.tmpdir} \
+            --skip-technical
+
+        echo "Step 4: Compressing with pigz (faster) or gzip..."
+        # Se 'pigz' estiver disponível no cluster, use-o para ganhar tempo
+        pigz -p {threads} "{params.tmpdir}/{wildcards.sample}_1.fastq" || gzip "{params.tmpdir}/{wildcards.sample}_1.fastq"
+        pigz -p {threads} "{params.tmpdir}/{wildcards.sample}_2.fastq" || gzip "{params.tmpdir}/{wildcards.sample}_2.fastq"
+        
+        echo "Step 5: Moving files and cleaning up..."
         mv "{params.tmpdir}/{wildcards.sample}_1.fastq.gz" {output.r1}
         mv "{params.tmpdir}/{wildcards.sample}_2.fastq.gz" {output.r2}
         
-        echo "Cleaning up temp dir..." >> {log}
+        # Remove o arquivo .sra baixado para economizar espaço no diretório do NCBI
+        rm -rf ~/ncbi/public/sra/{wildcards.sample}.sra
         rm -rf {params.tmpdir}
         """
 
