@@ -69,7 +69,7 @@ rule krona_kraken2:
     shell:
         """
         ktImportTaxonomy \
-            -tax {params.tax_dir} \
+            -tax {params.tax_dir} -q 2 -t 3  \
             -o {output.html} \
             {input.report} \
             > {log} 2>&1
@@ -91,7 +91,7 @@ rule krona_reads_kraken:
     shell:
         """
         ktImportTaxonomy \
-            -tax {params.tax_dir} \
+            -tax {params.tax_dir}  -q 2 -t 3  \
             -o {output.html} \
             {input.report} \
             > {log} 2>&1

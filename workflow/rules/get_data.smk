@@ -46,6 +46,7 @@ rule download_sra_data_paired:
         """
         exec &> {log}
         echo "Step 1: Prefetching SRA file for {wildcards.sample}..."
+        rm -rf ~/ncbi/public/sra/{wildcards.sample}.sra*
         prefetch {wildcards.sample} --max-size 100G
         
         echo "Step 2: Validating SRA integrity..."
