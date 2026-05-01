@@ -22,7 +22,7 @@ rule diamond_blastx_contigs:
     contigs = get_contigs_path
   output:
     hits = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
-    log  = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "diamond.log")
+    #log  = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "diamond.log")
   params:
     db = get_diamond_db_name,
     outfmt = config["diamond"]["outfmt"],
@@ -56,10 +56,7 @@ rule diamond_blastx_contigs:
       --threads {resources.threads} \
       --outfmt {params.outfmt} \
       --max-target-seqs {params.max_target_seqs} \
-      {params.sensitivity} \
-      --log
-    
-    cp {log} {output.log}
+      {params.sensitivity}
     """
 
 rule diamond_blastx_reads:
@@ -69,7 +66,7 @@ rule diamond_blastx_reads:
     extra = get_denovo_unpaired
   output:
     hits = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads_report.txt"),
-    log  = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "diamond.log")
+    #log  = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "diamond.log")
   params:
     db = get_diamond_db_name,
     outfmt = config["diamond"]["outfmt"],
@@ -114,10 +111,8 @@ rule diamond_blastx_reads:
       --threads {resources.threads} \
       --outfmt {params.outfmt} \
       --max-target-seqs {params.max_target_seqs} \
-      {params.sensitivity} \
-      --log
-    
-    cp {log} {output.log}
+      {params.sensitivity}
+
     rm -f "$TMP_READS"
     
     """
