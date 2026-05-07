@@ -690,7 +690,18 @@ pp.col.canonical <- c("#440154", "gray60", "#3b528b", "gray60", "#fde725")
 
 ```{r dark_matter_analysis, echo=FALSE,  warning=FALSE, fig.width=10, fig.height=4, out.width="50%"}
 # Carregar a tabela
-fev <- read.table(file = params$darkmatter_file, header = T, sep = "\t")
+file_info <- file.info(params$darkmatter_file)
+
+if (!is.na(file_info$size) && file_info$size > 0) {
+    # Carrega a tabela com tryCatch para evitar falhas caso o arquivo contenha apenas linhas em branco
+    fev <- tryCatch({
+        read.table(file = params$darkmatter_file, header = TRUE, sep = "\t")
+    }, error = function(e) {
+        data.frame() # Retorna dataframe vazio em caso de erro de leitura
+    })
+} else {
+    fev <- data.frame() # Arquivo vazio gera dataframe vazio
+}
 
 # AQUI ESTA A CORRECAO: Verificar se a tabela tem dados
 if (nrow(fev) > 0) {
