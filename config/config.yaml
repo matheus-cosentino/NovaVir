@@ -34,7 +34,7 @@ modules:
   darkmatter: false #Perform palm annot identification (default: false)
   reads_kraken2: false #Perform reads taxonomic identification (default: false)
   reads_diamond: false #Perform reads taxonomic identification (default: false)
-  basta: false #perform basta LCA Algo
+  megan: true #perform basta LCA Algo
   
 
 ### De novo tools to be requested

@@ -18,7 +18,7 @@
 #1. GET MAPPER
 rule get_megan6_mapper:
   output:
-    zip= os.path.join(MEGAN_DIR[0], "megan-map-Feb2022-ue.db.zip"),
+    db= os.path.join(MEGAN_DIR[0], "megan-map-Feb2022-ue.db"),
   params:
     dir=MEGAN_DIR[0]
   log:
@@ -27,7 +27,9 @@ rule get_megan6_mapper:
     DOWNLOAD
   shell:
     """
-    wget https://software-ab.cs.uni-tuebingen.de/download/megan6/megan-map-Feb2022-ue.db.zip -O {output.zip} 2> {log}
+    wget https://software-ab.cs.uni-tuebingen.de/download/megan6/megan-map-Feb2022-ue.db.zip -O {output.db}.zip 2> {log}
+    unzip -o {output.db}.zip -d {params.dir} >> {log} 2>&1
+    rm {output.db}.zip
     """
 
 #2. READS DIAMOND DAA FORMAT
@@ -37,7 +39,7 @@ rule reads_diamond_daa:
     r2 = get_denovo_r2,
     extra = get_denovo_unpaired
   output:
-    hits = os.path.join(OUT_DIR, "{sample}", "megan_reads", "{sample}_reads_report.daa"),
+    hits = temp(os.path.join(OUT_DIR, "{sample}", "megan_reads", "{sample}_reads_report.daa")),
   params:
     db = get_diamond_db_name,
     outfmt = 100,
@@ -87,31 +89,34 @@ rule reads_diamond_daa:
     rm -f "$TMP_READS"  
 
     """
-  
 
-
-#3 CONVERT DAA TO MEGANIZER
-
-rule reads_diamond_daa:
+rule reads_meganizer:
   input:
+    daa = rules.reads_diamond_daa.output.hits,
+    db = rules.get_megan6_mapper.output.db
   output:
-  params:
+    daa = temp(os.path.join(OUT_DIR, "{sample}", "megan_reads", "{sample}_reads_report_meganized.daa"))
   log:
+    os.path.join(OUT_DIR, "{sample}", "log", "meganizer_{sample}.log")
   conda:
+    MEGAN
   shell:
     """
-    
+    cp {input.daa} {output.daa}
+    daa-meganizer -i {output.daa} -mdb {input.db} -t {threads} > {log} 2>&1
     """
 
-#4. REDUCE MEGANIZER TO MEGAN DAA2INFO
 
-rule reads_diamond_daa:
+rule reads_daa2info:
   input:
+    daa = rules.reads_meganizer.output.daa
   output:
-  params:
+    summary = os.path.join(OUT_DIR, "{sample}", "megan_reads", "{sample}_reads_summary.megan")
   log:
+    os.path.join(OUT_DIR, "{sample}", "log", "daa2info_{sample}.log")
   conda:
+    MEGAN
   shell:
     """
-    
+    daa2info -i {input.daa} --extractSummaryFile {output.summary} > {log} 2>&1
     """

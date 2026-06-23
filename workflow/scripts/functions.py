@@ -23,7 +23,6 @@ import os, re, glob, time, sys, subprocess, platform, yaml
 import urllib.request
 from snakemake.io import expand
 from collections import defaultdict
-from Bio import SeqIO
 import gzip
 
 # Global Object
@@ -157,6 +156,10 @@ def get_final_outputs():
               final_outputs.extend(expand("{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_hits_with_lineage.tsv", out_dir=OUT_DIR, sample=sample, tool=current_tools))
               final_outputs.extend(expand("{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_diamond_krona.html",out_dir=OUT_DIR, sample=sample, tool=current_tools))
 
+
+  if MODULES["megan"]:
+    final_outputs.extend(expand("{out_dir}/{sample}/megan_reads/{sample}_reads_summary.megan", out_dir=OUT_DIR, sample=SAMPLE))
+
   return final_outputs
 
 ## in process
@@ -264,6 +267,7 @@ def cleanup_downloaded_fastqs(config):
 ##########################################################
 ## ready to test
 def filter_nohits():
+    from Bio import SeqIO
     # Access snakemake variables
     try:
         blast_file = snakemake.input.diamond
