@@ -31,3 +31,6 @@ workflow/scripts/__pycache__/*
 *.pyo
 *.pyd
 #Walkthrough.md
+
+#sobreescritor de run
+run_overrides.yaml
