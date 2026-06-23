@@ -6,7 +6,7 @@ raw_data/
 
 # Ignore resources directory
 resources/database/
-
+resources/megan/
 resources/taxonomy/
 
 # Ignore data directory
