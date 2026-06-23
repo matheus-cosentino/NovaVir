@@ -56,6 +56,7 @@ OUT_DIR = config["output_dir"]
 KRONA_DB_DIR = config["resources"]["krona"]
 TAXONOMY_DIR = config["resources"]["taxonomy"]
 RVDB_DIR = config["resources"]["rvdb"]
+MEGAN_DIR = config["resources"]["megan"]
 
 with open(config["sample_list"], "r") as file:
     SAMPLE = [line.strip() for line in file if line.strip()]
@@ -119,6 +120,7 @@ SPADES_ENV = workflow.source_path(config["envs"]["spades"])
 KRONA = workflow.source_path(config["envs"]["krona"])
 R_RAREFACTION = workflow.source_path(config["envs"]["r_rarefaction"])
 HMMER = workflow.source_path(config["envs"]["hmmer"])
+MEGAN = workflow.source_path(config["envs"]["megan"])
 
 
 #######################################
@@ -135,7 +137,7 @@ include: "rules/darkmatter.smk"
 include: "rules/reporting.smk"
 include: "rules/krona.smk"
 include: "rules/RVDB.smk"
-
+include: "rules/megan.smk"
 
 ###############################################################
 # --- 7. Obtain the final target & Download Data cleanup --- #

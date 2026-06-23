@@ -66,10 +66,13 @@ envs:
   krona: "envs/krona.yaml"
   r_rarefaction: "envs/r_rarefaction.yaml"
   hmmer: "envs/hmmer.yaml"
+  megan: "envs/megan.yaml"
 
 
 ### databases and resources for the workflow
 resources:
+  megan:
+    - "resources/megan"
   diamond: 
   #diamond workflow used for the database
    - "resources/diamond" 

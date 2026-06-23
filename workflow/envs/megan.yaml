@@ -1,0 +1,7 @@
+name: megan
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - megan=6.25.10
