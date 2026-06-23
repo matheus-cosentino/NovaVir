@@ -5,5 +5,4 @@ channels:
   - nodefaults
 dependencies:
   - diamond=2.1.13
-
-  
+  - seqkit

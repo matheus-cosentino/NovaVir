@@ -15,11 +15,27 @@
 #                              version: 03.2026                                   #
 ###################################################################################
 
-rule diamond_blastx_contigs:
+rule filter_contigs_diamond:
   wildcard_constraints:
     tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
   input:
     contigs = get_contigs_path
+  output:
+    filtered = temp(os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_filtered_contigs.fasta"))
+  log:
+    os.path.join(OUT_DIR, "{sample}", "log", "filter_contigs_{tool}_{sample}.log")
+  conda:
+    DIAMOND
+  shell:
+    """
+    seqkit seq -m 600 {input.contigs} > {output.filtered} 2> {log}
+    """
+
+rule diamond_blastx_contigs:
+  wildcard_constraints:
+    tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
+  input:
+    contigs = rules.filter_contigs_diamond.output.filtered
   output:
     hits = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
     #log  = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "diamond.log")
