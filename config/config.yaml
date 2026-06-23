@@ -147,6 +147,8 @@ flye:
 
 # Taxonomy by local alignment
 diamond:
+  min_contig_len: 600 # Minimum contig length to be annotated by diamond
+  
   outfmt: 
     #- 0 #BLAST pairwise
     #- 5 #BLAST XML
