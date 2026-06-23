@@ -33,7 +33,7 @@ DiscoVir is a comprehensive and scalable Snakemake workflow for the detection of
 graph TD;
     A[Raw Reads fastq.gz] --> B(fastp Quality Control);
     B -->|Filtered Reads| C{Analysis Path};
-    C -->|Read-Level Taxonomy| D[Kraken2 & Diamond];
+    C -->|Read-Level Taxonomy| D[Kraken2, Diamond & MEGAN];
     C -->|De Novo Assembly| E[SPAdes / Megahit / Flye];
     
     E -->|Contigs| F(Diamond Annotation vs NR);
@@ -107,6 +107,7 @@ The following must appear on your screen:
  Module Toggles (Enable/Disable Analysis):
    --reads-kraken: Enables taxonomic classification of raw reads using Kraken2.
    --reads-diamond: Enables taxonomic classification of raw reads using DIAMOND.
+   --megan: Enables taxonomic classification of raw reads using MEGAN LCA analysis.
    --assembly: Enables *de novo* assembly of reads into contigs.
    --kraken2: Enables taxonomic classification of assembled contigs using Kraken2.
    --diamond: Enables taxonomic classification of assembled contigs using DIAMOND.
@@ -124,7 +125,7 @@ The following must appear on your screen:
 
 DiscoVir's design is highly modular. The use of specific **flags** triggers different modules with distinct purposes and computational requirements:
 
-- **Initial Evaluation (`--reads-kraken`, `--reads-diamond`)**: These modules operate directly on raw reads. They serve as a rapid, initial evaluation of your pipeline and sample composition, allowing you to gauge the presence of viral content without heavy computation.
+- **Initial Evaluation (`--reads-kraken`, `--reads-diamond`, `--megan`)**: These modules operate directly on raw reads. They serve as a rapid, initial evaluation of your pipeline and sample composition, allowing you to gauge the presence of viral content without heavy computation.
 - **Deep Viral Discovery (`--kraken2`, `--diamond`, `--darkmatter`)**: These modules heavily depend on the prior *de novo* assembly of your reads (`--assembly` is usually implicitly run or required). Because they operate on assembled contigs and search for novel sequences, they focus on more computational power and time, yielding highly specific viral insights.
 - **Resource Management (`--profile`)**: **The profile flag is key** to running DiscoVir successfully. It identifies the type of computational resources (CPU, Memory, Time) required for each specific rule. Properly setting your `--profile` (e.g., local execution vs. HPC Slurm) is essential for a smooth first-time experience.
 
@@ -301,6 +302,10 @@ results/
 │   │   ├── SRR10677983_unpaired_reads_report.txt         # Standard Kraken2 taxonomic report for unpaired reads
 │   │   ├── SRR10677983_unpaired_reads_output.txt         # Detailed per-read classification output for unpaired reads
 │   │   └── SRR10677983_unpaired_reads_biom.txt           # Kraken2 results in BIOM format for unpaired reads
+│   ├── megan_reads/               # MEGAN Last Common Ancestor taxonomic classification
+│   │   ├── SRR10677983_reads_report.daa                  # DIAMOND alignment in DAA format
+│   │   ├── SRR10677983_reads_report_meganized.daa        # DAA file meganized with taxonomic classifications
+│   │   └── SRR10677983_reads_summary.megan               # Extracted MEGAN summary table
 │   ├── spades/                    # Assembled Fasta contigs
 │   │   └── kmer_auto/             # De Novo Assemblage done by SPAdes auto kmer definition           
 │   │       └── contigs.fasta                             # Final assembled contigs in FASTA format
