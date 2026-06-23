@@ -1,0 +1,81 @@
+###################################################################################
+#                             Unified Slurm Profile                               #
+#                         MSc. Matheus Cosentino                                  # 
+###################################################################################
+
+# cluster params, number of jobs to be ran simullteniously
+jobs: 15
+
+#snakemake params
+executor: slurm
+restart-times: 0
+latency-wait: 600
+keep-going: true
+rerun-incomplete: true
+use-conda: true
+show-failed-logs: true
+
+#######################################
+# --- Default Generic Resources --- #
+######################################
+default-resources:
+  threads: 1
+  cpus_per_task: 1
+  mem_mb: 4000
+
+#######################################
+# --- Specific Rule Resources --- #
+######################################
+set-resources:
+  spades:
+    mem_mb: 60000
+    threads: 12
+    cpus_per_task: 12
+  megahit:
+    mem_mb: 60000
+    threads: 12
+    cpus_per_task: 12
+  flye:
+    mem_mb: 60000
+    threads: 12
+    cpus_per_task: 12
+  diamond_blastx_contigs:
+    mem_mb: 60000
+    threads: 12
+    cpus_per_task: 12
+  diamond_blastx_reads:
+    mem_mb: 60000
+    threads: 24
+    cpus_per_task: 24
+  reads_diamond_daa:
+    mem_mb: 60000
+    threads: 24
+    cpus_per_task: 24
+  kraken2_contigs:
+    mem_mb: 60000
+    threads: 16
+    cpus_per_task: 16
+  kraken2_reads_unpaired:
+    mem_mb: 60000
+    threads: 16
+    cpus_per_task: 16
+  kraken2_reads_paired:
+    mem_mb: 60000
+    threads: 16
+    cpus_per_task: 16
+  map_accession_to_taxid:
+    mem_mb: 60000
+    threads: 12
+    cpus_per_task: 12
+  cd_hit:
+    mem_mb: 16000
+    threads: 4
+    cpus_per_task: 4
+  rvdb_search:
+    mem_mb: 60000
+    threads: 12
+    cpus_per_task: 12
+  krona_update_taxonomy:
+    mem_mb: 32000
+    threads: 8
+    cpus_per_task: 8
