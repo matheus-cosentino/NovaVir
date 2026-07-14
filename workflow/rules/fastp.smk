@@ -52,7 +52,7 @@ rule fastp_paired:
             --json {output.json} \
             --thread {resources.threads} \
             --length_required {params.length_required} \
-            --qualified_quality_phred {params.quality} \
+            --qualified_quality_phred {params.quality} --dedup \
             2> {log}
         """
 
