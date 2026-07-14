@@ -103,7 +103,21 @@ rule reads_meganizer:
   shell:
     """
     cp {input.daa} {output.daa}
-    daa-meganizer -i {output.daa} -mdb {input.db} -t {threads} > {log} 2>&1
+    
+    # Adicionando parâmetros explícitos do LCA para evitar perda de hits
+    # -ms 40: Diminui o min-score aceitável (útil para reads curtos/divergentes)
+    # -me 0.01: Max e-value aceitável
+    # -top 10: Limiar de 10% do melhor score para o LCA
+    # -sup 1: Suporte mínimo de 1 read para confirmar um táxon (CRÍTICO)
+    
+    daa-meganizer \
+        -i {output.daa} \
+        -mdb {input.db} \
+        -ms 40 \
+        -me 0.01 \
+        -top 10 \
+        -sup 1 \
+        -t {threads} > {log} 2>&1
     """
 
 
