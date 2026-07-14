@@ -382,7 +382,7 @@ for p in paths:
                     print(str(t).strip())
                     sys.exit(0)
         except Exception: pass
-print('/scratch-ib/${USER}/') # fallback
+print('/tmp/${USER}/') # fallback
 ")
     # Limpa possíveis quebras de linha que possam quebrar o mkdir no bash
     temp_dir=$(echo "$temp_dir" | tr -d '\r\n')
