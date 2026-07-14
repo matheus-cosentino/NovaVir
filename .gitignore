@@ -20,10 +20,10 @@ data/
 # ignore paper folder
 paper/
 #ignore slurm tests#
-#slurm_scripts/*
-#slurm_scripts/crab_discovir.slurm
-#slurm_scripts/itro_discovir.slurm
-#slurm_scripts/crab_discovir.slurm
+slurm_scripts/*
+slurm_scripts/crab_discovir.slurm
+slurm_scripts/itro_discovir.slurm
+slurm_scripts/crab_discovir.slurm
 
 # Python cache
 workflow/scripts/__pycache__/*
@@ -34,3 +34,5 @@ workflow/scripts/__pycache__/*
 
 #sobreescritor de run
 run_overrides.yaml
+
+
