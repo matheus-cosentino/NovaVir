@@ -1,0 +1,8 @@
+name: raven
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - raven-assembler=1.8.3
+  - python=3.12.12

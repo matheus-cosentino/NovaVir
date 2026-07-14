@@ -68,7 +68,7 @@ rule megahit:
         outdir = os.path.join(OUT_DIR, "{sample}", "megahit"),
         input_args = get_megahit_params,
     conda:
-        DENOVO
+        MEGAHIT_ENV
     shell:
         """
         megahit \
@@ -100,7 +100,7 @@ rule flye:
         outdir = os.path.join(OUT_DIR, "{sample}", "flye"),
         extra = config["flye"]["type"]
     conda:
-        DENOVO
+        FLYE_ENV
     shell:
         """
         # Flye fails if output directory exists
@@ -131,7 +131,7 @@ rule raven:
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "raven_assembly.log")
     conda:
-        DENOVO
+        RAVEN_ENV
     shell:
         """
         # Run commands 
@@ -154,6 +154,8 @@ rule medaka_polish:
         outdir = os.path.join(OUT_DIR, "{sample}", "medaka_{assembler}")
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "medaka_{assembler}.log")
+    conda:
+        MEDAKA_ENV
     shell:
         """
         rm -rf {params.outdir}
