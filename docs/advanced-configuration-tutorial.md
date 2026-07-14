@@ -1,25 +1,25 @@
-# Tutorial avançado de configuração
+# Advanced configuration tutorial
 
-Esta página reúne as principais opções para ajustar o pré-processamento com fastp e a escolha da ferramenta de montagem de contigs no DiscoVir.
+This page gathers the main options for tuning preprocessing with fastp and choosing the contig assembler in DiscoVir.
 
-## 1. Onde editar as configurações
+## 1. Where to edit configuration
 
-As opções principais estão no arquivo [config/config.yaml](../config/config.yaml).
+The main settings are in the file [config/config.yaml](../config/config.yaml).
 
-Ao alterar esse arquivo, salve as mudanças e rode novamente o pipeline. O fluxo irá ler as novas definições automaticamente.
+After you edit this file, save it and run the pipeline again. The workflow will automatically read the updated values.
 
-## 2. Ajustando o fastp
+## 2. Tuning fastp
 
-O fastp é usado para filtrar e limpar os reads antes da montagem e das análises taxonômicas.
+fastp is used to filter and clean reads before assembly and taxonomic analysis.
 
-### Parâmetros principais
+### Main parameters
 
-No bloco `fastp` do arquivo [config/config.yaml](../config/config.yaml), você pode ajustar:
+In the `fastp` section of [config/config.yaml](../config/config.yaml), you can adjust:
 
-- `length_required`: comprimento mínimo do read após o trim.
-- `qualified_quality_phred`: limiar mínimo de qualidade Phred.
+- `length_required`: minimum read length after trimming.
+- `qualified_quality_phred`: minimum Phred quality threshold.
 
-Exemplo:
+Example:
 
 ```yaml
 fastp:
@@ -29,22 +29,22 @@ fastp:
     - 30
 ```
 
-### Quando ajustar cada parâmetro
+### When to change each parameter
 
-- Se seus dados são de alta qualidade e você quer preservar reads mais curtos, pode aumentar `length_required`.
-- Se os dados são mais ruidosos, pode reduzir `qualified_quality_phred` para valores como 20 ou 25.
-- Para dados long-read, em geral é mais seguro usar um limite de tamanho mais conservador, por exemplo `500`.
+- If your data are high quality and you want to preserve shorter reads, you can lower `length_required`.
+- If the data are noisy, you can increase `qualified_quality_phred` to values like 30 or 35.
+- For long-read data, it is usually safer to use a larger minimum length, for example `500`.
 
-### Recomendação prática
+### Practical recommendations
 
-- Para Illumina padrão: mantenha `length_required` em `50` e `qualified_quality_phred` em `30`.
-- Para amostras com baixa qualidade: experimente `25` ou `20` para qualidade e `30` ou `40` para tamanho mínimo.
+- For standard Illumina data: keep `length_required` at `50` and `qualified_quality_phred` at `30`.
+- For lower-quality samples: try `20` or `25` for quality and `30` or `40` for minimum length.
 
-## 3. Escolhendo a ferramenta de montagem de contigs
+## 3. Choosing the contig assembler
 
-A escolha do assembler é controlada no bloco `tool.denovo` em [config/config.yaml](../config/config.yaml).
+The assembler choice is controlled in the `tool.denovo` section of [config/config.yaml](../config/config.yaml).
 
-Exemplo:
+Example:
 
 ```yaml
 tool:
@@ -54,20 +54,20 @@ tool:
     # - 'flye'
 ```
 
-### Quando usar cada opção
+### When to use each option
 
-- `spades`: melhor opção para dados Illumina metagenômicos e metatranscriptômicos. É o padrão atual e costuma performar melhor para recuperação de contigs virais.
-- `megahit`: mais rápido e geralmente útil quando você prioriza velocidade em vez de máxima qualidade de montagem.
-- `flye`: indicado para dados long-read (Nanopore/PacBio). Não é a melhor opção para reads curtos Illumina.
-- `raven`: outra opção para long-read, geralmente mais simples e mais rápida, mas com trade-offs de qualidade.
+- `spades`: best option for Illumina metagenomic and metatranscriptomic reads. It is the current default and tends to recover viral contigs well.
+- `megahit`: faster and useful when you prioritize speed over maximum assembly quality.
+- `flye`: recommended for long-read data (Nanopore/PacBio). Not the best choice for short Illumina reads.
+- `raven`: another long-read assembler, usually simpler and faster, but with quality trade-offs.
 
-## 4. Ajustando o SPAdes
+## 4. Tuning SPAdes
 
-Se você optar por SPAdes, há dois pontos importantes para ajustar:
+If you choose SPAdes, there are two important settings to adjust:
 
-### 4.1 Algoritmo
+### 4.1 Algorithm mode
 
-No bloco `spades.algorithm` você define o modo de montagem:
+In the `spades.algorithm` section you define the assembly mode:
 
 ```yaml
 spades:
@@ -75,12 +75,12 @@ spades:
     - '--meta'
 ```
 
-- `--meta`: recomendado para dados metagenômicos.
-- `--isolate`: pode ser melhor para amostras isoladas ou dados de alta cobertura.
+- `--meta`: recommended for metagenomic data.
+- `--isolate`: can work better for isolate samples or high-coverage datasets.
 
-### 4.2 K-mer
+### 4.2 K-mer sizes
 
-O bloco `spades.kmer` define os tamanhos de k-mer usados na montagem:
+The `spades.kmer` section defines the k-mer sizes used by SPAdes:
 
 ```yaml
 spades:
@@ -88,21 +88,21 @@ spades:
     - 'auto'
 ```
 
-- `auto`: é a opção mais simples e geralmente boa para começar.
-- valores explícitos como `21`, `33`, `55` ou combinações como `21_33_55` podem ser usados para testes mais específicos.
+- `auto`: the simplest option and usually a good starting point.
+- Explicit values like `21`, `33`, `55` or combinations such as `21_33_55` can be used for more specific tests.
 
-## 5. Ajustando a montagem para long-read
+## 5. Long-read assembly settings
 
-Se você estiver trabalhando com dados long-read, prefira `flye` ou `raven` em vez de SPAdes.
+If you are working with long-read data, prefer `flye` or `raven` instead of SPAdes.
 
-No arquivo [config/config.yaml](../config/config.yaml), você pode ajustar o tipo de leitura para o Flye:
+In [config/config.yaml](../config/config.yaml), you can set the Flye read type:
 
 ```yaml
 flye:
   type: "nano-corr"
 ```
 
-Você pode trocar para outras opções, como:
+You can change it to one of:
 
 - `pacbio-raw`
 - `pacbio-corr`
@@ -111,27 +111,27 @@ Você pode trocar para outras opções, como:
 - `nano-corr`
 - `nano-hq`
 
-## 6. Ajustando parâmetros downstream
+## 6. Adjusting downstream parameters
 
-Além do fastp e do assembler, outros parâmetros podem influenciar bastante o resultado:
+Besides fastp and the assembler, other parameters can significantly affect results:
 
-- `diamond.min_contig_len`: tamanho mínimo de contig para anotação com DIAMOND.
-- `diamond.evalue`: limiar de e-value para alinhamentos.
-- `kraken2.confidence`: sensibilidade para classificação taxonômica.
-- `palm_annot.minscore`: limiar de score para detecção de RdRp candidates.
+- `diamond.min_contig_len`: minimum contig length for DIAMOND annotation.
+- `diamond.evalue`: e-value threshold for alignments.
+- `kraken2.confidence`: classification confidence threshold for Kraken2.
+- `palm_annot.minscore`: score threshold for RdRp candidate detection.
 
-## 7. Fluxo recomendado para começar
+## 7. Recommended workflow to start
 
-1. Comece com os valores padrão do arquivo [config/config.yaml](../config/config.yaml).
-2. Se a qualidade dos reads for ruim, ajuste fastp.
-3. Se você tiver Illumina curto, teste `spades` primeiro.
-4. Se você tiver long-read, use `flye` ou `raven`.
-5. Compare os resultados e ajuste um parâmetro por vez.
+1. Start with the default values in [config/config.yaml](../config/config.yaml).
+2. If the read quality is poor, tune fastp first.
+3. If you have short Illumina reads, test `spades` first.
+4. If you have long-read data, use `flye` or `raven`.
+5. Compare results and change one parameter at a time.
 
-## 8. Exemplo de execução após editar a configuração
+## 8. Example run after editing configuration
 
 ```bash
 bash DiscoVir.sh --input <DIR> --output <DIR> --profile local --diamond --darkmatter
 ```
 
-Se você estiver rodando em cluster, troque o profile para `profile_slurm`.
+If you are running on a cluster, change the profile to `profile_slurm`.
