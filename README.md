@@ -72,6 +72,9 @@ Due to the large size of the databases used and their common presence within HPC
 ## Installation
 The `DiscoVir.sh` script is responsible for managing the run, automatically downloading and creating the necessary Conda environments, as well as managing Conda versions for the pipeline to work.
 
+### Reproducibility with Conda
+DiscoVir uses Snakemake’s native Conda integration through `--use-conda`. This means that users do not need to manually install the required tools. The workflow automatically creates and uses the exact software environments defined in [workflow/envs](workflow/envs) for each analysis module, ensuring that results are reproducible across different machines and remain consistent even when system-wide software changes.
+
 1.  **Clone the repository:**
 
 ```bash
