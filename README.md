@@ -13,10 +13,13 @@
 ## Table of Contents
 
 - [Introduction](#introduction)
-- [Workflow Overview](#workflow-overview)
+- [Pipeline Presentation](#pipeline-presentation)
 - [Requirements](#requirements)
 - [Installation](#installation)
-- [Usage](#usage)
+- [Basic Local Usage](#basic-local-usage)
+- [Advanced Configuration Tutorial](#advanced-configuration-tutorial)
+- [Diversity Modules](#diversity-modules)
+- [Dark Matter Modules](#dark-matter-modules)
 - [Expected Outputs](#expected-outputs)
 - [Features](#features)
 - [Contributing](#contributing)
@@ -27,7 +30,7 @@
 
 DiscoVir is a comprehensive and scalable Snakemake workflow for the detection of novel viruses within High-Throughput Sequencing (HTS) data. The pipeline is designed to work with both short-read (Illumina) and long-read (Nanopore/PacBio) metagenomic and transcriptomic data.
 
-## Workflow Overview
+## Pipeline Presentation
 
 ```mermaid
 graph TD;
@@ -40,10 +43,13 @@ graph TD;
     E -->|Contigs| G(Kraken2 Annotation);
     E -->|Contigs| H(Dark Matter Module);
     
-    H -->|ORF Prediction & HMM| I(PalmAnnot2 & RVDB Screening);
-    I -->|Taxonomy Summarization| J[Final RdRp Hits & Annotations];
+    H -->|ORF Prediction & HMM| I(PalmAnnot2);
+    H -->|Optional| J(RVDB Screening);
+    I -->|Taxonomy Summarization| K[Final RdRp Hits & Annotations];
 
-    D --> K[Krona & Report Dashboards];
+    D --> L[Krona & MultiQC Report Dashboards];
+    F --> L;
+    K --> L;
     F --> K;
     J --> K;
 ```
@@ -111,7 +117,8 @@ The following must appear on your screen:
    --assembly: Enables *de novo* assembly of reads into contigs.
    --kraken2: Enables taxonomic classification of assembled contigs using Kraken2.
    --diamond: Enables taxonomic classification of assembled contigs using DIAMOND.
-   --darkmatter: Enables the "dark matter" module to search for RdRp signatures & RVDB evaluation.
+   --darkmatter: Enables the "dark matter" module to search for RdRp signatures.
+   --rvdb: Enables optional RVDB validation on dark matter ORFs.
    --remove-download: Removes SRA files after download.
  
  Flags:
@@ -119,20 +126,40 @@ The following must appear on your screen:
    -v, --version        Show version
 ```
 
-## Usage
+## Basic Local Usage
 
 ### Core Concepts for First-Time Users
 
 DiscoVir's design is highly modular. The use of specific **flags** triggers different modules with distinct purposes and computational requirements:
 
+If you want to tune preprocessing and assembly parameters, see the dedicated tutorial at [docs/advanced-configuration-tutorial.md](docs/advanced-configuration-tutorial.md).
+
+### Advanced Configuration Tutorial
+
+For practical guidance on fastp, assembler selection, SPAdes tuning and long-read assembly choices, please refer to [docs/advanced-configuration-tutorial.md](docs/advanced-configuration-tutorial.md).
+
 - **Initial Evaluation (`--reads-kraken`, `--reads-diamond`, `--megan`)**: These modules operate directly on raw reads. They serve as a rapid, initial evaluation of your pipeline and sample composition, allowing you to gauge the presence of viral content without heavy computation.
 - **Deep Viral Discovery (`--kraken2`, `--diamond`, `--darkmatter`)**: These modules heavily depend on the prior *de novo* assembly of your reads (`--assembly` is usually implicitly run or required). Because they operate on assembled contigs and search for novel sequences, they focus on more computational power and time, yielding highly specific viral insights.
+- **Optional RVDB Validation (`--rvdb`)**: When enabled, RVDB screening is added to the dark matter workflow to further evaluate ORFs and assembled contigs with an RVDB HMM database. It is disabled by default and does not need to run with dark matter unless requested.
 - **Resource Management (`--profile`)**: **The profile flag is key** to running DiscoVir successfully. It identifies the type of computational resources (CPU, Memory, Time) required for each specific rule. Properly setting your `--profile` (e.g., local execution vs. HPC Slurm) is essential for a smooth first-time experience.
 
+### Basic HPC Slurm Usage
 
-## Visualization of the Execution DAG
+For cluster environments, use the Slurm profile so each rule receives the correct CPU, memory and time limits. A typical invocation is:
 
-Below is the visual DAG of execution for your pipeline based on your exact `profiles/itrop` run configuration logic.
+```shell
+bash DiscoVir.sh --input <DIR> --output <DIR> --profile profile_slurm --diamond --darkmatter --jobs 20
+```
+
+If you want to add the optional RVDB validation on top of dark matter analysis, append:
+
+```shell
+--rvdb
+```
+
+### Execution DAG
+
+Below is the visual DAG of execution for your pipeline based on your exact `profiles/profile_slurm` run configuration logic.
 
 ```mermaid
 %%{init: {"themeVariables": {"fontSize": "22px"}}}%%
@@ -274,11 +301,69 @@ bash DiscoVir.sh --input <DIR> --output <DIR> --profile <STR> --diamond_db <FILE
 ### DiscoVir Core Pipeline (Assembly & Discovery)
 After a rapid initial analysis demonstrates satisfactory overall quality, the following command can be used for the deep viral discovery pipeline. This process requires more computational power and consists of a contig assembly with the SPAdes `viralrna` algorithm (or any requested assembler in `config.yaml`), followed by taxonomic identification. 
 
-Contigs without Diamond hits are filtered by size, and Amino Acids generated by ORFs within distinct genetic codes are passed through the [palm_annot](https://github.com/rcedgar/palm_annot.git) RdRp scan scripts along with rapid [RVDB HMM Summaries](https://rvdb-prot.pasteur.fr/). Viral contigs identified by viral family are reported within an R Markdown script, alltogether with palm_annot results. RVDB summaries are in development.
+Contigs without Diamond hits are filtered by size, and amino-acid sequences generated by ORFs within distinct genetic codes are passed through the [palm_annot](https://github.com/rcedgar/palm_annot.git) RdRp scan scripts. Viral contigs identified by viral family are reported within an R Markdown workflow, together with palm_annot results. RVDB validation is available as an optional extra module through the `--rvdb` flag.
 
 ```shell
-bash DiscoVir.sh --input <DIR> --output <DIR> --profile <STR> --diamond --darkmatter 
+bash DiscoVir.sh --input <DIR> --output <DIR> --profile <STR> --diamond --darkmatter
 ```
+
+For the optional RVDB validation step, add:
+
+```shell
+bash DiscoVir.sh --input <DIR> --output <DIR> --profile <STR> --diamond --darkmatter --rvdb
+```
+
+## Diversity Modules
+
+The diversity modules are intended for taxonomic profiling and broad ecosystem characterization. They are useful when you want to understand which organisms are present in your samples or when you want a fast first-pass assessment before running deeper assembly-based discovery.
+
+### Read-Level Diversity
+Use these flags when you want to profile the raw reads directly:
+
+- `--reads-kraken`: performs Kraken2 taxonomic classification on the input reads.
+- `--reads-diamond`: performs DIAMOND classification against the NR database on the input reads.
+- `--megan`: adds MEGAN-based LCA summarization for raw read taxonomy.
+
+Example:
+
+```shell
+bash DiscoVir.sh --input <DIR> --output <DIR> --profile local --reads-kraken --reads-diamond
+```
+
+### Assembly-Based Diversity
+Use these flags when you want to profile assembled contigs and identify candidate viral signals after assembly:
+
+- `--assembly`: runs de novo assembly of reads into contigs.
+- `--kraken2`: classifies the assembled contigs with Kraken2.
+- `--diamond`: classifies the assembled contigs with DIAMOND.
+
+Example:
+
+```shell
+bash DiscoVir.sh --input <DIR> --output <DIR> --profile local --assembly --kraken2 --diamond
+```
+
+## Dark Matter Modules
+
+The dark matter modules are designed for the discovery of novel or divergent viral sequences that may not be captured by standard taxonomic annotations. They operate mainly on assembled contigs and focus on putative RdRp-like candidates.
+
+### Core Dark Matter Analysis
+Enable the core dark matter workflow with:
+
+```shell
+--darkmatter
+```
+
+This step runs ORF finding, palm_annot screening and the downstream reporting workflow for putative dark-matter candidates.
+
+### Optional RVDB Validation
+If you want to add RVDB-based validation to the dark matter analysis, enable:
+
+```shell
+--rvdb
+```
+
+This is optional and does not need to be combined with dark matter unless you explicitly want the additional RVDB screening step.
 
 ## Expected Outputs
 
@@ -346,7 +431,9 @@ results/
 │   └── krona_spades_kauto/        # Interactive HTML plots of relative abundances
 │       ├── SRR10677983_spades_kauto_kraken2_krona.html   # Interactive Krona chart for Kraken2 taxonomy
 │       └── SRR10677983_spades_kauto_diamond_krona.html   # Interactive Krona chart for DIAMOND taxonomy
-└── multiqc_report.html            # Aggregated sequencing QC metrics dashboard
+├── multiqc_report.html            # Aggregated sequencing QC metrics dashboard
+├── multiqc_data/                  # Exported MultiQC data directory
+└── stats/                        # Per-sample and per-tool summary statistics for assembly, diamond, kraken2 and dark matter
 ```
 
 

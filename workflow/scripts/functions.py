@@ -104,10 +104,11 @@ def get_final_outputs():
                 out_dir=OUT_DIR, sample=sample, tool=current_tools))
         final_outputs.extend(expand("{out_dir}/{sample}/darkmatter_{tool}/{sample}_RdRp_Orfs.fasta", 
                 out_dir=OUT_DIR, sample=sample, tool=current_tools))
-        final_outputs.extend(expand("{out_dir}/{sample}/rvdb_{tool}/{sample}_structural_contigs.fasta", 
-                out_dir=OUT_DIR, sample=sample, tool=current_tools))
-        final_outputs.extend(expand("{out_dir}/{sample}/rvdb_{tool}/{sample}_pol_contigs.fasta", 
-                out_dir=OUT_DIR, sample=sample, tool=current_tools))
+        if MODULES.get("rvdb", False):
+            final_outputs.extend(expand("{out_dir}/{sample}/rvdb_{tool}/{sample}_structural_contigs.fasta", 
+                    out_dir=OUT_DIR, sample=sample, tool=current_tools))
+            final_outputs.extend(expand("{out_dir}/{sample}/rvdb_{tool}/{sample}_pol_contigs.fasta", 
+                    out_dir=OUT_DIR, sample=sample, tool=current_tools))
 
   # 4. Reads (Diamond)
   if MODULES["reads_diamond"]:
@@ -150,12 +151,43 @@ def get_final_outputs():
                   "{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_kraken2_krona.html",
                   out_dir=OUT_DIR, sample=sample, tool=current_tools
               ))
+              # Add Kraken2 statistics
+              final_outputs.extend(expand(
+                  "{out_dir}/{sample}/stats/{sample}_{tool}_kraken2_stats.tsv",
+                  out_dir=OUT_DIR, sample=sample, tool=current_tools
+              ))
 
           # 7. Contigs (Diamond)
           if MODULES["diamond"]:
               final_outputs.extend(expand("{out_dir}/{sample}/diamond_{tool}/{sample}_{tool}_hits_with_lineage.tsv", out_dir=OUT_DIR, sample=sample, tool=current_tools))
               final_outputs.extend(expand("{out_dir}/{sample}/krona_{tool}/{sample}_{tool}_diamond_krona.html",out_dir=OUT_DIR, sample=sample, tool=current_tools))
+              # Add Diamond contig statistics
+              final_outputs.extend(expand(
+                  "{out_dir}/{sample}/stats/{sample}_{tool}_diamond_stats.tsv",
+                  out_dir=OUT_DIR, sample=sample, tool=current_tools
+              ))
 
+          # Assembly Statistics (for de novo assemblies)
+          if MODULES["assembly"] and meta['mode'] != 'CONTIGS':
+              final_outputs.extend(expand(
+                  "{out_dir}/{sample}/stats/{sample}_{tool}_assembly_stats.tsv",
+                  out_dir=OUT_DIR, sample=sample, tool=current_tools
+              ))
+
+          # Dark Matter Statistics
+          if MODULES["darkmatter"]:
+              final_outputs.extend(expand(
+                  "{out_dir}/{sample}/stats/{sample}_{tool}_darkmatter_stats.tsv",
+                  out_dir=OUT_DIR, sample=sample, tool=current_tools
+              ))
+
+  # Reads Diamond statistics
+  if MODULES["reads_diamond"]:
+    final_outputs.extend(expand("{out_dir}/{sample}/stats/{sample}_reads_diamond_stats.tsv", out_dir=OUT_DIR, sample=SAMPLE))
+
+  # Reads Kraken2 statistics  
+  if MODULES["reads_kraken2"]:
+    final_outputs.extend(expand("{out_dir}/{sample}/stats/{sample}_reads_kraken2_stats.tsv", out_dir=OUT_DIR, sample=SAMPLE))
 
   if MODULES["megan"]:
     final_outputs.extend(expand("{out_dir}/{sample}/megan_reads/{sample}_reads_summary.megan", out_dir=OUT_DIR, sample=SAMPLE))
@@ -184,10 +216,16 @@ def get_multiqc_inputs(wildcards=None, sample=None):
 
     # Reads QC
     mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "fastp", f"{sample_id}_{fastp_suffix}.json"))
+    
+    # Reads Diamond & Kraken2 Statistics
     if MODULES.get("reads_diamond", False):
-        mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "diamond_reads", "diamond.log"))
+        # Add Diamond read statistics summary
+        mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "stats", "{}_reads_diamond_stats.tsv".format(sample_id)))
+    
     if MODULES.get("reads_kraken2", False):
         mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "kraken2_reads", f"{sample_id}_{label_reads}_reads_report.txt"))
+        # Add Kraken2 read statistics summary
+        mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "stats", "{}_reads_kraken2_stats.tsv".format(sample_id)))
 
     # Contigs QC (Expandido por K-mer)
     assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]
@@ -205,12 +243,28 @@ def get_multiqc_inputs(wildcards=None, sample=None):
             else:
                 tools_expanded.append(tool)
 
-    if MODULES.get("diamond", False):
-        mqc_inputs.extend(expand("{out_dir}/{sample}/diamond_{tool}/diamond.log",
+    # Assembly Statistics (Number of contigs, N50, etc.)
+    if meta['mode'] != 'CONTIGS':
+        mqc_inputs.extend(expand("{out_dir}/{sample}/stats/{sample}_{tool}_assembly_stats.tsv",
             out_dir=OUT_DIR, sample=sample_id, tool=tools_expanded))
 
+    # Diamond Contig Statistics
+    if MODULES.get("diamond", False):
+        # Add Diamond contig statistics summary
+        mqc_inputs.extend(expand("{out_dir}/{sample}/stats/{sample}_{tool}_diamond_stats.tsv",
+            out_dir=OUT_DIR, sample=sample_id, tool=tools_expanded))
+
+    # Kraken2 Contig Statistics
     if MODULES.get("kraken2", False):
         mqc_inputs.extend(expand("{out_dir}/{sample}/kraken2_{tool}/{sample}_{tool}_contig_report.txt",
+            out_dir=OUT_DIR, sample=sample_id, tool=tools_expanded))
+        # Add Kraken2 contig statistics summary
+        mqc_inputs.extend(expand("{out_dir}/{sample}/stats/{sample}_{tool}_kraken2_stats.tsv",
+            out_dir=OUT_DIR, sample=sample_id, tool=tools_expanded))
+
+    # Dark Matter Statistics (Putative dark matter contigs)
+    if MODULES.get("darkmatter", False):
+        mqc_inputs.extend(expand("{out_dir}/{sample}/stats/{sample}_{tool}_darkmatter_stats.tsv",
             out_dir=OUT_DIR, sample=sample_id, tool=tools_expanded))
 
     return mqc_inputs

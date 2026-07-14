@@ -103,6 +103,7 @@ help(){
    --kraken2            Enable Kraken2 Contigs Taxonomy (Default: Disabled)
    --diamond            Enable Diamond ContigsTaxonomy (Default: Disabled)
    --darkmatter         Enable Palm Annot / Dark Matter (Default: Disabled)
+   --rvdb               Enable RVDB validation on dark matter ORFs (Default: Disabled)
    --download-only      Only download data from SRA provided in --sra list (Default: Disabled)
    --remove-download    Remove downloaded data from SRA (Default: Disabled)
    --reads-kraken       Enable Kraken2 analysis on reads (Default: Disabled)
@@ -292,6 +293,7 @@ mod_assembly="false"
 mod_kraken2="false"
 mod_diamond="false"
 mod_darkmatter="false"
+mod_rvdb="false"
 mod_reads_kraken2="false"
 mod_reads_diamond="false"
 mod_megan="false"
@@ -318,6 +320,7 @@ while [[ $# -gt 0 ]]; do
         --kraken2) mod_kraken2="true"; shift ;;
         --diamond) mod_diamond="true"; shift ;;
         --darkmatter) mod_darkmatter="true"; shift ;;
+        --rvdb) mod_rvdb="true"; shift ;;
         --download-only) mod_download_only="true" ; mod_keep_download="true"; shift ;;
 
         # --- Negative Flags ---
@@ -414,6 +417,7 @@ modules:
   kraken2: $mod_kraken2
   diamond: $mod_diamond
   darkmatter: $mod_darkmatter
+  rvdb: $mod_rvdb
   reads_kraken2: $mod_reads_kraken2
   reads_diamond: $mod_reads_diamond
   megan: $mod_megan

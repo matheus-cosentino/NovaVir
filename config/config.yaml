@@ -32,6 +32,7 @@ modules:
   kraken2: true #Perform taxonomic assignment for Kraken2 (default: false)
   diamond: true #Perform taxonomic assignment for Diamond against nr5 for Reads(default: false)
   darkmatter: true #Perform palm annot identification (default: false)
+  rvdb: false #Perform optional RVDB validation on dark matter ORFs (default: false)
   reads_kraken2: true #Perform reads taxonomic identification (default: false)
   reads_diamond: true #Perform reads taxonomic identification (default: false)
   megan: true #perform basta LCA Algo
