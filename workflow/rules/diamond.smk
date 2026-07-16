@@ -28,6 +28,8 @@ rule filter_contigs_diamond:
     os.path.join(OUT_DIR, "{sample}", "log", "filter_contigs_{tool}_{sample}.log")
   conda:
     DIAMOND
+  shadow:
+    "shallow"
   shell:
     """
     seqkit seq -m {params.min_len} {input.contigs} > {output.filtered} 2> {log}
@@ -50,6 +52,8 @@ rule diamond_blastx_contigs:
     os.path.join(OUT_DIR, "{sample}", "log", "diamond_{tool}_{sample}.log")
   conda:
     DIAMOND
+  shadow:
+    "shallow"
   shell:
     """
     exec > {log} 2>&1    
@@ -65,7 +69,14 @@ rule diamond_blastx_contigs:
         echo "[ERROR] Diamond database not found at: $DB_PATH"
         exit 1
     fi
+
+    # Garante que o TMPDIR exportado pelo DiscoVir.sh ou o do sistema será usado
+    # Fallback para o shadow dir do Snakemake, ou /tmp local do nó caso a variável falhe
+    DIAMOND_TMP="${{TMPDIR:-${{SNAKEMAKE_SHADOW_DIR:-/tmp}}}}"
+    mkdir -p "$DIAMOND_TMP"
+    
     echo "[INFO] DB: $DB_PATH"
+    echo "[INFO] Using Temporary Directory: $DIAMOND_TMP"
     
      diamond blastx \
       --query {input.contigs} \
@@ -74,7 +85,8 @@ rule diamond_blastx_contigs:
       --threads {resources.threads} \
       --outfmt {params.outfmt} \
       --max-target-seqs {params.max_target_seqs} \
-      {params.sensitivity}
+      {params.sensitivity} \
+      --tmpdir "$DIAMOND_TMP"
     """
 
 rule diamond_blastx_reads:
@@ -94,6 +106,8 @@ rule diamond_blastx_reads:
     os.path.join(OUT_DIR, "{sample}", "log", "diamond_reads_{sample}.log")
   conda:
     DIAMOND
+  shadow:
+    "shallow"
   shell:
     """
     exec > {log} 2>&1    
@@ -111,10 +125,17 @@ rule diamond_blastx_reads:
         echo "[ERROR] Diamond database not found at: $DB_PATH"
         exit 1
     fi
+
+    # Garante que o TMPDIR exportado pelo DiscoVir.sh ou o do sistema será usado
+    # Fallback para o shadow dir do Snakemake, ou /tmp local do nó caso a variável falhe
+    DIAMOND_TMP="${{TMPDIR:-${{SNAKEMAKE_SHADOW_DIR:-/tmp}}}}"
+    mkdir -p "$DIAMOND_TMP"
+
     echo "[INFO] DB: $DB_PATH"
+    echo "[INFO] Using Temporary Directory: $DIAMOND_TMP"
     
     # Concatenate available inputs into a single temporary file for Diamond
-    TMP_READS="{output.hits}.tmp.fastq.gz"
+    TMP_READS="$DIAMOND_TMP/{wildcards.sample}_reads_tmp.fastq.gz"
     > "$TMP_READS"
     for f in {input.r1} {input.r2} {input.extra}; do
         if [ -s "$f" ]; then
@@ -129,7 +150,8 @@ rule diamond_blastx_reads:
       --threads {resources.threads} \
       --outfmt {params.outfmt} \
       --max-target-seqs {params.max_target_seqs} \
-      {params.sensitivity}
+      {params.sensitivity} \
+      --tmpdir "$DIAMOND_TMP"
 
     rm -f "$TMP_READS"
     
