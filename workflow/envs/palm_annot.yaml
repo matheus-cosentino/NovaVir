@@ -4,8 +4,14 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
-  - hmmer=3.4
-  - emboss=6.6.0
-  - cd-hit=4.8.1
-  - diamond=2.1.13
-  - python=3.10
+name: palm_annot
+channels:
+  - conda-forge
+  - bioconda
+  - nodefaults
+dependencies:
+  - python=3.9        # Reduzido de 3.10 para ser compatível com Emboss
+  - emboss=6.6.0      # Mantido (principal causador da restrição)
+  - diamond=2.0.15    # Reduzido de 2.1.13 para aceitar a zlib antiga exigida pelo Emboss
+  - cd-hit=4.8.1      # Mantido (versão muito estável)
+  - hmmer=3.3.2       # Reduzido de 3.4 para garantir estabilidade com bibliotecas C antigas
