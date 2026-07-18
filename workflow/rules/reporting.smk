@@ -138,6 +138,7 @@ rule multiqc_aggregate:
         data_dir = directory(os.path.join(OUT_DIR, "multiqc_data"))
     params:
         files = [f for s in SAMPLE for f in get_multiqc_inputs(sample=s)],
+        config = os.path.join("workflow", "multiqc_config.yaml"),
         #config_override = "sp: { diamond/log: { fn: '*_diamond.log' } }",
         extra = "--title 'DiscoVir Aggregate Report'"
     conda:
@@ -150,6 +151,7 @@ rule multiqc_aggregate:
         --quiet \
         --export \
         --force \
+        --config {params.config} \
         --outdir {OUT_DIR} \
         --filename multiqc_report.html \
         {params.extra} \
@@ -169,6 +171,7 @@ rule multiqc_sample:
         report = os.path.join(OUT_DIR, "{sample}", "multiqc", "multiqc_report.html"),
         data_dir = directory(os.path.join(OUT_DIR, "{sample}", "multiqc"))
     params:
+        config = os.path.join("workflow", "multiqc_config.yaml"),
         #config_override = "sp: {{ diamond/log: {{ fn: '*_diamond.log' }} }}",
         extra = "--title 'Report for {sample}'"
     log:
@@ -179,6 +182,7 @@ rule multiqc_sample:
         --quiet \
         --export \
         --force \
+        --config {params.config} \
         --outdir {output.data_dir} \
         --filename multiqc_report.html \
         {params.extra} \

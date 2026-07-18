@@ -26,6 +26,10 @@ def main():
     log = open(log_file, 'w')
     
     try:
+        wildcards = snakemake.wildcards
+        sample_name = wildcards.sample
+        tool_name = getattr(wildcards, 'tool', 'reads')
+
         # Read Diamond report
         # Format: qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore [taxid lineage...]
         df = pd.read_csv(diamond_file, sep='\t', comment='#')
@@ -59,14 +63,10 @@ def main():
         with open(output_json, 'w') as f:
             json.dump(stats_dict, f, indent=2)
         
-        # Write TSV
+        # Write MultiQC-friendly TSV table
         with open(output_tsv, 'w') as f:
-            f.write("Metric\tValue\n")
-            f.write(f"Total Hits\t{total_hits}\n")
-            f.write(f"Unique Queries with Hits\t{num_queries_with_hits}\n")
-            f.write(f"Mean Identity (%)\t{mean_identity:.2f}\n")
-            f.write(f"Mean E-value\t{mean_evalue:.2e}\n")
-            f.write(f"Mean Bit Score\t{mean_bitscore:.2f}\n")
+            f.write("sample\ttool\ttotal_hits\tunique_queries\tmean_identity\tmean_evalue\tmean_bitscore\n")
+            f.write(f"{sample_name}\t{tool_name}\t{int(total_hits)}\t{int(num_queries_with_hits)}\t{mean_identity:.2f}\t{mean_evalue:.2e}\t{mean_bitscore:.2f}\n")
         
         log.write(f"Successfully generated Diamond statistics for {sample_name} ({tool_name})\n")
         log.write(f"Total hits: {total_hits}, Unique queries: {num_queries_with_hits}\n")

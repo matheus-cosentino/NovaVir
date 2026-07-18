@@ -63,16 +63,10 @@ def main():
         with open(output_json, 'w') as f:
             json.dump(stats_dict, f, indent=2)
         
-        # Write TSV for human readability
+        # Write MultiQC-friendly TSV table
         with open(output_tsv, 'w') as f:
-            f.write("Metric\tValue\n")
-            f.write(f"Number of Contigs\t{num_contigs}\n")
-            f.write(f"Total Base Pairs\t{total_bp}\n")
-            f.write(f"Mean Length\t{mean_len:.2f}\n")
-            f.write(f"Median Length\t{median_len}\n")
-            f.write(f"N50\t{n50}\n")
-            f.write(f"Max Length\t{max_len}\n")
-            f.write(f"Min Length\t{min_len}\n")
+            f.write("sample\ttool\tnum_contigs\ttotal_bp\tmean_length\tmedian_length\tn50\tmax_length\tmin_length\n")
+            f.write(f"{sample_name}\t{tool_name}\t{num_contigs}\t{int(total_bp)}\t{mean_len:.2f}\t{int(median_len)}\t{int(n50)}\t{int(max_len)}\t{int(min_len)}\n")
         
         log.write(f"Successfully generated assembly statistics for {sample_name} ({tool_name})\n")
         log.write(f"Contigs: {num_contigs}, Total BP: {total_bp}, N50: {n50}\n")

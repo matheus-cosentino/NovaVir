@@ -1,0 +1,106 @@
+[WARNING] Could not check layout for test: HTTP Error 400: . Defaulting to PAIRED.
+Building DAG of jobs...
+digraph snakemake_dag {
+    graph[bgcolor=white, margin=0];
+    node[shape=box, style=rounded, fontname=sans,                 fontsize=10, penwidth=2];
+    edge[penwidth=2, color=grey];
+	0[label = "all", color = "0.00 0.6 0.85", style="rounded"];
+	1[label = "download_sra_data_paired", color = "0.09 0.6 0.85", style="rounded"];
+	2[label = "spades", color = "0.64 0.6 0.85", style="rounded"];
+	3[label = "fastp_paired", color = "0.11 0.6 0.85", style="rounded"];
+	4[label = "report_summarize", color = "0.58 0.6 0.85", style="rounded"];
+	5[label = "append_lineage", color = "0.01 0.6 0.85", style="rounded"];
+	6[label = "split_hits_by_taxid", color = "0.65 0.6 0.85", style="rounded"];
+	7[label = "map_accession_to_taxid", color = "0.44 0.6 0.85", style="rounded"];
+	8[label = "diamond_blastx_contigs", color = "0.04 0.6 0.85", style="rounded"];
+	9[label = "filter_contigs_diamond", color = "0.15 0.6 0.85", style="rounded"];
+	10[label = "download_prot", color = "0.08 0.6 0.85", style="rounded"];
+	11[label = "fev2tsv_single", color = "0.14 0.6 0.85", style="rounded"];
+	12[label = "palm_annot", color = "0.50 0.6 0.85", style="rounded"];
+	13[label = "cd_hit", color = "0.03 0.6 0.85", style="rounded"];
+	14[label = "find_orfs", color = "0.16 0.6 0.85", style="rounded"];
+	15[label = "get_nohit_fasta", color = "0.28 0.6 0.85", style="rounded"];
+	16[label = "dm_validate", color = "0.06 0.6 0.85", style="rounded"];
+	17[label = "diamond_blastx_reads", color = "0.05 0.6 0.85", style="rounded"];
+	18[label = "krona_diamond", color = "0.39 0.6 0.85", style="rounded"];
+	19[label = "krona_update_taxonomy", color = "0.43 0.6 0.85", style="rounded"];
+	20[label = "kraken_biom_reads", color = "0.36 0.6 0.85", style="rounded"];
+	21[label = "kraken2_reads_paired", color = "0.31 0.6 0.85", style="rounded"];
+	22[label = "krona_reads_kraken", color = "0.42 0.6 0.85", style="rounded"];
+	23[label = "kraken_rarefaction_plot", color = "0.38 0.6 0.85", style="rounded"];
+	24[label = "kraken_biom_merge_all", color = "0.35 0.6 0.85", style="rounded"];
+	25[label = "kraken_biom_contig", color = "0.34 0.6 0.85", style="rounded"];
+	26[label = "kraken2_contigs", color = "0.30 0.6 0.85", style="rounded"];
+	27[label = "krona_kraken2", color = "0.40 0.6 0.85", style="rounded"];
+	28[label = "generate_kraken2_stats", color = "0.25 0.6 0.85", style="rounded"];
+	29[label = "generate_diamond_stats", color = "0.23 0.6 0.85", style="rounded"];
+	30[label = "generate_assembly_stats", color = "0.19 0.6 0.85", style="rounded"];
+	31[label = "generate_darkmatter_stats", color = "0.20 0.6 0.85", style="rounded"];
+	32[label = "generate_diamond_reads_stats", color = "0.21 0.6 0.85", style="rounded"];
+	33[label = "generate_kraken2_reads_stats", color = "0.24 0.6 0.85", style="rounded"];
+	34[label = "reads_daa2info", color = "0.54 0.6 0.85", style="rounded"];
+	35[label = "reads_meganizer", color = "0.57 0.6 0.85", style="rounded"];
+	36[label = "reads_diamond_daa", color = "0.55 0.6 0.85", style="rounded"];
+	37[label = "get_megan6_mapper", color = "0.26 0.6 0.85", style="rounded"];
+	34 -> 0
+	31 -> 0
+	20 -> 0
+	18 -> 0
+	32 -> 0
+	28 -> 0
+	4 -> 0
+	23 -> 0
+	2 -> 0
+	33 -> 0
+	5 -> 0
+	22 -> 0
+	30 -> 0
+	1 -> 0
+	27 -> 0
+	25 -> 0
+	29 -> 0
+	16 -> 0
+	3 -> 2
+	1 -> 3
+	5 -> 4
+	11 -> 4
+	2 -> 4
+	6 -> 5
+	7 -> 6
+	10 -> 7
+	17 -> 7
+	8 -> 7
+	9 -> 8
+	2 -> 9
+	12 -> 11
+	13 -> 12
+	14 -> 13
+	15 -> 14
+	5 -> 15
+	2 -> 15
+	11 -> 16
+	13 -> 16
+	2 -> 16
+	3 -> 17
+	19 -> 18
+	7 -> 18
+	10 -> 19
+	21 -> 20
+	3 -> 21
+	21 -> 22
+	24 -> 23
+	21 -> 24
+	26 -> 25
+	2 -> 26
+	26 -> 27
+	26 -> 28
+	8 -> 29
+	2 -> 30
+	15 -> 31
+	17 -> 32
+	21 -> 33
+	35 -> 34
+	36 -> 35
+	37 -> 35
+	3 -> 36
+}            

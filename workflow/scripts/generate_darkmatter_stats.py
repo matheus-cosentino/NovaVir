@@ -72,16 +72,10 @@ def main():
         with open(output_json, 'w') as f:
             json.dump(stats_dict, f, indent=2)
         
-        # Write TSV
+        # Write MultiQC-friendly TSV table
         with open(output_tsv, 'w') as f:
-            f.write("Metric\tValue\n")
-            f.write(f"No-Hit Contigs (Dark Matter)\t{num_nohits}\n")
-            f.write(f"Total No-Hit Base Pairs\t{total_bp_nohits}\n")
-            f.write(f"Mean No-Hit Length\t{mean_len:.2f}\n")
-            f.write(f"Median No-Hit Length\t{median_len}\n")
-            f.write(f"No-Hit N50\t{n50}\n")
-            f.write(f"Max No-Hit Length\t{max_len}\n")
-            f.write(f"Min No-Hit Length\t{min_len}\n")
+            f.write("sample\ttool\tno_hit_contigs\tno_hit_bp\tmean_no_hit_length\tmedian_no_hit_length\tno_hit_n50\tmax_no_hit_length\tmin_no_hit_length\n")
+            f.write(f"{sample_name}\t{tool_name}\t{int(num_nohits)}\t{int(total_bp_nohits)}\t{mean_len:.2f}\t{int(median_len)}\t{int(n50)}\t{int(max_len)}\t{int(min_len)}\n")
         
         log.write(f"Successfully generated Dark Matter statistics for {sample_name} ({tool_name})\n")
         log.write(f"No-hit contigs: {num_nohits}, Total BP: {total_bp_nohits}, N50: {n50}\n")

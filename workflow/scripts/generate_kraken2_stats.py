@@ -13,7 +13,7 @@ def main():
         output_json = snakemake.output.json
         output_tsv = snakemake.output.tsv
         sample_name = snakemake.wildcards.sample
-        tool_name = snakemake.wildcards.tool
+        tool_name = getattr(snakemake.wildcards, 'tool', 'reads')
         log_file = snakemake.log[0]
     except NameError:
         print("ERROR: This script is designed to be run via Snakemake.", file=sys.stderr)
@@ -25,6 +25,10 @@ def main():
     log = open(log_file, 'w')
     
     try:
+        wildcards = snakemake.wildcards
+        sample_name = wildcards.sample
+        tool_name = getattr(wildcards, 'tool', 'reads')
+
         # Parse Kraken2 report format:
         # %    clade_count    direct_count    rank_code    tax_id    scientific_name
         
@@ -76,13 +80,10 @@ def main():
         with open(output_json, 'w') as f:
             json.dump(stats_dict, f, indent=2)
         
-        # Write TSV
+        # Write MultiQC-friendly TSV table
         with open(output_tsv, 'w') as f:
-            f.write("Metric\tValue\n")
-            f.write(f"Total Sequences\t{total_reads}\n")
-            f.write(f"Classified Sequences\t{classified_reads}\n")
-            f.write(f"Unclassified Sequences\t{unclassified_reads}\n")
-            f.write(f"Classification Rate (%)\t{classified_pct:.2f}\n")
+            f.write("sample\ttool\ttotal_reads\tclassified_reads\tunclassified_reads\tclassified_percent\n")
+            f.write(f"{sample_name}\t{tool_name}\t{int(total_reads)}\t{int(classified_reads)}\t{int(unclassified_reads)}\t{classified_pct:.2f}\n")
         
         log.write(f"Successfully generated Kraken2 statistics for {sample_name} ({tool_name})\n")
         log.write(f"Total sequences: {total_reads}, Classified: {classified_reads}, Classification rate: {classified_pct:.2f}%\n")
