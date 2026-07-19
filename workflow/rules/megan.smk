@@ -16,8 +16,6 @@
 ###################################################################################
 
 #1. GET MAPPER
-if config["modules"].get("reads_diamond", False):
-
   rule get_megan6_mapper:
     output:
       db= os.path.join(MEGAN_DIR[0], "megan-map-Feb2022-ue.db"),
@@ -40,7 +38,7 @@ if config["modules"].get("reads_diamond", False):
       daa = rules.diamond_blastx_reads.output.daa,
       db = rules.get_megan6_mapper.output.db
     output:
-      daa = temp(os.path.join(OUT_DIR, "{sample}", "megan_reads", "{sample}_reads_report_meganized.daa"))
+      daa = os.path.join(OUT_DIR, "{sample}", "megan_reads", "{sample}_reads_report_meganized.daa")
     log:
       os.path.join(OUT_DIR, "{sample}", "log", "meganizer_{sample}.log")
     conda:
