@@ -200,37 +200,46 @@ rule dm_validate:
     import pandas as pd
     import re
     from Bio import SeqIO
-    
-    # Carrega o TSV com os resultados do RdRp
-    df = pd.read_csv(input.dusk, sep='\t')
-    target_orfs = set(df['Label'].astype(str).tolist())
-    target_contigs = set()
 
-    # Lógica para extrair o ID do Contig a partir do Label do ORF
-    # Exemplo Label: gc_1_NODE_244_length_2206_cov_6.211439_1_[2204_-_3]_(REVERSE_SENSE)_
-    # Queremos extrair: NODE_244_length_2206_cov_6.211439
-    for label in target_orfs:
-        # Regex explica: 
-        # ^gc_\d+_ -> Remove o prefixo inicial (ex: gc_1_)
-        # (.+?)    -> Captura o nome do contig (non-greedy)
-        # _\d+_\[  -> Para quando encontrar o índice do ORF seguido do colchete de coordenadas
-        match = re.search(r'^gc_\d+_(.+?)_\d+_\[', label)
-        if match:
-            contig_id = match.group(1)
-            target_contigs.add(contig_id)
+    with open(log[0], "w") as logf:
+        logf.write(f"[INFO] dm_validate started for {wildcards.sample} / {wildcards.tool}\n")
+
+        # Lê o TSV — pode estar vazio se nenhum RdRp foi encontrado
+        try:
+            df = pd.read_csv(input.dusk, sep='\t')
+        except Exception as e:
+            logf.write(f"[ERROR] Could not read RdRp TSV: {e}\n")
+            df = pd.DataFrame()
+
+        if df.empty or 'Label' not in df.columns:
+            logf.write("[WARNING] No RdRp hits found. Creating empty output files.\n")
+            open(output.raw_rdrp, 'w').close()
+            open(output.raw_contigs, 'w').close()
         else:
-            # Fallback caso o formato mude ligeiramente
-            with open(log[0], "a") as f:
-                f.write(f"[WARNING] Não foi possível parsear o contig ID do label: {label}\n")
+            target_orfs = set(df['Label'].astype(str).tolist())
+            target_contigs = set()
 
-    # Salva os ORFs identificados
-    with open(output.raw_rdrp, "w") as out_orf:
-        for record in SeqIO.parse(input.orfs, "fasta"):
-            if record.id in target_orfs:
-                SeqIO.write(record, out_orf, "fasta")
+            # Lógica para extrair o ID do Contig a partir do Label do ORF
+            # Exemplo Label: gc_1_NODE_244_length_2206_cov_6.211439_1_[2204_-_3]_(REVERSE_SENSE)_
+            # Queremos extrair: NODE_244_length_2206_cov_6.211439
+            for label in target_orfs:
+                match = re.search(r'^gc_\d+_(.+?)_\d+_\[', label)
+                if match:
+                    contig_id = match.group(1)
+                    target_contigs.add(contig_id)
+                else:
+                    logf.write(f"[WARNING] Não foi possível parsear o contig ID do label: {label}\n")
 
-    # Salva os Contigs originais correspondentes
-    with open(output.raw_contigs, "w") as out_contig:
-        for record in SeqIO.parse(input.fasta, "fasta"):
-            if record.id in target_contigs:
-                SeqIO.write(record, out_contig, "fasta")
+            # Salva os ORFs identificados
+            with open(output.raw_rdrp, "w") as out_orf:
+                for record in SeqIO.parse(input.orfs, "fasta"):
+                    if record.id in target_orfs:
+                        SeqIO.write(record, out_orf, "fasta")
+
+            # Salva os Contigs originais correspondentes
+            with open(output.raw_contigs, "w") as out_contig:
+                for record in SeqIO.parse(input.fasta, "fasta"):
+                    if record.id in target_contigs:
+                        SeqIO.write(record, out_contig, "fasta")
+
+            logf.write(f"[INFO] Done. {len(target_orfs)} RdRp ORFs, {len(target_contigs)} contigs extracted.\n")
