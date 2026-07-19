@@ -107,8 +107,7 @@ help(){
    --download-only      Only download data from SRA provided in --sra list (Default: Disabled)
    --remove-download    Remove downloaded data from SRA (Default: Disabled)
    --reads-kraken       Enable Kraken2 analysis on reads (Default: Disabled)
-   --reads-diamond      Enable Diamond analysis on reads (Default: Disabled)
-   --megan              Enable MEGAN LCA analysis on reads (Default: Disabled)
+   --reads-diamond      Enable Diamond analysis on reads, including MEGAN LCA (Default: Disabled)
  
  ${ylo}Database Overrides (Define External Databases):${nc}
    --diamond_db <FILE>  Diamond database file (.dmnd).
@@ -296,7 +295,6 @@ mod_darkmatter="false"
 mod_rvdb="false"
 mod_reads_kraken2="false"
 mod_reads_diamond="false"
-mod_megan="false"
 mod_download_only="false"
 
 # --- Argument Parsing --- #
@@ -327,7 +325,6 @@ while [[ $# -gt 0 ]]; do
         --remove-download) mod_keep_download="false"; shift ;;
         --reads-kraken) mod_reads_kraken2="true"; shift ;;
         --reads-diamond) mod_reads_diamond="true"; shift ;;
-        --megan) mod_megan="true"; shift ;;
 
         # --- Others --- #
         -h|--help) help; exit 0 ;;
@@ -420,7 +417,6 @@ modules:
   rvdb: $mod_rvdb
   reads_kraken2: $mod_reads_kraken2
   reads_diamond: $mod_reads_diamond
-  megan: $mod_megan
 EOF
 
 cp "$run_overrides" "$backup_overrides"

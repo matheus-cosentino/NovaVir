@@ -110,10 +110,11 @@ def get_final_outputs():
             final_outputs.extend(expand("{out_dir}/{sample}/rvdb_{tool}/{sample}_pol_contigs.fasta", 
                     out_dir=OUT_DIR, sample=sample, tool=current_tools))
 
-  # 4. Reads (Diamond)
+  # 4. Reads (Diamond) + MEGAN LCA
   if MODULES["reads_diamond"]:
     final_outputs.extend(expand("{out_dir}/{sample}/diamond_reads/{sample}_reads_hits_with_lineage.tsv", out_dir=OUT_DIR, sample=SAMPLE))
     final_outputs.extend(expand("{out_dir}/{sample}/krona_reads/{sample}_reads_diamond_krona.html", out_dir=OUT_DIR, sample=SAMPLE))
+    final_outputs.extend(expand("{out_dir}/{sample}/megan_reads/{sample}_reads_summary.megan", out_dir=OUT_DIR, sample=SAMPLE))
 
   # 6. Reads (Kraken2)
   if MODULES["reads_kraken2"]:
@@ -189,8 +190,6 @@ def get_final_outputs():
   if MODULES["reads_kraken2"]:
     final_outputs.extend(expand("{out_dir}/{sample}/stats/{sample}_reads_kraken2_stats.tsv", out_dir=OUT_DIR, sample=SAMPLE))
 
-  if MODULES["megan"]:
-    final_outputs.extend(expand("{out_dir}/{sample}/megan_reads/{sample}_reads_summary.megan", out_dir=OUT_DIR, sample=SAMPLE))
 
   return final_outputs
 

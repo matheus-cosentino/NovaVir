@@ -115,8 +115,7 @@ The following must appear on your screen:
 
  Module Toggles (Enable/Disable Analysis):
    --reads-kraken: Enables taxonomic classification of raw reads using Kraken2.
-   --reads-diamond: Enables taxonomic classification of raw reads using DIAMOND.
-   --megan: Enables taxonomic classification of raw reads using MEGAN LCA analysis.
+   --reads-diamond: Enables taxonomic classification of raw reads using DIAMOND and MEGAN LCA analysis.
    --assembly: Enables *de novo* assembly of reads into contigs.
    --kraken2: Enables taxonomic classification of assembled contigs using Kraken2.
    --diamond: Enables taxonomic classification of assembled contigs using DIAMOND.
@@ -141,7 +140,7 @@ If you want to tune preprocessing and assembly parameters, see the dedicated tut
 
 For practical guidance on fastp, assembler selection, SPAdes tuning and long-read assembly choices, please refer to [docs/advanced-configuration-tutorial.md](docs/advanced-configuration-tutorial.md).
 
-- **Initial Evaluation (`--reads-kraken`, `--reads-diamond`, `--megan`)**: These modules operate directly on raw reads. They serve as a rapid, initial evaluation of your pipeline and sample composition, allowing you to gauge the presence of viral content without heavy computation.
+- **Initial Evaluation (`--reads-kraken`, `--reads-diamond`)**: These modules operate directly on raw reads. They serve as a rapid, initial evaluation of your pipeline and sample composition, allowing you to gauge the presence of viral content without heavy computation. `--reads-diamond` automatically includes MEGAN LCA summarization.
 - **Deep Viral Discovery (`--kraken2`, `--diamond`, `--darkmatter`)**: These modules heavily depend on the prior *de novo* assembly of your reads (`--assembly` is usually implicitly run or required). Because they operate on assembled contigs and search for novel sequences, they focus on more computational power and time, yielding highly specific viral insights.
 - **Optional RVDB Validation (`--rvdb`)**: When enabled, RVDB screening is added to the dark matter workflow to further evaluate ORFs and assembled contigs with an RVDB HMM database. It is disabled by default and does not need to run with dark matter unless requested.
 - **Resource Management (`--profile`)**: **The profile flag is key** to running DiscoVir successfully. It identifies the type of computational resources (CPU, Memory, Time) required for each specific rule. Properly setting your `--profile` (e.g., local execution vs. HPC Slurm) is essential for a smooth first-time experience.
@@ -324,8 +323,7 @@ The diversity modules are intended for taxonomic profiling and broad ecosystem c
 Use these flags when you want to profile the raw reads directly:
 
 - `--reads-kraken`: performs Kraken2 taxonomic classification on the input reads.
-- `--reads-diamond`: performs DIAMOND classification against the NR database on the input reads.
-- `--megan`: adds MEGAN-based LCA summarization for raw read taxonomy.
+- `--reads-diamond`: performs DIAMOND classification against the NR database on the input reads, and automatically runs MEGAN LCA summarization to produce a `.megan` summary file.
 
 Example:
 
@@ -390,9 +388,11 @@ results/
 │   │   ├── SRR10677983_unpaired_reads_report.txt         # Standard Kraken2 taxonomic report for unpaired reads
 │   │   ├── SRR10677983_unpaired_reads_output.txt         # Detailed per-read classification output for unpaired reads
 │   │   └── SRR10677983_unpaired_reads_biom.txt           # Kraken2 results in BIOM format for unpaired reads
+│   ├── diamond_reads/             # Diamond reads classification outputs
+│   │   ├── SRR10677983_reads_report.daa                  # DIAMOND alignment in DAA format (intermediate)
+│   │   ├── SRR10677983_reads_report.txt                  # Tabular alignment results (outfmt 6)
+│   │   └── SRR10677983_reads_hits_with_lineage.tsv       # Diamond hits with full NCBI lineage
 │   ├── megan_reads/               # MEGAN Last Common Ancestor taxonomic classification
-│   │   ├── SRR10677983_reads_report.daa                  # DIAMOND alignment in DAA format
-│   │   ├── SRR10677983_reads_report_meganized.daa        # DAA file meganized with taxonomic classifications
 │   │   └── SRR10677983_reads_summary.megan               # Extracted MEGAN summary table
 │   ├── spades/                    # Assembled Fasta contigs
 │   │   └── kmer_auto/             # De Novo Assemblage done by SPAdes auto kmer definition           

@@ -34,9 +34,8 @@ modules:
   darkmatter: true #Perform palm annot identification (default: false)
   rvdb: false #Perform optional RVDB validation on dark matter ORFs (default: false)
   reads_kraken2: true #Perform reads taxonomic identification (default: false)
-  reads_diamond: true #Perform reads taxonomic identification (default: false)
-  megan: true #perform basta LCA Algo
-  
+  reads_diamond: true #Perform reads taxonomic identification via Diamond (includes MEGAN LCA analysis) (default: false)
+
 
 ### De novo tools to be requested
 tool:

@@ -99,7 +99,7 @@ rule krona_reads_kraken:
 
 rule krona_diamond:
     wildcard_constraints:
-        tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled|reads"
+        tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
     input:
         tax_hits = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_hits_with_taxid.tmp"),
         tax_tab  = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
@@ -122,5 +122,31 @@ rule krona_diamond:
             -o {output.html} \
             - >> {log} 2>&1
             
+        echo "[INFO] Krona HTML generated successfully." >> {log}
+        """
+
+rule krona_diamond_reads:
+    input:
+        hits    = rules.diamond_view_reads.output.hits,
+        tax_tab = os.path.join(KRONA_DB_DIR[0], "taxonomy.tab")
+    output:
+        html = os.path.join(OUT_DIR, "{sample}", "krona_reads", "{sample}_reads_diamond_krona.html")
+    conda:
+        KRONA
+    params:
+        tax_dir = KRONA_DB_DIR[0]
+    log:
+        os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_reads_{sample}.log")
+    shell:
+        """
+        echo "[INFO] Executing ktImportTaxonomy for Diamond Reads..." > {log}
+
+        # Extrai a coluna 1 (QueryID) e a 13 (TaxID) e passa direto para o Krona
+        cut -f 1,13 {input.hits} | \
+        ktImportTaxonomy \
+            -tax {params.tax_dir} \
+            -o {output.html} \
+            - >> {log} 2>&1
+
         echo "[INFO] Krona HTML generated successfully." >> {log}
         """
