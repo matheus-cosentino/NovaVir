@@ -95,11 +95,9 @@ rule diamond_blastx_reads:
     r2 = get_denovo_r2,
     extra = get_denovo_unpaired
   output:
-    hits = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads_report.txt"),
-    #log  = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "diamond.log")
+    daa = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads_report.daa"),
   params:
     db = get_diamond_db_name,
-    outfmt = config["diamond"]["outfmt"],
     max_target_seqs = config["diamond"]["max_target_seqs"],
     sensitivity=config["diamond"]["sensitivity"]
   log:
@@ -111,7 +109,7 @@ rule diamond_blastx_reads:
   shell:
     """
     exec > {log} 2>&1    
-    echo "[INFO] Starting Diamond BlastX for Reads..."
+    echo "[INFO] Starting Diamond BlastX for Reads (outfmt 100 / DAA)..."
     echo "[INFO] Input R1: {input.r1}"
     echo "[INFO] Input R2: {input.r2}"
     echo "[INFO] Input Extra: {input.extra}"
@@ -143,16 +141,42 @@ rule diamond_blastx_reads:
         fi
     done
     
-     diamond blastx \
+    diamond blastx \
       --query "$TMP_READS" \
       --db "$DB_PATH" \
-      --out {output.hits} \
+      --out {output.daa} \
       --threads {resources.threads} \
-      --outfmt {params.outfmt} \
+      --outfmt 100 \
       --max-target-seqs {params.max_target_seqs} \
       {params.sensitivity} \
       --tmpdir "$DIAMOND_TMP"
 
     rm -f "$TMP_READS"
     
+    """
+
+rule diamond_view_reads:
+  input:
+    daa = rules.diamond_blastx_reads.output.daa
+  output:
+    hits = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads_report.txt"),
+  params:
+    outfmt = config["diamond"]["outfmt"],
+  log:
+    os.path.join(OUT_DIR, "{sample}", "log", "diamond_view_reads_{sample}.log")
+  conda:
+    DIAMOND
+  shell:
+    """
+    exec > {log} 2>&1
+    echo "[INFO] Converting DAA to tabular format (outfmt {params.outfmt})..."
+    echo "[INFO] Input DAA: {input.daa}"
+
+    diamond view \
+      --daa {input.daa} \
+      --outfmt {params.outfmt} \
+      --out {output.hits} \
+      --threads {resources.threads}
+
+    echo "[INFO] Done. Output: {output.hits}"
     """

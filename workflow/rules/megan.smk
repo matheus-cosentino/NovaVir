@@ -32,67 +32,10 @@ rule get_megan6_mapper:
     rm {output.db}.zip
     """
 
-#2. READS DIAMOND DAA FORMAT
-rule reads_diamond_daa:
-  input:
-    r1 = get_denovo_r1,
-    r2 = get_denovo_r2,
-    extra = get_denovo_unpaired
-  output:
-    hits = temp(os.path.join(OUT_DIR, "{sample}", "megan_reads", "{sample}_reads_report.daa")),
-  params:
-    db = get_diamond_db_name,
-    outfmt = 100,
-    max_target_seqs = config["diamond"]["max_target_seqs"],
-    sensitivity=config["diamond"]["sensitivity"]
-  log:
-    os.path.join(OUT_DIR, "{sample}", "log", "diamond_reads_daa_{sample}.log")
-  conda:
-    DIAMOND
-  shell:
-    """
-    exec > {log} 2>&1    
-    echo "[INFO] Starting Diamond BlastX for Reads..."
-    echo "[INFO] Input R1: {input.r1}"
-    echo "[INFO] Input R2: {input.r2}"
-    echo "[INFO] Input Extra: {input.extra}"
-    
-    DB_PATH="resources/diamond/{params.db}"
-    
-    echo "[INFO] Diamond Version:"
-    diamond --version
-    
-    if [ ! -f "$DB_PATH" ] && [ ! -f "$DB_PATH.dmnd" ]; then
-        echo "[ERROR] Diamond database not found at: $DB_PATH"
-        exit 1
-    fi
-    echo "[INFO] DB: $DB_PATH"
-    
-    # Concatenate available inputs into a single temporary file for Diamond
-    TMP_READS="{output.hits}.tmp.fastq.gz"
-    > "$TMP_READS"
-    for f in {input.r1} {input.r2} {input.extra}; do
-        if [ -s "$f" ]; then
-            cat "$f" >> "$TMP_READS"
-        fi
-    done
-    
-     diamond blastx \
-      --query "$TMP_READS" \
-      --db "$DB_PATH" \
-      --out {output.hits} \
-      --threads {resources.threads} \
-      --outfmt {params.outfmt} \
-      --max-target-seqs {params.max_target_seqs} \
-      {params.sensitivity}
-
-    rm -f "$TMP_READS"  
-
-    """
 
 rule reads_meganizer:
   input:
-    daa = rules.reads_diamond_daa.output.hits,
+    daa = rules.diamond_blastx_reads.output.daa,
     db = rules.get_megan6_mapper.output.db
   output:
     daa = temp(os.path.join(OUT_DIR, "{sample}", "megan_reads", "{sample}_reads_report_meganized.daa"))

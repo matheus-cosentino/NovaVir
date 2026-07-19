@@ -31,39 +31,33 @@ def main():
 
         # Parse Kraken2 report format:
         # %    clade_count    direct_count    rank_code    tax_id    scientific_name
-        
+        # U = unclassified, R = root (all classified reads)
+
         total_reads = 0
         classified_reads = 0
         unclassified_reads = 0
         classified_pct = 0.0
-        
+
         with open(kraken_report, 'r') as f:
             for line in f:
                 line = line.strip()
                 if not line:
                     continue
-                
+
                 parts = line.split('\t')
                 if len(parts) >= 6:
-                    pct = float(parts[0])
                     clade_count = int(parts[1])
                     rank_code = parts[3]
-                    sci_name = parts[5].strip()
-                    
-                    # Get totals from the root (U = unclassified, no rank_code)
+
                     if rank_code == 'U':
                         unclassified_reads = clade_count
-                    elif rank_code == '-' and 'Bacteria' not in sci_name and 'Archaea' not in sci_name and 'Eukaryota' not in sci_name:
-                        # Root node (no rank) gives us total
-                        total_reads = clade_count
-                    elif rank_code == '-':
-                        # Top-level domain
-                        if total_reads == 0:
-                            total_reads = clade_count
-        
-        # Calculate classified
+                    elif rank_code == 'R':
+                        # Root node clade_count = all classified sequences
+                        classified_reads = clade_count
+
+        # Total = classified + unclassified
+        total_reads = classified_reads + unclassified_reads
         if total_reads > 0:
-            classified_reads = total_reads - unclassified_reads
             classified_pct = (classified_reads / total_reads) * 100
         
         # Create statistics dictionary
