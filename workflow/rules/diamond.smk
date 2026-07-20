@@ -41,11 +41,9 @@ rule diamond_blastx_contigs:
   input:
     contigs = rules.filter_contigs_diamond.output.filtered
   output:
-    hits = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
-    #log  = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "diamond.log")
+    daa = temp(os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.daa")),
   params:
     db = get_diamond_db_name,
-    outfmt = config["diamond"]["outfmt"],
     max_target_seqs = config["diamond"]["max_target_seqs"],
     sensitivity = config["diamond"]["sensitivity"]
   log:
@@ -57,7 +55,7 @@ rule diamond_blastx_contigs:
   shell:
     """
     exec > {log} 2>&1    
-    echo "[INFO] Starting Diamond BlastX for Contigs..."
+    echo "[INFO] Starting Diamond BlastX for Contigs (outfmt 100 / DAA)..."
     echo "[INFO] Input: {input.contigs}"
     
     DB_PATH="resources/diamond/{params.db}"
@@ -78,16 +76,45 @@ rule diamond_blastx_contigs:
     echo "[INFO] DB: $DB_PATH"
     echo "[INFO] Using Temporary Directory: $DIAMOND_TMP"
     
-     diamond blastx \
+    diamond blastx \
       --query {input.contigs} \
       --db "$DB_PATH" \
-      --out {output.hits} \
+      --out {output.daa} \
       --threads {resources.threads} \
-      --outfmt {params.outfmt} \
+      --outfmt 100 \
       --max-target-seqs {params.max_target_seqs} \
       {params.sensitivity} \
       --tmpdir "$DIAMOND_TMP"
     """
+
+rule diamond_view_contigs:
+  wildcard_constraints:
+    tool = r"spades_k[\w]+|spades|megahit|flye|raven|medaka_flye|medaka_raven|pre_assembled"
+  input:
+    daa = rules.diamond_blastx_contigs.output.daa
+  output:
+    hits = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.txt"),
+  params:
+    outfmt = config["diamond"]["outfmt"],
+  log:
+    os.path.join(OUT_DIR, "{sample}", "log", "diamond_view_{tool}_{sample}.log")
+  conda:
+    DIAMOND
+  shell:
+    """
+    exec > {log} 2>&1
+    echo "[INFO] Converting DAA to tabular format (outfmt {params.outfmt})..."
+    echo "[INFO] Input DAA: {input.daa}"
+
+    diamond view \
+      --daa {input.daa} \
+      --outfmt {params.outfmt} \
+      --out {output.hits} \
+      --threads {resources.threads}
+
+    echo "[INFO] Done. Output: {output.hits}"
+    """
+
 
 rule diamond_blastx_reads:
   input:
