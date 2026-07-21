@@ -19,7 +19,12 @@
 ##################################
 # --- 1. Load Configuration --- #
 #################################
-configfile: "config/config.yaml"
+# Use absolute path derived from the Snakefile location so configfile: is found
+# regardless of --directory (Snakemake working dir). This allows running from
+# a scratch directory on HPC without breaking config resolution.
+import os as _os
+_PROJECT_ROOT = _os.path.normpath(_os.path.join(_os.path.dirname(workflow.snakefile), ".."))
+configfile: _os.path.join(_PROJECT_ROOT, "config", "config.yaml")
 
 ###########################################
 # --- 2. Import functions to be used --- #

@@ -449,25 +449,7 @@ export TMP="$temp_dir"
 
 echo -e "${blu}[INFO]${nc} Global TMPDIR set to: ${ylo}$TMPDIR${nc}"
 
-
-echo -e "\n${green}> Snakemake: Unlocking working directory...${nc}"
-snakemake --profile "$PROFILE_PATH" --snakefile "$SNAKEFILE" --directory "$snakemake_workdir" \
-    --configfile "$main_config" "$run_overrides" --unlock --quiet
-
-echo -e "\n${green}> Snakemake: Creating conda environments (if needed)...${nc}"
-snakemake --profile "$PROFILE_PATH" --snakefile "$SNAKEFILE" --directory "$snakemake_workdir" \
-    --configfile "$main_config" "$run_overrides" --use-conda --conda-create-envs-only --quiet
-
-echo -e "\n${green}> Snakemake: Performing a dry-run...${nc}"
-snakemake --profile "$PROFILE_PATH" --snakefile "$SNAKEFILE" --directory "$snakemake_workdir" \
-    --jobs $jobs --use-conda --configfile "$main_config" "$run_overrides" --dry-run
-echo "---------------------------------------------------"
-
-echo -e "\n${green}> Snakemake: Starting main execution...${nc}"
-
-#SHADOW DIR within the node of submission, avoiding pipeline killed by lack of IO
-# This forces Snakemake to write its heavy temporary shadow files to /scratch
-# Caso não esteja no Slurm, usa 'local' como ID
+# --- Paths used by all snakemake invocations ---
 JOB_ID=${SLURM_JOB_ID:-local}
 SHADOW_DIR="${temp_dir}/discovir_shadow/${JOB_ID}"
 mkdir -p "$SHADOW_DIR"
@@ -477,11 +459,31 @@ PROFILE_PATH="$PROJECT_DIR/profiles/$profile"
 
 echo -e "${blu}[INFO]${nc} Shadow directory  set to: ${ylo}$SHADOW_DIR${nc}"
 echo -e "${blu}[INFO]${nc} Tool temp dir     set to: ${ylo}$temp_dir${nc}"
-echo -e "${blu}[INFO]${nc} Snakemake workdir set to: ${ylo}$snakemake_workdir${nc}"
+echo -e "${blu}[INFO]${nc} Scratch workdir   set to: ${ylo}$snakemake_workdir${nc}"
+echo -e "${blu}[INFO]${nc} Snakefile         set to: ${ylo}$SNAKEFILE${nc}"
 
-# --- MODIFIED COMMAND ---
-# --directory  → where SLURM jobs run from (fast scratch instead of home/NFS)
-# --snakefile  → absolute path so the workflow is found even when --directory changes CWD
+# configfile: no Snakefile usa caminho absoluto (via workflow.snakefile), por isso
+# --directory pode ser passado sem quebrar a resolução do config.
+# Os jobs SLURM rodarão a partir do scratch (snakemake_workdir) em vez do home/NFS.
+
+echo -e "\n${green}> Snakemake: Unlocking working directory...${nc}"
+snakemake --profile "$PROFILE_PATH" --snakefile "$SNAKEFILE" \
+    --directory "$snakemake_workdir" \
+    --configfile "$main_config" "$run_overrides" --unlock --quiet
+
+echo -e "\n${green}> Snakemake: Creating conda environments (if needed)...${nc}"
+snakemake --profile "$PROFILE_PATH" --snakefile "$SNAKEFILE" \
+    --directory "$snakemake_workdir" \
+    --configfile "$main_config" "$run_overrides" --use-conda --conda-create-envs-only --quiet
+
+echo -e "\n${green}> Snakemake: Performing a dry-run...${nc}"
+snakemake --profile "$PROFILE_PATH" --snakefile "$SNAKEFILE" \
+    --directory "$snakemake_workdir" \
+    --jobs $jobs --use-conda --configfile "$main_config" "$run_overrides" --dry-run
+echo "---------------------------------------------------"
+
+echo -e "\n${green}> Snakemake: Starting main execution...${nc}"
+
 snakemake --profile "$PROFILE_PATH" \
     --snakefile "$SNAKEFILE" \
     --directory "$snakemake_workdir" \
