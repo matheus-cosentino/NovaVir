@@ -33,6 +33,8 @@ rule get_nohit_fasta:
     nohits = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_{tool}_nohit.fasta")
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "darkmatter_{tool}_{sample}_nohits.log")
+  benchmark:
+    os.path.join(OUT_DIR, "benchmarks", "get_nohit_fasta", "{sample}_{tool}.tsv")
   conda:
     CORE
   script:
@@ -49,6 +51,8 @@ rule find_orfs:
     orfs = temp(os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_ORFs.fasta.temp"))
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "darkmatter_{tool}_{sample}_orfs.log")
+  benchmark:
+    os.path.join(OUT_DIR, "benchmarks", "find_orfs", "{sample}_{tool}.tsv")
   conda:
     PALM
   shell:
@@ -91,6 +95,8 @@ rule cd_hit:
     orfs = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_ORFs.fasta")
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "darkmatter_{tool}_{sample}_cdhit.log")
+  benchmark:
+    os.path.join(OUT_DIR, "benchmarks", "cd_hit", "{sample}_{tool}.tsv")
   conda:
     PALM
   shell:
@@ -126,6 +132,8 @@ rule palm_annot:
     PALM
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "darkmatter_{tool}_{sample}_palmannot.log")  
+  benchmark:
+    os.path.join(OUT_DIR, "benchmarks", "palm_annot", "{sample}_{tool}.tsv")
   script:
     "../scripts/palm_annot_run.py"
   
@@ -144,6 +152,8 @@ rule fev2tsv_single:
     PALM
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "darkmatter_{tool}_{sample}_fev2tsv.log")
+  benchmark:
+    os.path.join(OUT_DIR, "benchmarks", "fev2tsv_single", "{sample}_{tool}.tsv")
   script:
     "../scripts/fev2tsv_run.py"
 
@@ -163,6 +173,8 @@ rule report_summarize:
         logos = "resources/logo/"
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_report_summarize_{tool}.log")
+    benchmark:
+        os.path.join(OUT_DIR, "benchmarks", "report_summarize", "{sample}_{tool}.tsv")
     conda:
         REPORT
     shell:
@@ -194,6 +206,8 @@ rule dm_validate:
     raw_contigs = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_RdRp_contigs.fasta")
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "{sample}_dm_validate_{tool}.log")
+  benchmark:
+    os.path.join(OUT_DIR, "benchmarks", "dm_validate", "{sample}_{tool}.tsv")
   conda:
     REPORT
   run:

@@ -28,6 +28,8 @@ rule spades:
         contigs = os.path.join(OUT_DIR, "{sample}", "spades", "kmer_{kmer_val}", "contigs.fasta")
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "kmer_{kmer_val}_spades_assembly.log")
+    benchmark:
+        os.path.join(OUT_DIR, "benchmarks", "spades", "{sample}_k{kmer_val}.tsv")
     params:
         outdir = os.path.join(OUT_DIR, "{sample}", "spades", "kmer_{kmer_val}"),
         input_args = get_spades_params,
@@ -64,6 +66,8 @@ rule megahit:
         contigs = os.path.join(OUT_DIR, "{sample}", "megahit", "final.contigs.fa")
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "meghit_assembly.log")
+    benchmark:
+        os.path.join(OUT_DIR, "benchmarks", "megahit", "{sample}.tsv")
     params:
         outdir = os.path.join(OUT_DIR, "{sample}", "megahit"),
         input_args = get_megahit_params,
@@ -96,6 +100,8 @@ rule flye:
         contigs = os.path.join(OUT_DIR, "{sample}", "flye", "assembly.fasta")
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "flye_assembly.log")
+    benchmark:
+        os.path.join(OUT_DIR, "benchmarks", "flye", "{sample}.tsv")
     params:
         outdir = os.path.join(OUT_DIR, "{sample}", "flye"),
         extra = config["flye"]["type"]
@@ -130,6 +136,8 @@ rule raven:
         contigs = os.path.join(OUT_DIR, "{sample}", "raven", "assembly.fasta")
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "raven_assembly.log")
+    benchmark:
+        os.path.join(OUT_DIR, "benchmarks", "raven", "{sample}.tsv")
     conda:
         RAVEN_ENV
     shell:
@@ -154,6 +162,8 @@ rule medaka_polish:
         outdir = os.path.join(OUT_DIR, "{sample}", "medaka_{assembler}")
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "medaka_{assembler}.log")
+    benchmark:
+        os.path.join(OUT_DIR, "benchmarks", "medaka_polish", "{sample}_{assembler}.tsv")
     conda:
         MEDAKA_ENV
     shell:

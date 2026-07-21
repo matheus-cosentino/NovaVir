@@ -29,6 +29,8 @@ rule kraken2_contigs:
         confidence = config["kraken2"]["confidence"]
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "kraken2_contigs_{tool}_{sample}.log")
+    benchmark:
+        os.path.join(OUT_DIR, "benchmarks", "kraken2_contigs", "{sample}_{tool}.tsv")
     conda:
         KRAKEN2 # Verifique se o nome do env está correto no seu config
     shell:
@@ -55,6 +57,8 @@ rule kraken_biom_contig:
         biom = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_biom.txt"),
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "kraken2_contigs_{tool}_{sample}_biom.log")
+    benchmark:
+        os.path.join(OUT_DIR, "benchmarks", "kraken_biom_contig", "{sample}_{tool}.tsv")
     params:
         maximun = config["kraken_biom"]["max"],
         minimum = config["kraken_biom"]["min"],
@@ -87,6 +91,8 @@ rule kraken2_reads_paired:
       int_file=temp(os.path.join(OUT_DIR, "{sample}", "fastp", "{sample}.fastq.gz"))
     log:
       os.path.join(OUT_DIR, "{sample}", "log", "kraken2_paired_reads_{sample}.log")
+    benchmark:
+      os.path.join(OUT_DIR, "benchmarks", "kraken2_reads_paired", "{sample}.tsv")
     conda:
       KRAKEN2        
     shell:
@@ -115,6 +121,8 @@ rule kraken2_reads_unpaired:
       confidence=config["kraken2"]["confidence"]
     log:
       os.path.join(OUT_DIR, "{sample}", "log", "kraken2_paired_reads_{sample}.log")
+    benchmark:
+      os.path.join(OUT_DIR, "benchmarks", "kraken2_reads_unpaired", "{sample}.tsv")
     conda:
       KRAKEN2        
     shell:
@@ -141,6 +149,8 @@ rule kraken_biom_reads:
       out_format=config["kraken_biom"]["format"]
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "kraken2_biom_{paired}_reads_{sample}.log")
+    benchmark:
+        os.path.join(OUT_DIR, "benchmarks", "kraken_biom_reads", "{sample}_{paired}.tsv")
     conda:
         KRAKEN2_BIOM
     shell:
@@ -165,6 +175,8 @@ rule kraken_biom_merge_all:
         R_RAREFACTION
     log:
         os.path.join(OUT_DIR, "log", "kraken_biom_merge_all.log")
+    benchmark:
+        os.path.join(OUT_DIR, "benchmarks", "kraken_biom_merge_all", "all_samples.tsv")
     shell:
         """
         kraken-biom {input.reports} --fmt {params.fmt} -o {output.biom} > {log} 2>&1

@@ -36,9 +36,9 @@ rule fastp_paired:
         html = os.path.join(OUT_DIR, "{sample}", "fastp", "{sample}_paired.html"),
         json= os.path.join(OUT_DIR, "{sample}", "fastp", "{sample}_paired.json")
     log:
-        #f"{config['output_dir']}/{{sample}}/logs/{{sample}}_fastp.log"
-        #"{out_dir}/{sample}/log/{sample}_fastp_paired.log"
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_fastp_paired.log")
+    benchmark:
+        os.path.join(OUT_DIR, "benchmarks", "fastp_paired", "{sample}.tsv")
     params:
         length_required=config['fastp']['length_required'],
         quality=config['fastp']['qualified_quality_phred']
@@ -71,6 +71,8 @@ rule fastp_unpaired:
         json= os.path.join(OUT_DIR, "{sample}", "fastp", "{sample}_unp.json")
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_fastp_unpaired.log")
+    benchmark:
+        os.path.join(OUT_DIR, "benchmarks", "fastp_unpaired", "{sample}.tsv")
     params:
         length_required=config['fastp']['length_required'],
         quality=config['fastp']['qualified_quality_phred']

@@ -28,6 +28,8 @@ rule download_prot:
     names = os.path.join(TAXONOMY_DIR[0], "names.dmp")
   log:
     os.path.join(OUT_DIR, "log", "tax_download_mapping.log")
+  benchmark:
+    os.path.join(OUT_DIR, "benchmarks", "download_prot", "taxonomy.tsv")
   params:
     taxon_gz = os.path.join(TAXONOMY_DIR[0], "taxdump.tar.gz"),
     #tax_dir = TAXONOMY_DIR[0]
@@ -60,6 +62,8 @@ rule map_accession_to_taxid:
       "minimal"
     log:
       os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{tool}_map_acc_prot.log")
+    benchmark:
+      os.path.join(OUT_DIR, "benchmarks", "map_accession_to_taxid", "{sample}_{tool}.tsv")
     script:
       "../scripts/map_acc_to_taxid.py"
 
@@ -82,6 +86,8 @@ rule split_hits_by_taxid:
         header="qseqid\tsseqid\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore\ttaxid"
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{tool}_split_hits.log")
+    benchmark:
+        os.path.join(OUT_DIR, "benchmarks", "split_hits_by_taxid", "{sample}_{tool}.tsv")
     shell:
         """
         # Create output files with headers
@@ -121,6 +127,8 @@ rule append_lineage:
         nodes=os.path.join(TAXONOMY_DIR[0], "nodes.dmp")
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{tool}_diamond_lineages.log")
+    benchmark:
+        os.path.join(OUT_DIR, "benchmarks", "append_lineage", "{sample}_{tool}.tsv")
     conda:
         TAXONKIT
     shell:
