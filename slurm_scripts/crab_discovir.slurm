@@ -5,73 +5,67 @@
 #SBATCH --output=logs_slurm/DiscoVir_%j.out
 
 echo "
-#####M#A#C#C##2#0#2#5###############I#R#D##&##U#F#R#J#####
-##                                                      ##
-##      ▗▄▄▄ ▗▄▄▄▖ ▗▄▄▖ ▗▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄▖▗▄▄▄        ##
-##      ▐▌  █  █  ▐▌   ▐▌   ▐▌ ▐▌▐▌  ▐▌  █  ▐▌ ▐▌       ##
-##      ▐▌  █  █   ▝▀▚▖▐▌   ▐▌ ▐▌▐▌  ▐▌  █  ▐▛▀▚▖       ##
-##      ▐▙▄▄▀▗▄█▄▖▗▄▄▞▘▝▚▄▄▖▝▚▄▞▘ ▝▚▞▘ ▗▄█▄▖▐▌ ▐▌       ##
-##                                                      ##
-#####M#A#C#C##2#0#2#5###############I#R#D##&##U#F#R#J#####
+#####M#A#C#C##2#0#2#6###############I#R#D##&##U#F#R#J#####
 ## Name ___________________ DiscoVir.slurm              ##
-## Version ________________ v.2025.12                   ##
+## Version ________________ v.2026.07                   ##
 ## Author _________________ Matheus Cosentino           ##
-## Affiliation ____________ IRD TransVIHMI & UFRJ PGGEN ##
-#####M#A#C#C##2#0#2#5###############I#R#D##&##U#F#R#J#####
+## Affiliation ____________ IRD TransVIHMI & UFRJ LDDV  ##
+#####M#A#C#C##2#0#2#6###############I#R#D##&##U#F#R#J#####
 "
 
-echo "##### DiscoVir SLURM Wrapper - Split Storage Mode #####"
+echo "##### DiscoVir SLURM Wrapper #####"
 
+# -------- KEEP ---------
 # --- 1. DEFINE PATHS ---
 # PROJECT_HOME: Where your Snakefile and Config live (MUST be shared/home)
-PROJECT_HOME="$SLURM_SUBMIT_DIR"
+PROJECT_HOME=${SLURM_SUBMIT_DIR}
 
-# SCRATCH_OUT: Where the final results go. 
-SCRATCH_DIR="/scratch/$USER/DiscoVir_Results"
+#Dynamic Variables per run
+DATA_DIR=$1
+OUT_DIR=$2
+
+# Fixed Variables
+DIAMOND_BANK=/databases/tools/diamond/ncbi-nr.taxonomy.2.1.13.dmnd
+KRAKEN2_BANK=/databases/tools/kraken2/k2_standard_20250714
+
+# SCRATCH_DIR: Where the final results go. 
+SCRATCH_DIR="/scratch/USERS/$USER/DiscoVir_$SLURM_JOB_ID"
 mkdir -p "$SCRATCH_DIR"
 
+# TEMP_DIR: Where TEMP files are generated
+TEMP_DIR="/scratch/USERS/$USER/temp_DiscoVir_$SLURM_JOB_ID"
+
 # --- 2. ACTIVATE ENVIRONMENT ---
-source /usr/local/bioinfo/Miniforge3-24.9.2-0/etc/profile.d/conda.sh
-conda activate DiscoVir
+### load the necessary modules
+module load miniconda3
+### load the configurations for the conda environment
+eval "$(conda shell.bash hook)"
 
-# --- 3. EXECUTE FROM HOME (The Fix) ---
 cd "$PROJECT_HOME" || { echo "Error: Could not find $PROJECT_HOME"; exit 1; }
-
 echo "[INFO] Running from Shared Path: $(pwd)"
 echo "[INFO] Heavy Data will be written to: $SCRATCH_DIR"
 
-# --- 4. RUN PIPELINE ---
-# We pass the SCRATCH_DIR to the script
-#bash DiscoVir.sh \
-#    --input /home/cosentino/Hanta \
-#    --output "$SCRATCH_DIR" \
-#    --assembly \
-#    --diamond \
-#    --reads-diamond \
-#    --reads-kraken \
-#    --kraken2 \
-#    --darkmatter \
-#    --diamond_db /databases/tools/diamond/ncbi-nr.taxonomy.2.1.13.dmnd \
-#    --kraken2_db /databases/tools/kraken2/k2_standard_20250714 || exit 1
-
+# -------- CHANGE ---------
+# --- 3. EXECUTE FROM HOME ---
 bash DiscoVir.sh \
-    --input /home/cosentino/Hanta \
-    --output "$SCRATCH_DIR" \
+    --input ${DATA_DIR} \
+    --output ${SCRATCH_DIR} \
     --assembly \
     --diamond \
     --reads-diamond \
     --reads-kraken \
     --kraken2 \
     --darkmatter \
-    --diamond_db /databases/tools/diamond/ncbi-nr.taxonomy.2.1.13.dmnd \
-    --kraken2_db /databases/tools/kraken2/k2_standard_20250714 || exit 1
+    --diamond_db ${DIAMOND_BANK} \
+    --kraken2_db ${KRAKEN2_BANK}\
+    --tempd-dir ${TEMP_DIR}
 
 # --- 5. RETRIEVE RESULTS ---
 # Move results from Scratch back to Home (or a safe place) before the job ends
-FINAL_HOME_DIR="$PROJECT_HOME/results_$SLURM_JOB_ID"
-mkdir -p "$FINAL_HOME_DIR"
+FINAL_HOME_DIR="/home/${USER}/results/DiscoVir/results_${SLURM_JOB_ID}"
+mkdir -p "${FINAL_HOME_DIR}"
 
 echo "[INFO] Retrieving results from Scratch..."
-rsync -av "$SCRATCH_DIR/" "$FINAL_HOME_DIR/"
+rsync -av "${SCRATCH_DIR}/" "${FINAL_HOME_DIR}/"
 
 echo "[INFO] Done."

@@ -51,6 +51,7 @@ from scripts.functions import get_all_kraken_reports
 ###########################################################
 # --- 3. Define workflown directory and local infos  --- #
 ##########################################################
+WORKDIR = config["workdir"]
 DATA = config["data_dir"]
 OUT_DIR = config["output_dir"]
 KRONA_DB_DIR = config["resources"]["krona"]

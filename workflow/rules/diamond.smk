@@ -51,7 +51,7 @@ rule diamond_blastx_contigs:
   conda:
     DIAMOND
   shadow:
-    "shallow"
+    "minimal"
   shell:
     """
     exec > {log} 2>&1    
