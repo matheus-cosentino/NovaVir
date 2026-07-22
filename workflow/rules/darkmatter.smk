@@ -170,7 +170,7 @@ rule report_summarize:
         html = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_Report_Diversity.html")
     params:
         out_dir = directory(os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}")),
-        logos = "resources/logo/"
+        logos = os.path.join(RESOURCES_DIR, "logo")
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_report_summarize_{tool}.log")
     benchmark:
