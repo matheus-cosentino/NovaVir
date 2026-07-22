@@ -42,6 +42,7 @@ rule spades:
         "minimal"
     shell:
         """
+        export OMP_NUM_THREADS={resources.threads}
         spades.py \
             {params.extra} \
             --threads {resources.threads} \
