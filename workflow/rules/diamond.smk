@@ -46,6 +46,7 @@ rule diamond_blastx_contigs:
     daa = temp(os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.daa")),
   params:
     db = get_diamond_db_name,
+    db_dir = lambda wildcards: os.path.join(RESOURCES_DIR, "diamond"),
     max_target_seqs = config["diamond"]["max_target_seqs"],
     sensitivity = config["diamond"]["sensitivity"]
   log:
@@ -62,7 +63,7 @@ rule diamond_blastx_contigs:
     echo "[INFO] Starting Diamond BlastX for Contigs (outfmt 100 / DAA)..."
     echo "[INFO] Input: {input.contigs}"
     
-    DB_PATH="resources/diamond/{params.db}"
+    DB_PATH="{params.db_dir}/{params.db}"
     
     echo "[INFO] Diamond Version:"
     diamond --version
@@ -131,6 +132,7 @@ rule diamond_blastx_reads:
     daa = os.path.join(OUT_DIR, "{sample}", "diamond_reads", "{sample}_reads_report.daa"),
   params:
     db = get_diamond_db_name,
+    db_dir = lambda wildcards: os.path.join(RESOURCES_DIR, "diamond"),
     max_target_seqs = config["diamond"]["max_target_seqs"],
     sensitivity=config["diamond"]["sensitivity"]
   log:
@@ -149,7 +151,7 @@ rule diamond_blastx_reads:
     echo "[INFO] Input R2: {input.r2}"
     echo "[INFO] Input Extra: {input.extra}"
     
-    DB_PATH="resources/diamond/{params.db}"
+    DB_PATH="{params.db_dir}/{params.db}"
     
     echo "[INFO] Diamond Version:"
     diamond --version
