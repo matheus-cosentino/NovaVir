@@ -48,7 +48,9 @@ rule diamond_blastx_contigs:
     db = get_diamond_db_name,
     db_dir = lambda wildcards: os.path.join(RESOURCES_DIR, "diamond"),
     max_target_seqs = config["diamond"]["max_target_seqs"],
-    sensitivity = config["diamond"]["sensitivity"]
+    sensitivity = config["diamond"]["sensitivity"],
+    block_size   = config["diamond"]["block_size"],
+    index_chunks = config["diamond"]["index_chunks"]
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "diamond_{tool}_{sample}.log")
   benchmark:
@@ -89,6 +91,8 @@ rule diamond_blastx_contigs:
       --outfmt 100 \
       --max-target-seqs {params.max_target_seqs} \
       {params.sensitivity} \
+      --block-size {params.block_size} \
+      --index-chunks {params.index_chunks} \
       --tmpdir "$DIAMOND_TMP"
     """
 
@@ -134,7 +138,9 @@ rule diamond_blastx_reads:
     db = get_diamond_db_name,
     db_dir = lambda wildcards: os.path.join(RESOURCES_DIR, "diamond"),
     max_target_seqs = config["diamond"]["max_target_seqs"],
-    sensitivity=config["diamond"]["sensitivity"]
+    sensitivity   = config["diamond"]["sensitivity"],
+    block_size    = config["diamond"]["block_size"],
+    index_chunks  = config["diamond"]["index_chunks"]
   log:
     os.path.join(OUT_DIR, "{sample}", "log", "diamond_reads_{sample}.log")
   benchmark:
@@ -186,6 +192,8 @@ rule diamond_blastx_reads:
       --outfmt 100 \
       --max-target-seqs {params.max_target_seqs} \
       {params.sensitivity} \
+      --block-size {params.block_size} \
+      --index-chunks {params.index_chunks} \
       --tmpdir "$DIAMOND_TMP"
 
     rm -f "$TMP_READS"
