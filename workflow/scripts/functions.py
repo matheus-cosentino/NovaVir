@@ -672,9 +672,11 @@ def get_diamond_db_input(wildcards):
     Retorna a lista de arquivos do banco de dados Diamond.
     Lida tanto com arquivo único (.dmnd) quanto com banco BLAST particionado (nr.*).
     """
-    # Caminho base definido no config ou resources
-    # Nota: Assumindo que o DiscoVir.sh linkou tudo em resources/diamond/
-    db_dir = "resources/diamond"
+    # Usa caminho absoluto derivado da localização deste script para evitar
+    # problemas com --directory do Snakemake (que muda o CWD do processo).
+    _script_dir = os.path.dirname(os.path.abspath(__file__))
+    _project_root = os.path.normpath(os.path.join(_script_dir, "..", ".."))
+    db_dir = os.path.join(_project_root, "resources", "diamond")
     
     # Tenta achar um .dmnd clássico
     dmnd_file = glob.glob(os.path.join(db_dir, "*.dmnd"))
@@ -694,7 +696,11 @@ def get_diamond_db_name(wildcards):
     """
     Retorna o NOME BASE para o comando do Diamond (-d).
     """
-    db_dir = "resources/diamond"
+    # Usa caminho absoluto derivado da localização deste script para evitar
+    # problemas com --directory do Snakemake (que muda o CWD do processo).
+    _script_dir = os.path.dirname(os.path.abspath(__file__))
+    _project_root = os.path.normpath(os.path.join(_script_dir, "..", ".."))
+    db_dir = os.path.join(_project_root, "resources", "diamond")
     
     # Caso 1: Arquivo .dmnd único
     dmnd_files = glob.glob(os.path.join(db_dir, "*.dmnd"))
