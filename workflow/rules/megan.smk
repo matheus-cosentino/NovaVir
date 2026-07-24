@@ -22,7 +22,7 @@ if config["modules"].get("reads_diamond", False):
     output:
       db = os.path.join(MEGAN_DIR[0], "megan-map-Feb2022-ue.db"),
     params:
-      dir = MEGAN_DIR[0]
+      dir = lambda w, output: os.path.dirname(output.db)
     log:
       os.path.join(OUT_DIR, "log", "megan6_download_mapper.log")
     conda:

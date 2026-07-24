@@ -140,7 +140,8 @@ rule multiqc_aggregate:
         files = [f for s in SAMPLE for f in get_multiqc_inputs(sample=s)],
         config = os.path.join("workflow", "multiqc_config.yaml"),
         #config_override = "sp: { diamond/log: { fn: '*_diamond.log' } }",
-        extra = "--title 'DiscoVir Aggregate Report'"
+        extra = "--title 'DiscoVir Aggregate Report'",
+        outdir = lambda w, output: os.path.dirname(output.report)
     conda:
         MULTIQC    
     log:
@@ -152,7 +153,7 @@ rule multiqc_aggregate:
         --export \
         --force \
         --config {params.config} \
-        --outdir {OUT_DIR} \
+        --outdir {params.outdir} \
         --filename multiqc_report.html \
         {params.extra} \
         {input.files} > {log} 2>&1 

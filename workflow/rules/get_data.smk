@@ -39,7 +39,6 @@ rule download_sra_data_paired:
     shadow: 
         "minimal" 
     params:
-        out_dir = config["data_dir"],
         # FIX 1: Corrected Syntax with f-string
         tmpdir = lambda wildcards: os.path.join(config["data_dir"], f"tmp_{wildcards.sample}")
     wildcard_constraints:
@@ -96,7 +95,6 @@ rule download_sra_single:
         "minimal"
     # FIX 4: Added missing params section
     params:
-        out_dir = config["data_dir"],
         tmpdir = lambda wildcards: os.path.join(config["data_dir"], f"tmp_{wildcards.sample}")
     shell:
         """

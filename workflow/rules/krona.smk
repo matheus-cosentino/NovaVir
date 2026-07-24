@@ -24,7 +24,7 @@ rule krona_update_taxonomy:
         nodes = os.path.join(TAXONOMY_DIR[0], "nodes.dmp"),
         acc2tax = os.path.join(TAXONOMY_DIR[0], "prot.accession2taxid.gz")
     params:
-        tax_dir=KRONA_DB_DIR[0]
+        tax_dir=lambda w, output: os.path.dirname(output.tab)
     conda:
         KRONA
     log:
@@ -108,7 +108,7 @@ rule krona_diamond:
     conda:
         KRONA
     params:
-        tax_dir = KRONA_DB_DIR[0]
+        tax_dir = lambda w, input: os.path.dirname(input.tax_tab)
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_{tool}_{sample}.log")
     shell:
@@ -134,7 +134,7 @@ rule krona_diamond_reads:
     conda:
         KRONA
     params:
-        tax_dir = KRONA_DB_DIR[0]
+        tax_dir = lambda w, input: os.path.dirname(input.tax_tab)
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "krona_diamond_reads_{sample}.log")
     shell:

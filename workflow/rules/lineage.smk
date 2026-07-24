@@ -32,14 +32,14 @@ rule download_prot:
     os.path.join(OUT_DIR, "benchmarks", "download_prot", "taxonomy.tsv")
   params:
     taxon_gz = os.path.join(TAXONOMY_DIR[0], "taxdump.tar.gz"),
-    #tax_dir = TAXONOMY_DIR[0]
+    tax_dir = lambda w, output: os.path.dirname(output.gz)
   conda:
     DOWNLOAD
   shell:
     """
     wget -c https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.gz -O {output.gz} 2> {log}
     wget -c https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz -O {params.taxon_gz} 2>> {log}
-    tar -zxvf {params.taxon_gz} -C {TAXONOMY_DIR[0]} names.dmp nodes.dmp 2>> {log}
+    tar -zxvf {params.taxon_gz} -C {params.tax_dir} names.dmp nodes.dmp 2>> {log}
     """
 
 
@@ -64,6 +64,8 @@ rule map_accession_to_taxid:
       os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{tool}_map_acc_prot.log")
     benchmark:
       os.path.join(OUT_DIR, "benchmarks", "map_accession_to_taxid", "{sample}_{tool}.tsv")
+    conda:
+      CORE
     script:
       "../scripts/map_acc_to_taxid.py"
 
@@ -85,9 +87,11 @@ rule split_hits_by_taxid:
     params:
         header="qseqid\tsseqid\tpident\tlength\tmismatch\tgapopen\tqstart\tqend\tsstart\tsend\tevalue\tbitscore\ttaxid"
     log:
-        os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{tool}_split_hits.log")
+        os.path.join(OUT_DIR, "{sample}", "log", "{sample}_{tool}_split_hits_by_taxid.log")
     benchmark:
         os.path.join(OUT_DIR, "benchmarks", "split_hits_by_taxid", "{sample}_{tool}.tsv")
+    conda:
+        CORE
     shell:
         """
         # Create output files with headers

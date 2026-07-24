@@ -106,8 +106,7 @@ rule cd_hit:
         cd-hit -i {input.fasta} -o {output.orfs} -c 0.9 -d 1 -T {resources.threads} -M {resources.mem_mb} 2>> {log} 2>&1
 
         #substitute spaces per _
-        sed -i.bak '/^>/ s/ /_/g' {output.orfs} >> {log} 2>&1
-        rm -f {output.orfs}.bak
+        awk 'substr($0, 1, 1) == ">" {{gsub(" ", "_")}} 1' {output.orfs} > {output.orfs}.tmp && mv {output.orfs}.tmp {output.orfs}
     else
         echo "[INFO] Nenhuma sequência para agrupar. Criando arquivo vazio." > {log}
         touch {output.orfs}
@@ -169,7 +168,7 @@ rule report_summarize:
     output:
         html = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_Report_Diversity.html")
     params:
-        out_dir = directory(os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}")),
+        out_dir = lambda w, output: os.path.dirname(output.html),
         logos = os.path.join(RESOURCES_DIR, "logo")
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "{sample}_report_summarize_{tool}.log")
@@ -210,50 +209,5 @@ rule dm_validate:
     os.path.join(OUT_DIR, "benchmarks", "dm_validate", "{sample}_{tool}.tsv")
   conda:
     REPORT
-  run:
-    import pandas as pd
-    import re
-    from Bio import SeqIO
-
-    with open(log[0], "w") as logf:
-        logf.write(f"[INFO] dm_validate started for {wildcards.sample} / {wildcards.tool}\n")
-
-        # Lê o TSV — pode estar vazio se nenhum RdRp foi encontrado
-        try:
-            df = pd.read_csv(input.dusk, sep='\t')
-        except Exception as e:
-            logf.write(f"[ERROR] Could not read RdRp TSV: {e}\n")
-            df = pd.DataFrame()
-
-        if df.empty or 'Label' not in df.columns:
-            logf.write("[WARNING] No RdRp hits found. Creating empty output files.\n")
-            open(output.raw_rdrp, 'w').close()
-            open(output.raw_contigs, 'w').close()
-        else:
-            target_orfs = set(df['Label'].astype(str).tolist())
-            target_contigs = set()
-
-            # Lógica para extrair o ID do Contig a partir do Label do ORF
-            # Exemplo Label: gc_1_NODE_244_length_2206_cov_6.211439_1_[2204_-_3]_(REVERSE_SENSE)_
-            # Queremos extrair: NODE_244_length_2206_cov_6.211439
-            for label in target_orfs:
-                match = re.search(r'^gc_\d+_(.+?)_\d+_\[', label)
-                if match:
-                    contig_id = match.group(1)
-                    target_contigs.add(contig_id)
-                else:
-                    logf.write(f"[WARNING] Não foi possível parsear o contig ID do label: {label}\n")
-
-            # Salva os ORFs identificados
-            with open(output.raw_rdrp, "w") as out_orf:
-                for record in SeqIO.parse(input.orfs, "fasta"):
-                    if record.id in target_orfs:
-                        SeqIO.write(record, out_orf, "fasta")
-
-            # Salva os Contigs originais correspondentes
-            with open(output.raw_contigs, "w") as out_contig:
-                for record in SeqIO.parse(input.fasta, "fasta"):
-                    if record.id in target_contigs:
-                        SeqIO.write(record, out_contig, "fasta")
-
-            logf.write(f"[INFO] Done. {len(target_orfs)} RdRp ORFs, {len(target_contigs)} contigs extracted.\n")
+  script:
+    "../scripts/dm_validate.py"

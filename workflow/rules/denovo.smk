@@ -31,7 +31,7 @@ rule spades:
     benchmark:
         os.path.join(OUT_DIR, "benchmarks", "spades", "{sample}_k{kmer_val}.tsv")
     params:
-        outdir = os.path.join(OUT_DIR, "{sample}", "spades", "kmer_{kmer_val}"),
+        outdir = lambda w, output: os.path.dirname(output.contigs),
         input_args = get_spades_params,
         extra = config["spades"]["algorithm"],
         #kmer = lambda wildcards: wildcards.kmer_val
@@ -70,7 +70,7 @@ rule megahit:
     benchmark:
         os.path.join(OUT_DIR, "benchmarks", "megahit", "{sample}.tsv")
     params:
-        outdir = os.path.join(OUT_DIR, "{sample}", "megahit"),
+        outdir = lambda w, output: os.path.dirname(output.contigs),
         input_args = get_megahit_params,
     conda:
         MEGAHIT_ENV
@@ -104,7 +104,7 @@ rule flye:
     benchmark:
         os.path.join(OUT_DIR, "benchmarks", "flye", "{sample}.tsv")
     params:
-        outdir = os.path.join(OUT_DIR, "{sample}", "flye"),
+        outdir = lambda w, output: os.path.dirname(output.contigs),
         extra = config["flye"]["type"]
     conda:
         FLYE_ENV
@@ -160,7 +160,7 @@ rule medaka_polish:
     params:
         # Defina o modelo aqui ou no config.yaml
         model = config["medaka_model"],
-        outdir = os.path.join(OUT_DIR, "{sample}", "medaka_{assembler}")
+        outdir = lambda w, output: os.path.dirname(output.consensus)
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "medaka_{assembler}.log")
     benchmark:

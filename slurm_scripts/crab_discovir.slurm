@@ -7,9 +7,7 @@ set -euo pipefail
 #SBATCH --cpus-per-task=1                        # CPUs do wrapper (o pipeline gerencia seus próprios threads)
 #SBATCH --mem=4G                                 # Memória do wrapper
 #SBATCH --time=3-00:00:00                        # Tempo máximo: 3 dias
-#SBATCH --output=logs_slurm/DiscoVir_%j.out      # Log de saída (%j = ID do job)
-#SBATCH --mail-type=END,FAIL                     # Notifica por e-mail ao terminar ou falhar
-#SBATCH --mail-user=your@email.com               # E-mail para notificações
+#SBATCH --output=DiscoVir_%j.out                 # Log de saída (%j = ID do job)
 
 echo "
 #####M#A#C#C##2#0#2#6###############I#R#D##&##U#F#R#J#####
@@ -26,7 +24,7 @@ echo "[INFO] Início: $(date)"
 # --- Valida argumentos: exige ao menos o diretório de dados ---
 if [[ $# -lt 1 ]]; then
     echo "[ERROR] Uso: sbatch $(basename "$0") <DATA_DIR> [OUT_DIR]"
-    echo "[ERROR] Exemplo: sbatch crab_discovir.slurm /data/meu_projeto /home/user/resultados"
+    echo "[ERROR] Exemplo: sbatch slurm_scripts/crab_discovir.slurm /data/meu_projeto /home/user/resultados"
     exit 1
 fi
 
@@ -37,8 +35,8 @@ fi
 PROJECT_HOME="${SLURM_SUBMIT_DIR}"
 
 # Variáveis dinâmicas (mudam a cada execução)
-DATA_DIR="$1"                                                                       # Dados de entrada (1º argumento)
-FINAL_HOME_DIR="${2:-/home/${USER}/results/DiscoVir/results_${SLURM_JOB_ID}}"      # Destino final dos resultados (2º argumento, ou padrão)
+DATA_DIR="$1"        # Dados de entrada (1º argumento)
+FINAL_HOME_DIR="${2:-/data04/projects04/MarceloSoares/viromapn/results/DiscoVir/results_${SLURM_JOB_ID}}"      # Destino final dos resultados (2º argumento, ou padrão)
 
 # Bancos de dados fixos
 DIAMOND_BANK=/data03/databases/sources/ncbi/blast/dbV5/nr    # Banco DIAMOND (proteínas NR do NCBI)
@@ -48,7 +46,7 @@ KRAKEN2_BANK=/data04/databases/sources/KRAKEN2_DB/PlusPF     # Banco Kraken2 (cl
 SCRATCH_DIR="/scratch/USERS/$USER/DiscoVir_$SLURM_JOB_ID"
 TEMP_DIR="/scratch/USERS/$USER/temp_DiscoVir_$SLURM_JOB_ID"
 
-mkdir -p "$SCRATCH_DIR" "$TEMP_DIR" "$FINAL_HOME_DIR" logs_slurm
+mkdir -p "$SCRATCH_DIR" "$TEMP_DIR" "$FINAL_HOME_DIR"
 
 # --- Handler de limpeza (executado automaticamente ao sair) ---
 # Sucesso: remove o scratch. Falha: preserva o scratch para inspeção.
