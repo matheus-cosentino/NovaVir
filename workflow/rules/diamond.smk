@@ -43,7 +43,7 @@ rule diamond_blastx_contigs:
   input:
     contigs = rules.filter_contigs_diamond.output.filtered
   output:
-    daa = temp(os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.daa")),
+    daa = os.path.join(OUT_DIR, "{sample}", "diamond_{tool}", "{sample}_{tool}_report.daa"),
   params:
     db = get_diamond_db_name,
     db_dir = lambda wildcards: os.path.join(RESOURCES_DIR, "diamond"),
