@@ -67,8 +67,12 @@ MEGAN_DIR = config["resources"]["megan"]
 # where relative paths like "resources/diamond/" would resolve to the wrong location.
 RESOURCES_DIR = _os.path.join(_PROJECT_ROOT, "resources")
 
-with open(config["sample_list"], "r") as file:
-    SAMPLE = [line.strip() for line in file if line.strip()]
+try:
+    with open(config["sample_list"], "r", encoding="utf-8-sig") as file:
+        SAMPLE = [line.strip() for line in file if line.strip()]
+except UnicodeDecodeError:
+    with open(config["sample_list"], "r", encoding="utf-16") as file:
+        SAMPLE = [line.strip() for line in file if line.strip()]
 
 SAMPLE_META = identify_data_type(SAMPLE, DATA)
 
