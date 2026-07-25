@@ -9,4 +9,4 @@ dependencies:
   - diamond=2.0.15    # Reduzido de 2.1.13 para aceitar a zlib antiga exigida pelo Emboss
   - cd-hit=4.8.1      # Mantido (versão muito estável)
   - hmmer=3.3.2       # Reduzido de 3.4 para garantir estabilidade com bibliotecas C antigas
-  - libiconv          # Adicionado para corrigir erro de shared library do getorf
+  - libiconv          # Adicionado para corrigir erro de shared library do getorfq
