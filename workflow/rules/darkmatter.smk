@@ -180,7 +180,7 @@ rule report_summarize:
         """
         # Passamos o arquivo do BASTA no argumento --diamond_path.
         # O script R foi atualizado para detectar automaticamente que é um arquivo BASTA.
-        Rscript workflow/scripts/generate_report.R \
+        Rscript {workflow.basedir}/scripts/generate_report.R \
             --sample_name {wildcards.sample} \
             --fasta_path {input.fasta} \
             --diamond_path {input.lineages} \
@@ -188,7 +188,7 @@ rule report_summarize:
             --output_dir {params.out_dir} \
             --report_name $(basename {output.html}) \
             --logos {params.logos} \
-            --input workflow/scripts/Report_Model.Rmd \
+            --input {workflow.basedir}/scripts/Report_Model.Rmd \
             > {log} 2>&1
         """
 
