@@ -93,7 +93,7 @@ rule diamond_blastx_contigs:
       {params.sensitivity} \
       --block-size {params.block_size} \
       --index-chunks {params.index_chunks} \
-      --tmpdir "$DIAMOND_TMP" 
+      --tmpdir "$DIAMOND_TMP"
     """
 
 rule diamond_view_contigs:

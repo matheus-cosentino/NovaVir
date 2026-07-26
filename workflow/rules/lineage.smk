@@ -38,7 +38,6 @@ rule download_prot:
   shell:
     """
     wget -c https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.gz -O {output.gz} 2> {log}
-    
     # Remove existing taxdump to avoid 'trailing garbage' errors with wget -c if the remote file changed size
     rm -f {params.taxon_gz}
     wget https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz -O {params.taxon_gz} 2>> {log}
