@@ -25,7 +25,7 @@ rule kraken2_contigs:
         report = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_report.txt"),
         out    = os.path.join(OUT_DIR, "{sample}", "kraken2_{tool}", "{sample}_{tool}_contig_output.txt")
     params:
-        db = _os.path.join(_PROJECT_ROOT, config["resources"]["kraken2"]),        
+        db = _os.path.join(_PROJECT_ROOT, config["resources"]["kraken2"][0]),        
         confidence = config["kraken2"]["confidence"]
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "kraken2_contigs_{tool}_{sample}.log")
@@ -86,7 +86,7 @@ rule kraken2_reads_paired:
       out=os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_paired_reads_output.txt")
     params:
       #db=f"{workflow.basedir}/{config["resources"]["kraken2"]}",
-      db=_os.path.join(_PROJECT_ROOT, config["resources"]["kraken2"]),        
+      db=_os.path.join(_PROJECT_ROOT, config["resources"]["kraken2"][0]),        
       confidence=config["kraken2"]["confidence"],
       int_file=temp(os.path.join(OUT_DIR, "{sample}", "fastp", "{sample}.fastq.gz"))
     log:
@@ -117,7 +117,7 @@ rule kraken2_reads_unpaired:
       out=os.path.join(OUT_DIR, "{sample}", "kraken2_reads", "{sample}_unpaired_reads_output.txt")
     params:
       #db=f"{workflow.basedir}/{config["resources"]["kraken2"]}",
-      db=_os.path.join(_PROJECT_ROOT, config["resources"]["kraken2"]),        
+      db=_os.path.join(_PROJECT_ROOT, config["resources"]["kraken2"][0]),        
       confidence=config["kraken2"]["confidence"]
     log:
       os.path.join(OUT_DIR, "{sample}", "log", "kraken2_paired_reads_{sample}.log")
