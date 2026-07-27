@@ -59,10 +59,10 @@ from scripts.functions import get_all_kraken_reports
 WORKDIR = config["workdir"]
 DATA = config["data_dir"]
 OUT_DIR = config["output_dir"]
-KRONA_DB_DIR = config["resources"]["krona"]
-TAXONOMY_DIR = config["resources"]["taxonomy"]
-RVDB_DIR = config["resources"]["rvdb"]
-MEGAN_DIR = config["resources"]["megan"]
+KRONA_DB_DIR = [_os.path.join(_PROJECT_ROOT, p) for p in config["resources"]["krona"]]
+TAXONOMY_DIR = [_os.path.join(_PROJECT_ROOT, p) for p in config["resources"]["taxonomy"]]
+RVDB_DIR = [_os.path.join(_PROJECT_ROOT, p) for p in config["resources"]["rvdb"]]
+MEGAN_DIR = [_os.path.join(_PROJECT_ROOT, p) for p in config["resources"]["megan"]]
 # Absolute path to the resources directory — needed when --directory points to scratch,
 # where relative paths like "resources/diamond/" would resolve to the wrong location.
 RESOURCES_DIR = _os.path.join(_PROJECT_ROOT, "resources")

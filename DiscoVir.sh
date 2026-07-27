@@ -223,7 +223,7 @@ setup_resources(){
             
             # Remove o diretório ou link 'kraken2' existente dentro de resources
             # Atenção: Isso substitui a pasta local pelo link para a externa
-            rm -rf "$RES_DIR/kraken2_db"
+            rm -rf "$RES_DIR/kraken2"
             
             # Cria o link simbólico do diretório inteiro
             ln -sfn "$kraken2_db" "$RES_DIR/kraken2"
