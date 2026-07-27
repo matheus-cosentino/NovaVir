@@ -248,7 +248,7 @@ generate_sample_list(){
     mkdir -p "$output"
     
     if [[ -d "$input" ]]; then
-        find "$input" -type f \( -name "*.fastq.gz" -o -name "*.fastq" -o -name "*.fasta" -o -name "*.fa" -o -name "*.fas" \) \
+        find "$input" -maxdepth 1 -type f \( -name "*.fastq.gz" -o -name "*.fastq" -o -name "*.fasta" -o -name "*.fa" -o -name "*.fas" \) \
         | sed 's|.*/||' \
         | sed -E 's/(_1|_2|_R1|_R2|_unp|_orphans)?(_001)?\.(fastq\.gz|fastq|fasta|fa|fas)$//' \
         > "$sample_list"
