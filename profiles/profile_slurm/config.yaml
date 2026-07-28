@@ -47,7 +47,6 @@ set-resources:
     mem_mb: 60000
     threads: 24
     cpus_per_task: 24
-    runtime: 7-00:00:00
   reads_diamond_daa:
     mem_mb: 60000
     threads: 24
