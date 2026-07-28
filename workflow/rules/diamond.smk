@@ -178,7 +178,7 @@ rule diamond_blastx_reads:
     # Diamond supports a maximum of 2 query files in blastx mode, so we concatenate the inputs.
     QUERY_FILE="$DIAMOND_TMP/merged_queries.fastq"
     if [[ "{input.r1}" == *.gz ]]; then
-        QUERY_FILE="${QUERY_FILE}.gz"
+        QUERY_FILE="$QUERY_FILE.gz"
     fi
     cat {input.r1} {input.r2} {input.extra} > "$QUERY_FILE"
     
