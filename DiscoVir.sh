@@ -31,7 +31,6 @@ ENV_FILE="workflow/envs/DiscoVir.yaml"
 # --- Functions --- #
 #####################
 
-# --- Spinner --- #
 # --- Spinner (Safe Version) --- #
 run_with_spinner() {
     local pid
@@ -111,7 +110,7 @@ help(){
  
  ${ylo}Database Overrides (Define External Databases):${nc}
    --diamond_db <FILE>  Diamond database file (.dmnd).
-   --kraken2 <DIR>      Kraken2 database directory (Must contain hash.k2d, opts.k2d, taxo.k2d)
+   --kraken2_db <DIR>      Kraken2 database directory (Must contain hash.k2d, opts.k2d, taxo.k2d)
 
  ${ylo}Optional Arguments:${nc}
    -h, --help           Show this help message
@@ -223,7 +222,7 @@ setup_resources(){
             
             # Remove o diretório ou link 'kraken2' existente dentro de resources
             # Atenção: Isso substitui a pasta local pelo link para a externa
-            rm -rf "$RES_DIR/kraken2"
+            rm -rf "$RES_DIR/kraken2_db"
             
             # Cria o link simbólico do diretório inteiro
             ln -sfn "$kraken2_db" "$RES_DIR/kraken2"
