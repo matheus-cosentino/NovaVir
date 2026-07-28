@@ -175,11 +175,15 @@ rule diamond_blastx_reads:
     echo "[INFO] DB: $DB_PATH"
     echo "[INFO] Using Temporary Directory: $DIAMOND_TMP"
     
-    # Pass inputs directly to Diamond without creating a temporary disk file.
-    # Diamond supports multiple files for the --query argument.
+    # Diamond supports a maximum of 2 query files in blastx mode, so we concatenate the inputs.
+    QUERY_FILE="$DIAMOND_TMP/merged_queries.fastq"
+    if [[ "{input.r1}" == *.gz ]]; then
+        QUERY_FILE="${QUERY_FILE}.gz"
+    fi
+    cat {input.r1} {input.r2} {input.extra} > "$QUERY_FILE"
     
     diamond blastx \
-      --query {input.r1} {input.r2} {input.extra} \
+      --query "$QUERY_FILE" \
       --db "$DB_PATH" \
       --out {output.daa} \
       --threads {resources.threads} \
