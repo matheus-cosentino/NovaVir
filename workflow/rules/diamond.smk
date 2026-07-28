@@ -175,17 +175,11 @@ rule diamond_blastx_reads:
     echo "[INFO] DB: $DB_PATH"
     echo "[INFO] Using Temporary Directory: $DIAMOND_TMP"
     
-    # Concatenate available inputs into a single temporary file for Diamond
-    TMP_READS="$DIAMOND_TMP/{wildcards.sample}_reads_tmp.fastq.gz"
-    > "$TMP_READS"
-    for f in {input.r1} {input.r2} {input.extra}; do
-        if [ -s "$f" ]; then
-            cat "$f" >> "$TMP_READS"
-        fi
-    done
+    # Pass inputs directly to Diamond without creating a temporary disk file.
+    # Diamond supports multiple files for the --query argument.
     
     diamond blastx \
-      --query "$TMP_READS" \
+      --query {input.r1} {input.r2} {input.extra} \
       --db "$DB_PATH" \
       --out {output.daa} \
       --threads {resources.threads} \
@@ -195,9 +189,6 @@ rule diamond_blastx_reads:
       --block-size {params.block_size} \
       --index-chunks {params.index_chunks} \
       --tmpdir "$DIAMOND_TMP"
-
-    rm -f "$TMP_READS"
-    
     """
 
 rule diamond_view_reads:

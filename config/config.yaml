@@ -190,7 +190,7 @@ diamond:
                   # Com 60 GB disponíveis, valores entre 6 e 7 são seguros.
                   # Reduz drasticamente o número de blocos processados.
 
-  index_chunks: 1 # -c: número de partes em que o índice é dividido (padrão = 4)
+  index_chunks: 4 # -c: número de partes em que o índice é dividido (padrão = 4)
                   # 1 = processa o índice inteiro de uma vez (mais rápido, mais RAM)
 
 hmmscan:
