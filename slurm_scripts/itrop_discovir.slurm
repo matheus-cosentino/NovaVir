@@ -66,6 +66,7 @@ cleanup() {
 trap cleanup EXIT
 
 # --- 2. ATIVAÇÃO DO AMBIENTE ---
+module load bioinfo-itrop
 module load miniconda3
 eval "$(conda shell.bash hook)"   # Inicializa o shell para uso do conda
 
@@ -95,4 +96,5 @@ bash DiscoVir.sh \
 echo "[INFO] Copiando resultados do scratch..."
 rsync -av --progress --checksum "${SCRATCH_DIR}/" "${FINAL_HOME_DIR}/"
 
+module purge
 echo "[INFO] Concluído. Resultados disponíveis em: ${FINAL_HOME_DIR}"
