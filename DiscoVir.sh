@@ -230,7 +230,7 @@ setup_resources(){
             echo -e "${red}[ERROR]${nc} Kraken2 directory not found: $kraken2_db"
             exit 1
         fi
-
+    fi
 
 }
 
