@@ -89,7 +89,7 @@ bash DiscoVir.sh \
     --darkmatter \
     --diamond_db "${DIAMOND_BANK}" \
     --kraken2_db "${KRAKEN2_BANK}" \
-    --tempd-dir "${TEMP_DIR}"
+    --temp-dir "${TEMP_DIR}"
 
 # --- 4. RECUPERAÇÃO DOS RESULTADOS ---
 # Copia do scratch para o destino final antes que o job encerre
