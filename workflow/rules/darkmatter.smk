@@ -125,8 +125,7 @@ rule palm_annot:
   params:
     seqtype = config["palm_annot"]["seqtype"],
     minscore = config["palm_annot"]["minscore"],
-    minpssmscore = config["palm_annot"]["minpssmscore"],
-    palm_annot_dir = _os.path.join(_PROJECT_ROOT, config["resources"]["palm_annot_dir"][0])
+    minpssmscore = config["palm_annot"]["minpssmscore"]
   conda:
     PALM
   log:
@@ -145,8 +144,6 @@ rule fev2tsv_single:
     fev = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_RdRp.fev")
   output:
     tsv = os.path.join(OUT_DIR, "{sample}", "darkmatter_{tool}", "{sample}_RdRp.tsv")
-  params:
-    palm_annot_dir = _os.path.join(_PROJECT_ROOT, config["resources"]["palm_annot_dir"][0])
   conda:
     PALM
   log:

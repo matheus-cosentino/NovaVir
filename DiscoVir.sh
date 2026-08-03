@@ -110,7 +110,7 @@ help(){
  
  ${ylo}Database Overrides (Define External Databases):${nc}
    --diamond_db <FILE>  Diamond database file (.dmnd).
-   --kraken2_db <DIR>      Kraken2 database directory (Must contain hash.k2d, opts.k2d, taxo.k2d)
+   --kraken2_db <DIR>   Kraken2 database directory (Must contain hash.k2d, opts.k2d, taxo.k2d)
 
  ${ylo}Optional Arguments:${nc}
    -h, --help           Show this help message
@@ -230,8 +230,6 @@ setup_resources(){
             echo -e "${red}[ERROR]${nc} Kraken2 directory not found: $kraken2_db"
             exit 1
         fi
-    fi
-
 
 
 }

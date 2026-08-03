@@ -1,39 +1,96 @@
 #!/bin/bash
-#SBATCH --job-name=DiscoVir
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=4G
-#SBATCH --output=logs_slurm/DiscoVir_%j.out
-#SBATCH --constraint=infiniband
+# Encerra o script se qualquer comando falhar, variável não definida for usada ou se um comando em pipeline falhar
+set -euo pipefail
+
+# --- Configurações do job SLURM ---
+#SBATCH --job-name=DiscoVir                      # Nome do job na fila
+#SBATCH --cpus-per-task=1                        # CPUs do wrapper (o pipeline gerencia seus próprios threads)
+#SBATCH --mem=4G                                 # Memória do wrapper
+#SBATCH --time=7-00:00:00                        # Tempo máximo: 3 dias
+#SBATCH --output=DiscoVir_%j.out                 # Log de saída (%j = ID do job)
 
 echo "
-#####M#A#C#C##2#0#2#5###############I#R#D##&##U#F#R#J#####
-##                                                      ##
-##      ▗▄▄▄ ▗▄▄▄▖ ▗▄▄▖ ▗▄▄▖ ▗▄▖ ▗▖  ▗▖▗▄▄▄▖▗▄▄▄        ##
-##      ▐▌  █  █  ▐▌   ▐▌   ▐▌ ▐▌▐▌  ▐▌  █  ▐▌ ▐▌       ##
-##      ▐▌  █  █   ▝▀▚▖▐▌   ▐▌ ▐▌▐▌  ▐▌  █  ▐▛▀▚▖       ##
-##      ▐▙▄▄▀▗▄█▄▖▗▄▄▞▘▝▚▄▄▖▝▚▄▞▘ ▝▚▞▘ ▗▄█▄▖▐▌ ▐▌       ##
-##                                                      ##
-#####M#A#C#C##2#0#2#5###############I#R#D##&##U#F#R#J#####
+#####M#A#C#C##2#0#2#6###############I#R#D##&##U#F#R#J#####
 ## Name ___________________ DiscoVir.slurm              ##
-## Version ________________ v.2026.03                   ##
+## Version ________________ v.2026.07                   ##
 ## Author _________________ Matheus Cosentino           ##
-## Affiliation ____________ IRD TransVIHMI & UFRJ PGGEN ##
-#####M#A#C#C##2#0#2#5###############I#R#D##&##U#F#R#J#####
+## Affiliation ____________ IRD TransVIHMI & UFRJ LDDV  ##
+#####M#A#C#C##2#0#2#6###############I#R#D##&##U#F#R#J#####
 "
 
-echo "##### DiscoVir SLURM Wrapper - Itrop Model #####"
+echo "##### DiscoVir SLURM Wrapper #####"
+echo "[INFO] Início: $(date)"
 
+# --- Valida argumentos: exige ao menos o diretório de dados ---
+if [[ $# -lt 1 ]]; then
+    echo "[ERROR] Uso: sbatch $(basename "$0") <DATA_DIR> [OUT_DIR]"
+    echo "[ERROR] Exemplo: sbatch slurm_scripts/crab_discovir.slurm /data/meu_projeto /home/user/resultados"
+    exit 1
+fi
+
+# -------- KEEP ---------
+# --- 1. DEFINIÇÃO DE CAMINHOS ---
+
+# Diretório do projeto (de onde o job foi submetido); deve estar no sistema de arquivos compartilhado
+PROJECT_HOME="${SLURM_SUBMIT_DIR}"
+
+# Variáveis dinâmicas (mudam a cada execução)
+DATA_DIR="$1"        # Dados de entrada (1º argumento)
+FINAL_HOME_DIR="${2:- /scratch-ib/$USER/DiscoVir/results_${SLURM_JOB_ID}}"      # Destino final dos resultados (2º argumento, ou padrão)
+
+# Bancos de dados fixos
+DIAMOND_BANK=/share/banks/diamond/nr/21-09/diamond_nr.dmnd     # Banco DIAMOND (proteínas NR do NCBI)
+KRAKEN2_BANK=/share/banks/kraken2/nt/21-09/nt/     # Banco Kraken2 (classificação taxonômica)
+
+# Diretórios no scratch local do nó (I/O rápido durante o processamento)
+SCRATCH_DIR="/scratch-ib/$USER/DiscoVir_$SLURM_JOB_ID"
+TEMP_DIR="/scratch-ib/$USER/temp_DiscoVir_$SLURM_JOB_ID"
+
+mkdir -p "$SCRATCH_DIR" "$TEMP_DIR" "$FINAL_HOME_DIR"
+
+# --- Handler de limpeza (executado automaticamente ao sair) ---
+# Sucesso: remove o scratch. Falha: preserva o scratch para inspeção.
+cleanup() {
+    local exit_code=$?
+    if [[ $exit_code -ne 0 ]]; then
+        echo "[WARN] Job encerrado com código $exit_code. Scratch preservado para inspeção: $SCRATCH_DIR"
+    else
+        echo "[INFO] Limpando scratch..."
+        rm -rf "${SCRATCH_DIR}" "${TEMP_DIR}"
+        echo "[INFO] Scratch limpo com sucesso."
+    fi
+    echo "[INFO] Fim: $(date)"
+}
+trap cleanup EXIT
+
+# --- 2. ATIVAÇÃO DO AMBIENTE ---
+module load miniconda3
+eval "$(conda shell.bash hook)"   # Inicializa o shell para uso do conda
+
+cd "$PROJECT_HOME" || { echo "Error: Could not find $PROJECT_HOME"; exit 1; }
+echo "[INFO] Executando a partir de: $(pwd)"
+echo "[INFO] Dados de entrada:     ${DATA_DIR}"
+echo "[INFO] Processamento em:     ${SCRATCH_DIR}"
+echo "[INFO] Resultados finais em: ${FINAL_HOME_DIR}"
+
+# -------- CHANGE ---------
+# --- 3. EXECUÇÃO DO PIPELINE ---
 bash DiscoVir.sh \
-    --input /home/cosentino/phd/Carollia \
-    --output /scratch-ib/$USER/DiscoVir_Demo \
+    --input "${DATA_DIR}" \
+    --output "${SCRATCH_DIR}" \
     --assembly \
     --diamond \
     --reads-diamond \
     --reads-kraken \
     --kraken2 \
     --darkmatter \
-    --diamond_db /databases/tools/diamond/ncbi-nr.taxonomy.2.1.13.dmnd \
-    --kraken2_db /databases/tools/kraken2/k2_standard_20250714 \
-    --profile profiles/itrop  
+    --diamond_db "${DIAMOND_BANK}" \
+    --kraken2_db "${KRAKEN2_BANK}" \
+    --tempd-dir "${TEMP_DIR}"
 
-echo "[INFO] Done."
+# --- 4. RECUPERAÇÃO DOS RESULTADOS ---
+# Copia do scratch para o destino final antes que o job encerre
+echo "[INFO] Copiando resultados do scratch..."
+rsync -av --progress --checksum "${SCRATCH_DIR}/" "${FINAL_HOME_DIR}/"
+
+echo "[INFO] Concluído. Resultados disponíveis em: ${FINAL_HOME_DIR}"

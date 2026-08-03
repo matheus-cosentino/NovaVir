@@ -93,9 +93,6 @@ resources:
    - "resources/taxonomy"
   basta_db:
     - "resources/basta_db"
-  #palm annot resources
-  palm_annot_dir: 
-    - "resources/palm_annot"
   #logos
   logo_dirs: 
     - "resources/logo/"

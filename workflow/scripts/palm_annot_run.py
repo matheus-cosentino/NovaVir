@@ -5,9 +5,8 @@ import os
 import sys
 
 s = snakemake
-palm_dir_raw = s.params.palm_annot_dir
-# Garante que seja string mesmo se vier como lista do config
-palm_dir = str(palm_dir_raw[0]) if isinstance(palm_dir_raw, list) else str(palm_dir_raw)
+# Discover palm_annot directory dynamically relative to this script
+palm_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "palm_annot")
 log_file = s.log[0]
 
 # --- 0. Check for Empty Input ---
@@ -25,6 +24,11 @@ python_exe = sys.executable
 
 # The script to run is the external PALM script, which we run *using* the Conda Python
 palm_script = os.path.join(palm_dir, "py", "palm_annot.py") 
+
+if not os.path.isfile(palm_script):
+    sys.exit(f"[ERROR] PALM script not found at: {palm_script}\n"
+             f"Please ensure the 'workflow/scripts/palm_annot' directory is fully copied to your working repository.")
+
 
 # --- 2. Construct the Command List ---
 # The command starts with the explicit Python executable
