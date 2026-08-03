@@ -8,6 +8,8 @@ set -euo pipefail
 #SBATCH --mem=4G                                 # Memória do wrapper
 #SBATCH --time=7-00:00:00                        # Tempo máximo: 3 dias
 #SBATCH --output=DiscoVir_%j.out                 # Log de saída (%j = ID do job)
+#SBATCH --constraint=infiniband                 # Log de saída (%j = ID do job)
+
 
 echo "
 #####M#A#C#C##2#0#2#6###############I#R#D##&##U#F#R#J#####
@@ -36,7 +38,7 @@ PROJECT_HOME="${SLURM_SUBMIT_DIR}"
 
 # Variáveis dinâmicas (mudam a cada execução)
 DATA_DIR="$1"        # Dados de entrada (1º argumento)
-FINAL_HOME_DIR="${2:- /scratch-ib/$USER/DiscoVir/results_${SLURM_JOB_ID}}"      # Destino final dos resultados (2º argumento, ou padrão)
+FINAL_HOME_DIR="${2:-/scratch-ib/$USER/DiscoVir/results_${SLURM_JOB_ID}}"      # Destino final dos resultados (2º argumento, ou padrão)
 
 # Bancos de dados fixos
 DIAMOND_BANK=/share/banks/diamond/nr/21-09/diamond_nr.dmnd     # Banco DIAMOND (proteínas NR do NCBI)
