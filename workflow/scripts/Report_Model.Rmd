@@ -817,7 +817,7 @@ Validation within the **Blastn* (https://blast.ncbi.nlm.nih.gov/Blast.cgi) to co
 
 To mitigate the risk of **false positives** arising from misidentified **Host Protein Models**, subsequent analysis employed the **Phyre2** server. Phyre2 was used to perform **homology modeling and remote structural homology detection** on the translations of the VDM contigs. Any contigs showing high confidence structural similarity (e.g., >90% confidence score) to known cellular/host proteins must be **disconsered**.
 
-* **Tool:** Phyre2 (sbg.bio.ic.ac.uk/phyre2/)
+* **Tool:** Phyre2 (https://www.sbg.bio.ic.ac.uk/phyre2)
 * **Purpose:** Exclusion of **Host Proteins**.
 
 
