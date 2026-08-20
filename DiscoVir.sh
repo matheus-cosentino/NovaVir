@@ -456,7 +456,17 @@ SNAKEFILE="$PROJECT_DIR/workflow/Snakefile"
 echo -e "${blu}[INFO]${nc} Shadow directory  set to: ${ylo}$SHADOW_DIR${nc}"
 echo -e "${blu}[INFO]${nc} Tool temp dir     set to: ${ylo}$temp_dir${nc}"
 echo -e "${blu}[INFO]${nc} Scratch workdir   set to: ${ylo}$snakemake_workdir${nc}"
-echo -e "${blu}[INFO]${nc} Profile           set to: ${ylo}$profile${nc}"
+# Resolve absolute profile path for Snakemake 8.0+
+if [[ -d "$PROJECT_DIR/profiles/$profile" ]]; then
+    SNAKEMAKE_PROFILE="$PROJECT_DIR/profiles/$profile"
+elif [[ -d "$profile" ]]; then
+    SNAKEMAKE_PROFILE="$profile"
+else
+    echo -e "${red}[ERROR]${nc} Profile directory not found: $profile"
+    exit 1
+fi
+
+echo -e "${blu}[INFO]${nc} Profile           set to: ${ylo}$SNAKEMAKE_PROFILE${nc}"
 echo -e "${blu}[INFO]${nc} Snakefile         set to: ${ylo}$SNAKEFILE${nc}"
 
 # configfile: no Snakefile usa caminho absoluto (via workflow.snakefile), por isso
@@ -464,24 +474,24 @@ echo -e "${blu}[INFO]${nc} Snakefile         set to: ${ylo}$SNAKEFILE${nc}"
 # Os jobs SLURM rodarão a partir do scratch (snakemake_workdir) em vez do home/NFS.
 
 echo -e "\n${green}> Snakemake: Unlocking working directory...${nc}"
-snakemake --profile "$profile" --snakefile "$SNAKEFILE" \
+snakemake --profile "$SNAKEMAKE_PROFILE" --snakefile "$SNAKEFILE" \
     --directory "$snakemake_workdir" \
     --configfile "$main_config" "$run_overrides" --unlock --quiet
 
 echo -e "\n${green}> Snakemake: Creating conda environments (if needed)...${nc}"
-snakemake --profile "$profile" --snakefile "$SNAKEFILE" \
+snakemake --profile "$SNAKEMAKE_PROFILE" --snakefile "$SNAKEFILE" \
     --directory "$snakemake_workdir" \
     --configfile "$main_config" "$run_overrides" --use-conda --conda-create-envs-only --quiet
 
 echo -e "\n${green}> Snakemake: Performing a dry-run...${nc}"
-snakemake --profile "$profile" --snakefile "$SNAKEFILE" \
+snakemake --profile "$SNAKEMAKE_PROFILE" --snakefile "$SNAKEFILE" \
     --directory "$snakemake_workdir" \
     --jobs $jobs --use-conda --configfile "$main_config" "$run_overrides" --dry-run
 echo "---------------------------------------------------"
 
 echo -e "\n${green}> Snakemake: Starting main execution...${nc}"
 
-snakemake --profile "$profile" \
+snakemake --profile "$SNAKEMAKE_PROFILE" \
     --snakefile "$SNAKEFILE" \
     --directory "$snakemake_workdir" \
     --jobs $jobs \
@@ -493,7 +503,7 @@ snakemake --profile "$profile" \
 
 echo -e "\n${green}> Snakemake: Creating DAG & Report...${nc}"
 
-snakemake --report --profile "$profile" \
+snakemake --report --profile "$SNAKEMAKE_PROFILE" \
     --snakefile "$SNAKEFILE" \
     --directory "$snakemake_workdir" \
     --jobs $jobs \
