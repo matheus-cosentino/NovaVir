@@ -176,11 +176,13 @@ rule diamond_blastx_reads:
     echo "[INFO] Using Temporary Directory: $DIAMOND_TMP"
     
     # Diamond supports a maximum of 2 query files in blastx mode, so we concatenate the inputs.
+    # To avoid issues with concatenated gzip streams (multiple members), we decompress them on the fly.
     QUERY_FILE="$DIAMOND_TMP/merged_queries.fastq"
     if [[ "{input.r1}" == *.gz ]]; then
-        QUERY_FILE="$QUERY_FILE.gz"
+        gzip -cd {input.r1} {input.r2} {input.extra} > "$QUERY_FILE"
+    else
+        cat {input.r1} {input.r2} {input.extra} > "$QUERY_FILE"
     fi
-    cat {input.r1} {input.r2} {input.extra} > "$QUERY_FILE"
     
     diamond blastx \
       --query "$QUERY_FILE" \
