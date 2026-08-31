@@ -8,6 +8,11 @@ raw_data/
 resources/database/
 resources/megan/
 resources/taxonomy/
+resources/krona/
+resources/rvdb/
+resources/diamond/
+resources/kraken2/
+db/
 
 # Ignore data directory
 data/contigs/

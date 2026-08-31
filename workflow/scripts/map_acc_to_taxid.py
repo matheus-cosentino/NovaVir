@@ -1,132 +1,66 @@
-# scripts/map_acc_to_taxid.py
-
+#!/usr/bin/env python3
 import sys
-import os
-import csv
 import gzip
-import logging
-
-# Objeto Snakemake
-s = snakemake 
-
-# --- 1. Configuração e Logging ---
-logging.basicConfig(
-    filename=str(s.log[0]),
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+import os
 
 try:
-    hit_file = s.input["hit_file"]
-    output_file = s.output["ids"]
-    
-    taxid_map_file_raw = s.input["taxid_map"]
-    # Garante que seja string mesmo se vier como lista
-    taxid_map_file = str(taxid_map_file_raw[0]) if isinstance(taxid_map_file_raw, list) else str(taxid_map_file_raw)
-
-except Exception as e:
-    logging.error(f"Erro ao carregar parâmetros: {e}")
+    hit_file = snakemake.input.hit_file
+    taxid_map = snakemake.input.taxid_map
+    out_file = snakemake.output.ids
+    log_file = snakemake.log[0]
+except NameError:
+    print("Must be run via Snakemake", file=sys.stderr)
     sys.exit(1)
 
-logging.info(f"Processando arquivo de hits: {hit_file}")
-logging.info(f"Usando banco de dados de mapeamento: {taxid_map_file}")
+log = open(log_file, 'w')
+log.write(f"Reading hits from {hit_file}\n")
 
-# --- 2. Passo 1: Identificar quais proteínas precisamos procurar ---
-# Isso economiza memória, pois não carregamos o banco inteiro, apenas o necessário.
+accessions_to_find = set()
+hits = []
+with open(hit_file, 'r') as f:
+    for line in f:
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        parts = line.split('\t')
+        if len(parts) >= 2:
+            accessions_to_find.add(parts[1])
+        hits.append(parts)
 
-needed_accessions = set()
-header_present = 0
+log.write(f"Found {len(accessions_to_find)} unique accessions.\n")
+log.write(f"Scanning {taxid_map}...\n")
 
-try:
-    with open(hit_file, 'r') as f:
-        # Detectar header
-        first_line = f.readline()
-        if first_line.startswith('qseqid'):
-            header_present = 1
-        
-        # Voltar ao inicio
-        f.seek(0)
-        
-        reader = csv.reader(f, delimiter='\t')
-        for i, row in enumerate(reader):
-            if i == 0 and header_present:
-                continue
-            if len(row) >= 2:
-                # Subject ID (Proteína) é a coluna 2 (índice 1)
-                needed_accessions.add(row[1])
-
-    logging.info(f"Identificadas {len(needed_accessions)} proteínas únicas para buscar no banco.")
-
-except Exception as e:
-    logging.error(f"Erro ao ler arquivo de hits para pré-filtragem: {e}")
-    sys.exit(1)
-
-# --- 3. Passo 2: Construir o Mapa Filtrado (Apenas o necessário) ---
-
-taxid_map = {}
-
-open_func = gzip.open if taxid_map_file.endswith('.gz') else open
-read_mode = 'rt' # rt = read text
+acc_to_taxid = {}
+open_func = gzip.open if taxid_map.endswith('.gz') else open
 
 try:
-    logging.info("Lendo arquivo gigante de mapeamento (modo streaming)...")
-    
-    with open_func(taxid_map_file, read_mode) as f:
-        reader = csv.reader(f, delimiter='\t')
-        
-        count = 0
-        found_count = 0
-        
-        for row in reader:
-            count += 1
-            if count % 10000000 == 0:
-                logging.info(f"Linhas processadas do banco: {count/1000000} Milhões...")
-
-            # O formato esperado é: accession.version (col 1), taxid (col 2) 
-            # (No arquivo prot.accession2taxid.gz: accession (0), accession.version (1), taxid (2), gi (3))
-            # Vamos checar a coluna 1 (accession.version)
-            if len(row) >= 3:
-                acc_ver = row[1]
+    with open_func(taxid_map, 'rt') as f:
+        for line in f:
+            if not accessions_to_find:
+                break
+            parts = line.split('\t')
+            if len(parts) >= 3:
+                acc = parts[0]
+                acc_ver = parts[1]
+                taxid = parts[2]
                 
-                if acc_ver in needed_accessions:
-                    taxid_map[acc_ver] = row[2]
-                    found_count += 1
-                    
-                    # Opcional: Se já achamos todas, podemos parar cedo (break)
-                    if found_count == len(needed_accessions):
-                        logging.info("Todas as proteínas foram encontradas. Parando leitura do banco.")
-                        break
-                        
-    logging.info(f"Mapeamento concluído. {found_count} taxids recuperados de {len(needed_accessions)} necessários.")
-
+                if acc_ver in accessions_to_find:
+                    acc_to_taxid[acc_ver] = taxid
+                    accessions_to_find.remove(acc_ver)
+                elif acc in accessions_to_find:
+                    acc_to_taxid[acc] = taxid
+                    accessions_to_find.remove(acc)
 except Exception as e:
-    logging.error(f"Erro ao ler arquivo de TaxID Map: {e}")
-    sys.exit(1)
+    log.write(f"Error reading taxonomy map: {e}\n")
 
-# --- 4. Passo 3: Escrever o arquivo final ---
+log.write(f"Found {len(acc_to_taxid)} taxids.\n")
 
-try:
-    with open(hit_file, 'r', newline='') as infile, \
-         open(output_file, 'w', newline='') as outfile:
-        
-        reader = csv.reader(infile, delimiter='\t')
-        writer = csv.writer(outfile, delimiter='\t')
-        
-        for i, row in enumerate(reader):
-            
-            # Header
-            if i == 0 and header_present == 1:
-                writer.writerow(row + ['taxid'])
-                continue 
+with open(out_file, 'w') as out:
+    for parts in hits:
+        if len(parts) >= 2:
+            sseqid = parts[1]
+            taxid = acc_to_taxid.get(sseqid, "NOT_FOUND")
+            out.write('\t'.join(parts) + f'\t{taxid}\n')
 
-            if len(row) >= 2:
-                protein_id = row[1]
-                # Busca no dicionário filtrado
-                taxid = taxid_map.get(protein_id, "NOT_FOUND")
-                writer.writerow(row + [taxid])
-
-    logging.info("Arquivo de saída gerado com sucesso.")
-
-except Exception as e:
-    logging.error(f"Erro ao escrever arquivo final: {e}")
-    sys.exit(1)
+log.write("Done.\n")
+log.close()

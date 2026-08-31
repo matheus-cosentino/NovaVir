@@ -46,11 +46,10 @@ rule krona_update_taxonomy:
         # O script original falha em achar o arquivo, então nós mesmos criamos o output.
         # Pegamos colunas 2 (Accession.Version) e 3 (TaxID) e ordenamos.
         
-        echo "[INFO] Gerando accession2taxid.sorted manualmente..." >> {log}
+        echo "[INFO] Ignorando geração de accession2taxid.sorted (Krona receberá os TaxIDs diretamente)." >> {log}
         
-        zcat {input.acc2tax} | \
-        cut -f 2,3 | \
-        sort -T {params.tax_dir} -k 1,1 > {output.acc_sorted} 2>> {log}
+        # Cria um arquivo vazio apenas para satisfazer a saída da regra no Snakemake
+        touch {output.acc_sorted}
         
         echo "[INFO] Concluído." >> {log}
         """

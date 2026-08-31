@@ -14,7 +14,7 @@ def main():
         output_json = snakemake.output.json
         output_tsv = snakemake.output.tsv
         sample_name = snakemake.wildcards.sample
-        tool_name = snakemake.wildcards.tool
+        tool_name = getattr(snakemake.wildcards, 'tool', 'reads')
         log_file = snakemake.log[0]
     except NameError:
         print("ERROR: This script is designed to be run via Snakemake.", file=sys.stderr)
