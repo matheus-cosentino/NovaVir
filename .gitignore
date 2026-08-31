@@ -39,5 +39,6 @@ workflow/scripts/__pycache__/*
 
 #sobreescritor de run
 run_overrides.yaml
+.snakemake-workflow.yaml
 
 
