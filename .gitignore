@@ -26,9 +26,9 @@ data/
 paper/
 #ignore slurm tests#
 slurm_scripts/*
-slurm_scripts/crab_discovir.slurm
-slurm_scripts/itro_discovir.slurm
-slurm_scripts/crab_discovir.slurm
+slurm_scripts/crab_novavir.slurm
+slurm_scripts/itro_novavir.slurm
+slurm_scripts/crab_novavir.slurm
 
 # Python cache
 workflow/scripts/__pycache__/*

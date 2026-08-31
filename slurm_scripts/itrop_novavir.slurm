@@ -3,28 +3,30 @@
 set -euo pipefail
 
 # --- Configurações do job SLURM ---
-#SBATCH --job-name=DiscoVir                      # Nome do job na fila
+#SBATCH --job-name=NovaVir                      # Nome do job na fila
 #SBATCH --cpus-per-task=1                        # CPUs do wrapper (o pipeline gerencia seus próprios threads)
 #SBATCH --mem=4G                                 # Memória do wrapper
-#SBATCH --time=3-00:00:00                        # Tempo máximo: 3 dias
-#SBATCH --output=DiscoVir_%j.out                 # Log de saída (%j = ID do job)
+#SBATCH --time=7-00:00:00                        # Tempo máximo: 3 dias
+#SBATCH --output=NovaVir_%j.out                 # Log de saída (%j = ID do job)
+#SBATCH --constraint=infiniband                 # Log de saída (%j = ID do job)
+
 
 echo "
 #####M#A#C#C##2#0#2#6###############I#R#D##&##U#F#R#J#####
-## Name ___________________ DiscoVir.slurm              ##
+## Name ___________________ NovaVir.slurm              ##
 ## Version ________________ v.2026.07                   ##
 ## Author _________________ Matheus Cosentino           ##
 ## Affiliation ____________ IRD TransVIHMI & UFRJ LDDV  ##
 #####M#A#C#C##2#0#2#6###############I#R#D##&##U#F#R#J#####
 "
 
-echo "##### DiscoVir SLURM Wrapper #####"
+echo "##### NovaVir SLURM Wrapper #####"
 echo "[INFO] Início: $(date)"
 
 # --- Valida argumentos: exige ao menos o diretório de dados ---
 if [[ $# -lt 1 ]]; then
     echo "[ERROR] Uso: sbatch $(basename "$0") <DATA_DIR> [OUT_DIR]"
-    echo "[ERROR] Exemplo: sbatch slurm_scripts/crab_discovir.slurm /data/meu_projeto /home/user/resultados"
+    echo "[ERROR] Exemplo: sbatch slurm_scripts/crab_novavir.slurm /data/meu_projeto /home/user/resultados"
     exit 1
 fi
 
@@ -36,15 +38,15 @@ PROJECT_HOME="${SLURM_SUBMIT_DIR}"
 
 # Variáveis dinâmicas (mudam a cada execução)
 DATA_DIR="$1"        # Dados de entrada (1º argumento)
-FINAL_HOME_DIR="${2:-/data04/projects04/MarceloSoares/viromapn/results/DiscoVir/results_${SLURM_JOB_ID}}"      # Destino final dos resultados (2º argumento, ou padrão)
+FINAL_HOME_DIR="${2:-/scratch-ib/$USER/NovaVir/results_${SLURM_JOB_ID}}"      # Destino final dos resultados (2º argumento, ou padrão)
 
 # Bancos de dados fixos
-DIAMOND_BANK=/data03/databases/sources/ncbi/blast/dbV5/nr    # Banco DIAMOND (proteínas NR do NCBI)
-KRAKEN2_BANK=/data04/databases/sources/KRAKEN2_DB/PlusPF     # Banco Kraken2 (classificação taxonômica)
+DIAMOND_BANK=/share/banks/diamond/nr/21-09/diamond_nr.dmnd     # Banco DIAMOND (proteínas NR do NCBI)
+KRAKEN2_BANK=/share/banks/kraken2/nt/21-09/nt/     # Banco Kraken2 (classificação taxonômica)
 
 # Diretórios no scratch local do nó (I/O rápido durante o processamento)
-SCRATCH_DIR="/scratch/USERS/$USER/DiscoVir_$SLURM_JOB_ID"
-TEMP_DIR="/scratch/USERS/$USER/temp_DiscoVir_$SLURM_JOB_ID"
+SCRATCH_DIR="/scratch-ib/$USER/NovaVir_$SLURM_JOB_ID"
+TEMP_DIR="/scratch-ib/$USER/temp_NovaVir_$SLURM_JOB_ID"
 
 mkdir -p "$SCRATCH_DIR" "$TEMP_DIR" "$FINAL_HOME_DIR"
 
@@ -64,6 +66,7 @@ cleanup() {
 trap cleanup EXIT
 
 # --- 2. ATIVAÇÃO DO AMBIENTE ---
+module load bioinfo-itrop
 module load miniconda3
 eval "$(conda shell.bash hook)"   # Inicializa o shell para uso do conda
 
@@ -75,7 +78,7 @@ echo "[INFO] Resultados finais em: ${FINAL_HOME_DIR}"
 
 # -------- CHANGE ---------
 # --- 3. EXECUÇÃO DO PIPELINE ---
-bash DiscoVir.sh \
+bash NovaVir.sh \
     --input "${DATA_DIR}" \
     --output "${SCRATCH_DIR}" \
     --assembly \
@@ -86,11 +89,12 @@ bash DiscoVir.sh \
     --darkmatter \
     --diamond_db "${DIAMOND_BANK}" \
     --kraken2_db "${KRAKEN2_BANK}" \
-    --tempd-dir "${TEMP_DIR}"
+    --temp-dir "${TEMP_DIR}"  --profile profiles/profile_slurm/
 
 # --- 4. RECUPERAÇÃO DOS RESULTADOS ---
 # Copia do scratch para o destino final antes que o job encerre
 echo "[INFO] Copiando resultados do scratch..."
 rsync -av --progress --checksum "${SCRATCH_DIR}/" "${FINAL_HOME_DIR}/"
 
+module purge
 echo "[INFO] Concluído. Resultados disponíveis em: ${FINAL_HOME_DIR}"

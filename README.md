@@ -1,15 +1,15 @@
-# DiscoVir: Reproducible Viral Discovery Pipeline
+# NovaVir: Reproducible Viral Discovery Pipeline
 
 [![Snakemake](https://img.shields.io/badge/snakemake-≥9.0.0-brightgreen.svg)](https://snakemake.readthedocs.io)
-[![Conda-Env](https://img.shields.io/badge/conda-env-green.svg)](workflow/envs/DiscoVir.yaml)
+[![Conda-Env](https://img.shields.io/badge/conda-env-green.svg)](workflow/envs/NovaVir.yaml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-yellow.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 <p align="center">
-  <img src="resources/logo/DiscoVir_Logo.png" width="300" alt="DiscoVir Logo">
+  <img src="resources/logo/NovaVir_Logo.png" width="300" alt="NovaVir Logo">
 </p>
 
 > [!TIP]
-> **New to DiscoVir?** Start with our **[🚀 Local Usage & 1st Time Setup](docs/local_use.md)** to quickly set up Conda, testing databases, and run the pipeline locally.
+> **New to NovaVir?** Start with our **[🚀 Local Usage & 1st Time Setup](docs/local_use.md)** to quickly set up Conda, testing databases, and run the pipeline locally.
 
 ---
 
@@ -29,7 +29,7 @@
 
 ## Introduction
 
-DiscoVir is a comprehensive and scalable Snakemake workflow for the detection of novel viruses within High-Throughput Sequencing (HTS) data. The pipeline is designed to work with both short-read (Illumina) and long-read (Nanopore/PacBio) metagenomic and transcriptomic data.
+NovaVir is a comprehensive and scalable Snakemake workflow for the detection of novel viruses within High-Throughput Sequencing (HTS) data. The pipeline is designed to work with both short-read (Illumina) and long-read (Nanopore/PacBio) metagenomic and transcriptomic data.
 
 ## Pipeline Presentation
 
@@ -69,34 +69,34 @@ Database download and formatting (e.g. Kraken2 and Diamond NR) is required befor
 Please see our **[Launching Tutorial (1st Time)](docs/launching_tutorial_1st_time.md)** for detailed instructions on where to get these and how to format them.
 
 ## Installation
-The `DiscoVir.sh` script is responsible for managing the run, automatically downloading and creating the necessary Conda environments, as well as managing Conda versions for the pipeline to work.
+The `NovaVir.sh` script is responsible for managing the run, automatically downloading and creating the necessary Conda environments, as well as managing Conda versions for the pipeline to work.
 
 ### Reproducibility with Conda
-DiscoVir uses Snakemake’s native Conda integration through `--use-conda`. This means that users do not need to manually install the required tools. The workflow automatically creates and uses the exact software environments defined in [workflow/envs](workflow/envs) for each analysis module, ensuring that results are reproducible across different machines and remain consistent even when system-wide software changes.
+NovaVir uses Snakemake’s native Conda integration through `--use-conda`. This means that users do not need to manually install the required tools. The workflow automatically creates and uses the exact software environments defined in [workflow/envs](workflow/envs) for each analysis module, ensuring that results are reproducible across different machines and remain consistent even when system-wide software changes.
 
 1.  **Clone the repository:**
 
 ```bash
- git clone https://github.com/matheus-cosentino/discovir.git
- cd discovir
+ git clone https://github.com/matheus-cosentino/novavir.git
+ cd novavir
 ```
 
 2. **Verify installation:**
 
 ```shell
- bash DiscoVir.sh --help 
+ bash NovaVir.sh --help 
 ```
 
 The following must appear on your screen:
 
  ```yaml
- DiscoVir: Viral Metagenomics & 'Dark Matter' Discovery
+ NovaVir: Viral Metagenomics & 'Dark Matter' Discovery
 
  Author: MSc. Matheus Cosentino 
- Version: 03.2026
+ Version: 09.2026
 
  Usage:
-  bash DiscoVir.sh --input <DIR> --output <DIR> [OPTIONS]
+  bash NovaVir.sh --input <DIR> --output <DIR> [OPTIONS]
 
  Required Arguments:
    --input: <DIR>        Directory containing raw reads (.fastq.gz) or contigs (.fasta)
@@ -131,7 +131,7 @@ The following must appear on your screen:
 
 To make it easier to navigate, we have divided the instructions into specific tutorials based on your usage:
 
-- **[Local Usage & 1st Time Setup](docs/local_use.md)**: Start here! Learn how to install Conda, prepare lightweight test databases, and run DiscoVir on your local machine.
+- **[Local Usage & 1st Time Setup](docs/local_use.md)**: Start here! Learn how to install Conda, prepare lightweight test databases, and run NovaVir on your local machine.
 - **[Full Databases Setup](docs/full_databases_setup.md)**: Instructions on how to download and properly format the full massive production databases for Kraken2 and Diamond (NR).
 - **[HPC (Slurm) Usage Guide](docs/hpc_use.md)**: Instructions for running the pipeline on an HPC cluster using the Slurm executor.
 - **[Advanced Configuration Tutorial](docs/advanced_tutorial.md)**: Practical guidance on assembler selection, SPAdes tuning, and long-read assembly choices.

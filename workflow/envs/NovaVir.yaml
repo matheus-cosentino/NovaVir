@@ -1,4 +1,4 @@
-name: DiscoVir
+name: NovaVir
 channels:
   - conda-forge
   - bioconda

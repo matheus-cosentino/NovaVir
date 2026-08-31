@@ -1,10 +1,10 @@
-# DiscoVir: First Time Local Usage
+# NovaVir: First Time Local Usage
 
-This document guides you through the initial setup required to run DiscoVir on your local machine, including installing Conda, preparing testing databases, and executing the pipeline.
+This document guides you through the initial setup required to run NovaVir on your local machine, including installing Conda, preparing testing databases, and executing the pipeline.
 
 ## 1. Getting Conda
 
-DiscoVir heavily relies on Conda for dependency management, ensuring reproducibility across environments. The pipeline uses Snakemake's native `--use-conda` flag to automatically create environments for each tool.
+NovaVir heavily relies on Conda for dependency management, ensuring reproducibility across environments. The pipeline uses Snakemake's native `--use-conda` flag to automatically create environments for each tool.
 
 If you don't have Conda installed, we recommend installing **Miniforge** (which uses conda-forge as the default channel and is free for all usage):
 1. Visit the [Miniforge GitHub repository](https://github.com/conda-forge/miniforge).
@@ -60,9 +60,9 @@ cd ../../
 
 ---
 
-## 3. Running DiscoVir Locally
+## 3. Running NovaVir Locally
 
-Once your databases are prepared, you can launch the pipeline on your local machine. DiscoVir uses Snakemake profiles to manage resources. For local execution, we use the `profiles/local` profile.
+Once your databases are prepared, you can launch the pipeline on your local machine. NovaVir uses Snakemake profiles to manage resources. For local execution, we use the `profiles/local` profile.
 
 ### Step 3.1: Prepare Your Input Directory
 
@@ -77,14 +77,14 @@ cp sample1_R2.fastq.gz my_project/raw_reads/
 
 ### Step 3.2: Execute the Pipeline
 
-Run the `DiscoVir.sh` script, pointing it to your local profile, your input directory, and the test databases you just created.
+Run the `NovaVir.sh` script, pointing it to your local profile, your input directory, and the test databases you just created.
 
 ```bash
-# Return to the DiscoVir repository root directory
-cd /path/to/discovir
+# Return to the NovaVir repository root directory
+cd /path/to/novavir
 
 # Run the pipeline locally
-bash DiscoVir.sh \
+bash NovaVir.sh \
     --input ../my_project/raw_reads \
     --output ../my_project/results \
     --profile profiles/local \

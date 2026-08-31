@@ -1,6 +1,6 @@
-# Configuration Guide — DiscoVir
+# Configuration Guide — NovaVir
 
-DiscoVir is a modular Snakemake pipeline for viral discovery and metatranscriptomic analysis.
+NovaVir is a modular Snakemake pipeline for viral discovery and metatranscriptomic analysis.
 All parameters are defined in `config/config.yaml`.
 
 ---
@@ -21,10 +21,10 @@ snakemake --configfile config/config.yaml --sdm conda --cores 8
 |---|---|---|
 | `output_dir` | `results` | Directory where all output files will be written |
 | `data_dir` | `data` | Directory containing input FASTQ files (local samples) |
-| `workdir` | `discovir` | Snakemake working directory. On HPC, point to a fast scratch path (e.g. `/scratch/$USER`) |
+| `workdir` | `novavir` | Snakemake working directory. On HPC, point to a fast scratch path (e.g. `/scratch/$USER`) |
 | `sample_list` | `accessions.txt` | Path to a plain text file with one sample name or SRA accession per line |
 
-> **Tip**: SRA accessions (e.g. `SRR123456`) are automatically downloaded by DiscoVir.
+> **Tip**: SRA accessions (e.g. `SRR123456`) are automatically downloaded by NovaVir.
 > Local samples must already be in `data_dir` following the pattern `{sample}_R1.fastq.gz` / `{sample}_R2.fastq.gz`.
 
 ---

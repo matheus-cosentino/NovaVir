@@ -1,6 +1,6 @@
 # Full Databases (For Production)
 
-For deep taxonomic classification and real viral discovery, you will need the full databases. Due to their large size, they are not bundled with DiscoVir and must be downloaded and prepared beforehand. If you are on an HPC cluster, check with your administrators as these databases might already be available.
+For deep taxonomic classification and real viral discovery, you will need the full databases. Due to their large size, they are not bundled with NovaVir and must be downloaded and prepared beforehand. If you are on an HPC cluster, check with your administrators as these databases might already be available.
 
 You will need:
 1. **Kraken2 Database**: Can be downloaded from the [Kraken2 AWS Indexes](https://benlangmead.github.io/aws-indexes/k2). We recommend the "Standard" or "PlusPFP" database depending on your available memory (Standard requires ~50GB RAM, PlusPFP requires ~80GB RAM).
@@ -53,4 +53,4 @@ diamond makedb \
     --threads 8
 ```
 
-This will output a compiled database file named `nr.dmnd`, which you will pass to DiscoVir using the `--diamond_db` flag.
+This will output a compiled database file named `nr.dmnd`, which you will pass to NovaVir using the `--diamond_db` flag.
