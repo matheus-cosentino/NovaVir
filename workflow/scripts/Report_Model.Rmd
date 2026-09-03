@@ -35,11 +35,15 @@ Reproducibility of analysis and report are ensured by the NovaVir pipeline (http
 ```{r functions-local, message=FALSE, warning=FALSE, echo = FALSE}
 summarize_dnabin_lengths <- function(dnabin_object, object_label) {
   if (!is.list(dnabin_object) || length(dnabin_object) == 0) {
-    return(data.frame(Metric = c("N Sequences", "Total Bases (Mb)", "Mean Len.", "Median Len.",
-                                 "Std. Dev.", "Min Len.", "Max Len.", "Q1 (25%)", "Q3 (75%)"),
-                      Value = NA,
-                      row.names = NULL) %>%
-             rename(!!object_label := Value))
+    return(data.frame(
+      Metric = c(
+        "N Sequences", "Total Bases (Mb)", "Mean Len.", "Median Len.",
+        "Std. Dev.", "Min Len.", "Max Len.", "Q1 (25%)", "Q3 (75%)"
+      ),
+      Value = NA,
+      row.names = NULL
+    ) %>%
+      rename(!!object_label := Value))
   }
 
   sequence_lengths <- sapply(dnabin_object, length)
@@ -48,23 +52,25 @@ summarize_dnabin_lengths <- function(dnabin_object, object_label) {
   quantiles <- quantile(sequence_lengths, probs = c(0.25, 0.50, 0.75))
 
   # Define os formatos desejados (são todos strings, exceto o float)
-  format_int <- "%d" 
+  format_int <- "%d"
   format_float <- "%.3f"
   format_mb <- "%.2f"
 
   summary_df <- data.frame(
-    Metric = c("N Sequences", "Total Bases (Mb)", "Mean Len.", "Median Len.",
-               "Std. Dev.", "Min Len.", "Max Len.", "Q1 (25%)", "Q3 (75%)"),
+    Metric = c(
+      "N Sequences", "Total Bases (Mb)", "Mean Len.", "Median Len.",
+      "Std. Dev.", "Min Len.", "Max Len.", "Q1 (25%)", "Q3 (75%)"
+    ),
     Value = c(
       # Valores que devem ser inteiros: usamos format_int
       sprintf(format_int, length(sequence_lengths)),
       # Total Bases (2 casas decimais): usamos format_mb
-      sprintf(format_mb, sum(sequence_lengths) / 1000000), 
+      sprintf(format_mb, sum(sequence_lengths) / 1000000),
       # Média e Mediana (inteiros): usamos format_int
-      sprintf(format_int, round(summary_stats["Mean"])), 
+      sprintf(format_int, round(summary_stats["Mean"])),
       sprintf(format_int, round(summary_stats["Median"])),
       # Desvio Padrão (3 casas decimais): usamos format_float
-      sprintf(format_float, stdev), 
+      sprintf(format_float, stdev),
       # Min, Max, Quartis (inteiros): usamos format_int
       sprintf(format_int, round(summary_stats["Min."])),
       sprintf(format_int, round(summary_stats["Max."])),
@@ -78,26 +84,24 @@ summarize_dnabin_lengths <- function(dnabin_object, object_label) {
 }
 
 
-
 create_and_plot_frequency_chart <- function(data_subset, column_name, kingdom_label) {
-  
   # Contagem e ordenação dos dados: os dados são ordenados de forma decrescente para que o gráfico destaque as categorias mais frequentes no topo.
   data_summary <- data_subset %>%
     count(.data[[column_name]], name = "Freq") %>%
     arrange(desc(Freq)) %>%
     rename(Entry = 1)
-  
+
   # Títulos dinâmicos
   main_title <- paste("Diversity of", column_name)
   # subtitle <- paste("Reino (Kingdom):", kingdom_label)
-  
+
   # Gerar o gráfico
   # A função 'coord_flip()' é utilizada para girar o gráfico, tornando-o horizontal. Isso melhora drasticamente a legibilidade dos longos nomes de Phylums e Families.
   p <- ggplot(data_summary, aes(x = reorder(Entry, Freq), y = Freq, fill = Entry)) +
     geom_bar(stat = "identity") +
     # 'hjust = -0.1' posiciona o rótulo de texto ligeiramente à direita da barra, melhorando a estética do gráfico horizontal.
     geom_text(aes(label = scales::comma(Freq)), hjust = -0.2, size = 4) +
-    scale_y_continuous(labels = scales::comma) + 
+    scale_y_continuous(labels = scales::comma) +
     coord_flip() +
     labs(
       title = main_title,
@@ -110,76 +114,93 @@ create_and_plot_frequency_chart <- function(data_subset, column_name, kingdom_la
     theme(
       legend.position = "none"
     )
-  
-  #print(p)
+
+  # print(p)
 }
 
-PlotPP <- function(ps){
+PlotPP <- function(ps) {
   # Bind Local Variables
   segstrt <- segend <- segment <- NULL
-  
+
   # plot variables
   pp.col <- c("red", "gray50", "green", "gray50", "blue")
-  vbump = 0.85
-  
+  vbump <- 0.85
+
   # motif variables
   # length
   mA <- 11
   mB <- 14
   mC <- 7
-  
+
   # Segment coordinates
   ## Query
-  ps.query <- data.frame( segment = c("query"),
-                          segstrt = 1,
-                          segend = ps$qlen)
-  
+  ps.query <- data.frame(
+    segment = c("query"),
+    segstrt = 1,
+    segend = ps$qlen
+  )
+
   ## Palmprint
   # note this uses a mixture of 1- and 0-base such that
   # motif coordinates are correct 0-base and plotting works
   # in ggplot
-  ps.pp <- data.frame(segment = c("A", "v1", "B", "v2", "C"),
-                         segstrt = c(ps$pp_start,
-                                     ps$pp_start + mA,
-                                     ps$pp_start + mA + ps$v1_length + 1,
-                                     ps$pp_start + mA + ps$v1_length + mB,
-                                     ps$pp_start + mA + ps$v1_length + mB + ps$v2_length + 1),
-                         segend = c(ps$pp_start + mA,
-                                     ps$pp_start + mA + ps$v1_length + 1,
-                                     ps$pp_start + mA + ps$v1_length + mB,
-                                     ps$pp_start + mA + ps$v1_length + mB + ps$v2_length + 1,
-                                     ps$pp_end))
-  
+  ps.pp <- data.frame(
+    segment = c("A", "v1", "B", "v2", "C"),
+    segstrt = c(
+      ps$pp_start,
+      ps$pp_start + mA,
+      ps$pp_start + mA + ps$v1_length + 1,
+      ps$pp_start + mA + ps$v1_length + mB,
+      ps$pp_start + mA + ps$v1_length + mB + ps$v2_length + 1
+    ),
+    segend = c(
+      ps$pp_start + mA,
+      ps$pp_start + mA + ps$v1_length + 1,
+      ps$pp_start + mA + ps$v1_length + mB,
+      ps$pp_start + mA + ps$v1_length + mB + ps$v2_length + 1,
+      ps$pp_end
+    )
+  )
+
   ppPlot <- ggplot() +
     # Draw Query diagram
-    geom_segment(data = ps.query,
-                 aes(x = segstrt, xend = segend, y = 0, yend = 0),
-                 linetype = 1, size = 4, color = "gray") +
+    geom_segment(
+      data = ps.query,
+      aes(x = segstrt, xend = segend, y = 0, yend = 0),
+      linetype = 1, size = 4, color = "gray"
+    ) +
     xlab("query position (aa)") +
     # Draw Palmprint diagram
-    geom_segment(data = ps.pp,
-                 aes(x = segstrt, xend = segend, y = 0, yend = 0, color = segment),
-                 linetype = 1, size = 10, color = pp.col) +
-    geom_text( data = ps.pp,
-               aes(x = ((segstrt + segend)/2) , y = vbump, label = segment, hjust = "center"),
-               color = pp.col) +
+    geom_segment(
+      data = ps.pp,
+      aes(x = segstrt, xend = segend, y = 0, yend = 0, color = segment),
+      linetype = 1, size = 10, color = pp.col
+    ) +
+    geom_text(
+      data = ps.pp,
+      aes(x = ((segstrt + segend) / 2), y = vbump, label = segment, hjust = "center"),
+      color = pp.col
+    ) +
     ggtitle(label = paste0(">", ps$query)) +
     ylim(c(-1, 1)) +
     xlim(c(0, NA)) +
-    theme(axis.text.y=element_blank(),
-          axis.ticks.y=element_blank(),
-          axis.title.y=element_blank(),
-          legend.position="none",
-          panel.background=element_blank(),
-          panel.border=element_blank(),
-          panel.grid.major=element_blank(),
-          panel.grid.minor=element_blank(),
-          plot.background=element_rect(fill = "white",
-                                       colour = "white"))
-  
+    theme(
+      axis.text.y = element_blank(),
+      axis.ticks.y = element_blank(),
+      axis.title.y = element_blank(),
+      legend.position = "none",
+      panel.background = element_blank(),
+      panel.border = element_blank(),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      plot.background = element_rect(
+        fill = "white",
+        colour = "white"
+      )
+    )
+
   return(ppPlot)
 }
-
 ```
 
 ```{r logo-setup, echo=FALSE, message=FALSE, warning=FALSE,}
@@ -187,7 +208,7 @@ PlotPP <- function(ps){
 # into two distinct vectors based on the expected filenames defined in the R script.
 
 # Expected pipeline logo filename (must match the R script's EXPECTED_LOGOS)
-pipeline_logo_name <- "NovaVir_Logo.png"
+pipeline_logo_name <- "DeepVir_Logo.png"
 
 # 1. Identify and assign the pipeline logo path
 # Corrected: Use the vector of file paths (params$logos) for both filtering and assignment
@@ -198,9 +219,9 @@ institution_logo_paths <- params$logos[!grepl(pipeline_logo_name, params$logos, 
 
 # Check if the pipeline logo was found
 if (length(pipeline_logo_path) == 0) {
-    warning("Pipeline logo (NovaVir_Logo.png) not found in the passed paths.")
-    # Assign an empty string or placeholder if missing
-    pipeline_logo_path <- "" 
+  warning("Pipeline logo (NovaVir_Logo.png) not found in the passed paths.")
+  # Assign an empty string or placeholder if missing
+  pipeline_logo_path <- ""
 }
 ```
 
@@ -224,7 +245,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 fasta_expanded_path <- path.expand(params$fasta_file)
 
 if (!file.exists(fasta_expanded_path)) {
-    stop(paste("CRITICAL ERROR: Expanded FASTA path does not exist:", fasta_expanded_path))
+  stop(paste("CRITICAL ERROR: Expanded FASTA path does not exist:", fasta_expanded_path))
 }
 
 fasta <- read.FASTA(fasta_expanded_path)
@@ -233,7 +254,7 @@ names(fasta) <- str_remove_all(names(fasta), pattern = " .+")
 
 output_dir_expanded <- path.expand(params$output_dir)
 if (!dir.exists(output_dir_expanded)) {
-    dir.create(output_dir_expanded, recursive = TRUE)
+  dir.create(output_dir_expanded, recursive = TRUE)
 }
 
 # CRITICAL FIX: DO NOT MODIFY 'params'. Assign to a new global variable.
@@ -251,41 +272,45 @@ if (is_basta) {
   # 1. Ler arquivo BASTA (Sem header, colunas variáveis)
   # Usamos fill=TRUE e stringsAsFactors=FALSE
   raw_data <- read.table(params$diamond_file, sep = "\t", header = FALSE, fill = TRUE, stringsAsFactors = FALSE, quote = "")
-  
+
   # Renomear para o padrão que o resto do script espera
   colnames(raw_data)[1] <- "qseqid"
   colnames(raw_data)[2] <- "TaxonomyString"
-  
+
   # 2. Processar a string de taxonomia (separada por ;)
   # Formato esperado: unknown;Phylum;Class;Order;Family;Genus;Species;
   data <- raw_data %>%
-    separate(TaxonomyString, 
-             c("Superkingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"), 
-             sep = ";", 
-             fill = "right", 
-             extra = "drop") %>% 
+    separate(TaxonomyString,
+      c("Superkingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"),
+      sep = ";",
+      fill = "right",
+      extra = "drop"
+    ) %>%
     mutate(
       # Converter "unknown" ou strings vazias para NA
-      across(c(Superkingdom, Phylum, Class, Order, Family, Genus, Species), 
-             ~ na_if(., "")),
-      across(c(Superkingdom, Phylum, Class, Order, Family, Genus, Species), 
-             ~ na_if(tolower(.), "unknown")),
-      
+      across(
+        c(Superkingdom, Phylum, Class, Order, Family, Genus, Species),
+        ~ na_if(., "")
+      ),
+      across(
+        c(Superkingdom, Phylum, Class, Order, Family, Genus, Species),
+        ~ na_if(tolower(.), "unknown")
+      ),
+
       # Criar a coluna 'Overall' para o gráfico de Reinos
       # Tenta pegar Superkingdom -> Phylum -> Class -> Unclassified
       Overall = coalesce(Superkingdom, Phylum, Class, "Unclassified")
     )
-
 } else {
   # Lógica original para arquivos Diamond/TaxonKit com Header
   data <- read.table(params$diamond_file, sep = "\t", fill = T, header = T, na.strings = "", as.is = T)
-  
+
 
   data <- data %>%
-      mutate(
-        Overall = coalesce(as.character(Realm), as.character(Acelular), as.character(Kingdom), "Unclassified")
-      )
-  }
+    mutate(
+      Overall = coalesce(as.character(Realm), as.character(Acelular), as.character(Kingdom), "Unclassified")
+    )
+}
 
 
 # 3. Split contigs into groups: With Hits (tax) and Without Hits (notax)
@@ -299,7 +324,6 @@ fasta_notax <- fasta[-index_fas]
 split_data <- split(data, data$Overall)
 
 kingdom_names <- names(split_data)
-
 ```
 
 ## 🔬 Overview of Contigs Quality and Taxonomic Assignment
@@ -329,25 +353,25 @@ object_list <- c("fasta", "fasta_tax", "fasta_notax")
 summary_results <- list()
 
 for (obj_name in object_list) {
- dnabin_obj <- get(obj_name, envir = .GlobalEnv)
- summary_table_single <- summarize_dnabin_lengths(dnabin_obj, obj_name)
- summary_results[[obj_name]] <- summary_table_single
+  dnabin_obj <- get(obj_name, envir = .GlobalEnv)
+  summary_table_single <- summarize_dnabin_lengths(dnabin_obj, obj_name)
+  summary_results[[obj_name]] <- summary_table_single
 }
 
 final_summary_table <- summary_results[[1]]
 for (i in 2:length(summary_results)) {
- final_summary_table <- merge(final_summary_table, summary_results[[i]], by = "Metric", all = TRUE)
+  final_summary_table <- merge(final_summary_table, summary_results[[i]], by = "Metric", all = TRUE)
 }
 
-colnames(final_summary_table) <- c("Metric", "All Contigs", "Contigs with Hits","Contigs no Hits")
+colnames(final_summary_table) <- c("Metric", "All Contigs", "Contigs with Hits", "Contigs no Hits")
 
 knitr::kable(
- final_summary_table,
- caption = "Statistics of Assembled Contigs per Taxonomy Category",
- align = c('l', 'r', 'r', 'r')
+  final_summary_table,
+  caption = "Statistics of Assembled Contigs per Taxonomy Category",
+  align = c("l", "r", "r", "r")
 )
 
-output_filename <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name,"contigs_summary.tsv"))
+output_filename <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name, "contigs_summary.tsv"))
 
 
 write.table(
@@ -357,7 +381,6 @@ write.table(
   row.names = FALSE,
   quote = FALSE # Opcional: evita aspas em torno dos campos de texto
 )
-
 ```
 
 ## 📊 Overall Taxonomic Diversity Analysis
@@ -378,73 +401,77 @@ Identifying the **dominant** groups and their respective proportions within the 
 * **Discovery Assessment: ** Evaluating the overall discovery effort and the distribution of annotated sequences across the major taxonomic domains.
 
 ```{r kingdom, message=FALSE, warning=FALSE, echo = FALSE, fig.width=10, fig.height=8, out.width="90%"}
-# 1. Count Kingdom frequencies and prepare the table
-data_summary <- as.data.frame(table(data$Overall)) %>%
- rename(Entry = Var1, Freq = Freq) %>%
- mutate(Entry = factor(Entry, levels = Entry[order(Freq, decreasing = TRUE)]))
+if (nrow(data) > 0) {
+  # 1. Count Kingdom frequencies and prepare the table
+  data_summary <- as.data.frame(table(data$Overall)) %>%
+    rename(Entry = Var1, Freq = Freq) %>%
+    mutate(Entry = factor(Entry, levels = Entry[order(Freq, decreasing = TRUE)]))
 
-# summary table file
-summary_for_table <- data_summary %>%
- mutate(
- Total = sum(Freq),
- Percentage = round((Freq / Total) * 100, 2)
- ) %>%
- arrange(desc(Freq)) %>%
- select(Category = Entry, Count = Freq, Percentage = Percentage)
+  # summary table file
+  summary_for_table <- data_summary %>%
+    mutate(
+      Total = sum(Freq),
+      Percentage = round((Freq / Total) * 100, 2)
+    ) %>%
+    arrange(desc(Freq)) %>%
+    select(Category = Entry, Count = Freq, Percentage = Percentage)
 
-knitr::kable(
- summary_for_table,
- caption = "Summary of Contig Hits per Kingdom",
- col.names = c("Category", "Contigs", "Percentage (%)")
-)
+  knitr::kable(
+    summary_for_table,
+    caption = "Summary of Contig Hits per Kingdom",
+    col.names = c("Category", "Contigs", "Percentage (%)")
+  )
 
-output_filename <- file.path(OUTPUT_DIR_ABS,paste0(params$sample_name,"contigs_summary_per_Kingdom.tsv"))
-# output_filename <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name,"contigs_summary.tsv"))
+  output_filename <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name, "contigs_summary_per_Kingdom.tsv"))
+  # output_filename <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name,"contigs_summary.tsv"))
 
-write.table(
-  summary_for_table,
-  file = output_filename,
-  sep = "\t",
-  row.names = FALSE,
-  quote = FALSE # Opcional: evita aspas em torno dos campos de texto
-)
-
+  write.table(
+    summary_for_table,
+    file = output_filename,
+    sep = "\t",
+    row.names = FALSE,
+    quote = FALSE # Opcional: evita aspas em torno dos campos de texto
+  )
+} else {
+  cat("**No contigs with taxonomic classification were found via DIAMOND/Taxonomy.**\n")
+}
 ```
 ### Bar chart with logarithmic scale. 
 It allows for visualizing the vast difference in counts **between Bacteria, Archaea, Eukarya and Viruses**. 
 "Virus" counts tend to be much lower, reflecting the nature of their genome - *smaller and less conserved* - and the characteristics of the database used. The simultaneous visualization of these orders of magnitude ensures that minority categories are not visually obscured, although their *low representation requires careful interpretation*.
 
 ```{r kingdom_graphs, echo = FALSE, fig.width=10, fig.height=8, out.width="90%"}
-# 3. Generate the Global Frequency Plot (KINGDOM plot)
-# The use of 'scale_y_log10' is vital here to visualize the immense count disparity between Superkingdoms. The log scale ensures that low-frequency categories (like viruses) are visible alongside the dominant categories.
-KINGDOM <- ggplot(data_summary, aes(x = Entry, y = Freq, fill = Entry)) +
- geom_bar(stat = "identity") +
- scale_y_log10(labels = scales::comma) +
- geom_text(aes(label = scales::comma(Freq)), vjust = -0.5) +
- labs(
- title = "Principal Classification (Log10)",
- x = "Classification",
- y = "Frequency (Log10)"
- ) +
- theme_minimal(base_size = 14) +
- scale_fill_viridis_d(option = "D") +
- theme(
- legend.position = "none",
- axis.text.x = element_text(angle = 45, hjust = 1)
-)
+if (nrow(data) > 0) {
+  # 3. Generate the Global Frequency Plot (KINGDOM plot)
+  # The use of 'scale_y_log10' is vital here to visualize the immense count disparity between Superkingdoms. The log scale ensures that low-frequency categories (like viruses) are visible alongside the dominant categories.
+  KINGDOM <- ggplot(data_summary, aes(x = Entry, y = Freq, fill = Entry)) +
+    geom_bar(stat = "identity") +
+    scale_y_log10(labels = scales::comma) +
+    geom_text(aes(label = scales::comma(Freq)), vjust = -0.5) +
+    labs(
+      title = "Principal Classification (Log10)",
+      x = "Classification",
+      y = "Frequency (Log10)"
+    ) +
+    theme_minimal(base_size = 14) +
+    scale_fill_viridis_d(option = "D") +
+    theme(
+      legend.position = "none",
+      axis.text.x = element_text(angle = 45, hjust = 1)
+    )
 
-print(KINGDOM)
+  print(KINGDOM)
 
-output_filename <- file.path(OUTPUT_DIR_ABS,paste0(params$sample_name,"KINGDOM_Classification_Log10.png"))
+  output_filename <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name, "KINGDOM_Classification_Log10.png"))
 
-ggsave(
-  filename = output_filename,
-  plot = KINGDOM,
-  width = 8,
-  height = 6,
-  dpi = 300
-)
-
+  ggsave(
+    filename = output_filename,
+    plot = KINGDOM,
+    width = 8,
+    height = 6,
+    dpi = 300
+  )
+}
 ```
 
 ## 🦠📊 Overall Viral Diversity Analysis
@@ -468,7 +495,7 @@ data <- data %>%
   mutate(
     # Garante que NAs virem "Unclassified"
     Overall = replace_na(Overall, "Unclassified"),
-    
+
     # Padronização: Se a palavra "Viruses" aparecer em qualquer lugar da classificação
     # (ex: "Duplodnaviria (Viruses)"), forçamos a categoria para apenas "Viruses".
     Overall = ifelse(str_detect(Overall, "Viruses"), "Viruses", Overall)
@@ -478,22 +505,21 @@ data <- data %>%
 virus_data <- data %>%
   filter(Overall == "Viruses") %>%
   # Se a coluna Family não existir ou for NA, preenche como Unclassified
-  mutate(Family = if("Family" %in% names(.)) replace_na(Family, "Unclassified") else "Unclassified")
+  mutate(Family = if ("Family" %in% names(.)) replace_na(Family, "Unclassified") else "Unclassified")
 
 # Gera os gráficos e tabelas se houver vírus
 if (nrow(virus_data) > 0) {
-    output_filename <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name, "Viral_Diamond.tsv"))
-    write.table(virus_data, file = output_filename, sep = "\t", row.names = FALSE, quote = FALSE)
-    
-    virus_plot <- create_and_plot_frequency_chart(virus_data, "Family", kingdom_label = "Viruses")
-    print(virus_plot)
-    
-    output_filename <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name, "Virus_Classification_Log10.png"))
-    ggsave(filename = output_filename, plot = virus_plot, width = 8, height = 6, dpi = 300)
-} else {
-    cat("**No viral contigs identified in this sample via DIAMOND/Taxonomy.**")
-}
+  output_filename <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name, "Viral_Diamond.tsv"))
+  write.table(virus_data, file = output_filename, sep = "\t", row.names = FALSE, quote = FALSE)
 
+  virus_plot <- create_and_plot_frequency_chart(virus_data, "Family", kingdom_label = "Viruses")
+  print(virus_plot)
+
+  output_filename <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name, "Virus_Classification_Log10.png"))
+  ggsave(filename = output_filename, plot = virus_plot, width = 8, height = 6, dpi = 300)
+} else {
+  cat("**No viral contigs identified in this sample via DIAMOND/Taxonomy.**")
+}
 ```
 
 Contigs determined as **Unclassified** are viruses lacking proper, official taxonomy at the reference level, typically due to: (1)  Non-up-to-date records in public databases (e.g., NCBI); (2) absence of an official classification within the **International Committee on Taxonomy of Viruses (ICTV)**.
@@ -501,57 +527,52 @@ Contigs determined as **Unclassified** are viruses lacking proper, official taxo
 ### Overall Family Diversity & Richness
 
 ```{r contigs_table_viral_family, message=FALSE, echo=FALSE, fig.width=10, fig.height=5, out.width="90%"}
-
-
 if (nrow(virus_data) > 0) {
+  #  get summary of viruses
+  sum_virus <- as.data.frame(table(virus_data$Family)) %>%
+    rename(Entry = Var1, Freq = Freq)
 
-    #  get summary of viruses
-    sum_virus <- as.data.frame(table(virus_data$Family)) %>%
-      rename(Entry = Var1, Freq = Freq) 
-    
-    # Calculate the grand total count (sum of all frequencies)
-    grand_total_count <- sum(sum_virus$Freq)
-    
-    # --- 2. Calculate Percentages and Prepare Table ---
-    
-    summary_for_table <- sum_virus %>%
-      # Recalculate Total for percentage calculation (this is correct here)
-      mutate(
-        Total_Count = grand_total_count,
-        Percentage = round((Freq / Total_Count) * 100, 2)
-      ) %>%
-      # Arrange by frequency (Count)
-      arrange(desc(Freq)) %>%
-      # Select and rename columns for final output
-      select(Category = Entry, Count = Freq, Percentage)
-    
-    # --- 3. Create table of diversity per Viral family id ---
-    
-    total_row <- summary_for_table %>%
-      # Calculate the sum of Counts and sum of Percentages
-      summarise(
-        Category = "**TOTAL**",
-        Count = sum(Count),
-        Percentage = sum(Percentage) # Should be 100.00 or very close
-      ) %>%
-      # Re-round the total percentage to ensure clean output
-      mutate(Percentage = round(Percentage, 2))
-    
-    # Combine the summary table with the total row at the end
-    final_table <- bind_rows(summary_for_table, total_row)
-    
-    # --- 4. Render the Table ---
-    
-    knitr::kable(
-      final_table,
-      caption = "Summary of Contig per Viral Family",
-      col.names = c("Family", "Contigs", "Percentage (%)")
-    )
+  # Calculate the grand total count (sum of all frequencies)
+  grand_total_count <- sum(sum_virus$Freq)
 
+  # --- 2. Calculate Percentages and Prepare Table ---
+
+  summary_for_table <- sum_virus %>%
+    # Recalculate Total for percentage calculation (this is correct here)
+    mutate(
+      Total_Count = grand_total_count,
+      Percentage = round((Freq / Total_Count) * 100, 2)
+    ) %>%
+    # Arrange by frequency (Count)
+    arrange(desc(Freq)) %>%
+    # Select and rename columns for final output
+    select(Category = Entry, Count = Freq, Percentage)
+
+  # --- 3. Create table of diversity per Viral family id ---
+
+  total_row <- summary_for_table %>%
+    # Calculate the sum of Counts and sum of Percentages
+    summarise(
+      Category = "**TOTAL**",
+      Count = sum(Count),
+      Percentage = sum(Percentage) # Should be 100.00 or very close
+    ) %>%
+    # Re-round the total percentage to ensure clean output
+    mutate(Percentage = round(Percentage, 2))
+
+  # Combine the summary table with the total row at the end
+  final_table <- bind_rows(summary_for_table, total_row)
+
+  # --- 4. Render the Table ---
+
+  knitr::kable(
+    final_table,
+    caption = "Summary of Contig per Viral Family",
+    col.names = c("Family", "Contigs", "Percentage (%)")
+  )
 } else {
-    cat("**No viral data available for Family summary.**")
+  cat("**No viral data available for Family summary.**")
 }
-
 ```
 
 
@@ -565,48 +586,46 @@ This table provides an **essential summary** of the assembled contigs, organized
 
 ```{r contigs-viral-family, echo=FALSE, fig.width=10, fig.height=15, out.width="90%"}
 if (nrow(virus_data) > 0) {
+  summary_virus_lengths <- list()
+  # Iterate over the UNIQUE names of the families
+  for (name in unique(virus_data$Family)) {
+    qseqid_for_family <- virus_data$qseqid[which(virus_data$Family %in% name)]
+    index <- which(names(fasta) %in% qseqid_for_family)
+    in_fasta <- fasta[index]
+    summary_table_single <- summarize_dnabin_lengths(in_fasta, name)
+    summary_virus_lengths[[name]] <- summary_table_single
 
-    summary_virus_lengths <- list()
-    # Iterate over the UNIQUE names of the families
-    for(name in unique(virus_data$Family)){ 
-        qseqid_for_family <- virus_data$qseqid[which(virus_data$Family %in% name)]
-        index <- which(names(fasta) %in% qseqid_for_family)
-        in_fasta <- fasta[index]
-        summary_table_single <- summarize_dnabin_lengths(in_fasta, name)
-        summary_virus_lengths[[name]] <- summary_table_single
-        
-        # CRITICAL: Write the per-family FASTA file here as a side effect (optional, but good practice)
-        file_name <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name, "_",name, ".fasta"))
-        write.FASTA(in_fasta, file = file_name)
-    }
-    
-    # Combine all summary tables
-    final_length_summary <- summary_virus_lengths[[1]]
-    
-    if (length(summary_virus_lengths) > 1) {
-        for (i in 2:length(summary_virus_lengths)) {
-            final_length_summary <- merge(final_length_summary, summary_virus_lengths[[i]], by = "Metric", all = TRUE)
-        }
-    }
-    
-    output_filename <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name,"viral_contigs_summary.tsv"))
-    write.table(
-        final_length_summary,
-        file = output_filename,
-        sep = "\t",
-        row.names = FALSE,
-        quote = FALSE
-    )
-    
-    # Render the Table
-    knitr::kable(
-        final_length_summary,
-        caption = "Length Statistics of Contigs per Viral Family",
-        align = c('l', rep('r', length(summary_virus_lengths)))
-    )
+    # CRITICAL: Write the per-family FASTA file here as a side effect (optional, but good practice)
+    file_name <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name, "_", name, ".fasta"))
+    write.FASTA(in_fasta, file = file_name)
+  }
 
+  # Combine all summary tables
+  final_length_summary <- summary_virus_lengths[[1]]
+
+  if (length(summary_virus_lengths) > 1) {
+    for (i in 2:length(summary_virus_lengths)) {
+      final_length_summary <- merge(final_length_summary, summary_virus_lengths[[i]], by = "Metric", all = TRUE)
+    }
+  }
+
+  output_filename <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name, "viral_contigs_summary.tsv"))
+  write.table(
+    final_length_summary,
+    file = output_filename,
+    sep = "\t",
+    row.names = FALSE,
+    quote = FALSE
+  )
+
+  # Render the Table
+  knitr::kable(
+    final_length_summary,
+    caption = "Length Statistics of Contigs per Viral Family",
+    align = c("l", rep("r", length(summary_virus_lengths)))
+  )
 } else {
-    cat("**No viral contigs found to summarize lengths.**")
+  cat("**No viral contigs found to summarize lengths.**")
 }
 ```
 
@@ -623,56 +642,70 @@ Among contigs genomic fragments that remain unclassified by standard taxonomic m
 
 
 ```{r dark_matter_functions, echo=FALSE}
-PlotPP <- function(ps){
+PlotPP <- function(ps) {
   # Bind Local Variables
   segstrt <- segend <- segment <- NULL
-  
+
   # plot variables
   pp.col <- c("#440154", "gray60", "#3b528b", "gray60", "#fde725")
-  vbump = 0.85
-  
+  vbump <- 0.85
+
   # --- MODIFICAÇÃO PRINCIPAL AQUI ---
   # O 'ps' é um data frame de 1 linha. Precisamos extrair o vetor da lista.
-  
+
   # Query
-  ps.query <- data.frame( segment = c("query"),
-                          segstrt = 1,
-                          segend = ps$qlen)
-  
+  ps.query <- data.frame(
+    segment = c("query"),
+    segstrt = 1,
+    segend = ps$qlen
+  )
+
   # Palmprint - Extrair os vetores da lista aninhada (usando [[1]])
-  ps.pp <- data.frame(segment = unlist(ps$order_labels),
-                         segstrt = unlist(ps$order_starts),
-                         segend = unlist(ps$order_ends),
-                         color= unlist(ps$order_colors)) # Criar uma coluna 'color'
-  
+  ps.pp <- data.frame(
+    segment = unlist(ps$order_labels),
+    segstrt = unlist(ps$order_starts),
+    segend = unlist(ps$order_ends),
+    color = unlist(ps$order_colors)
+  ) # Criar uma coluna 'color'
+
   ppPlot <- ggplot() +
     # Draw Query diagram
-    geom_segment(data = ps.query,
-                 aes(x = segstrt, xend = segend, y = 0, yend = 0),
-                 linetype = 1, size = 4, color = "gray") +
+    geom_segment(
+      data = ps.query,
+      aes(x = segstrt, xend = segend, y = 0, yend = 0),
+      linetype = 1, size = 4, color = "gray"
+    ) +
     xlab("query position (aa)") +
     # Draw Palmprint diagram: Use a coluna 'color' que criamos
-    geom_segment(data = ps.pp,
-                 aes(x = segstrt, xend = segend, y = 0, yend = 0),
-                 linetype = 1, size = 10, color = ps.pp$color) + # Usar ps.pp$color
+    geom_segment(
+      data = ps.pp,
+      aes(x = segstrt, xend = segend, y = 0, yend = 0),
+      linetype = 1, size = 10, color = ps.pp$color
+    ) + # Usar ps.pp$color
     # Draw labels: Use o dataframe 'ps.pp' com as coordenadas corretas
-    geom_text( data = ps.pp,
-               aes(x = ((segstrt + segend)/2) , y = vbump, label = segment, hjust = "center"),
-               color = ps.pp$color) + # Usar ps.pp$color
+    geom_text(
+      data = ps.pp,
+      aes(x = ((segstrt + segend) / 2), y = vbump, label = segment, hjust = "center"),
+      color = ps.pp$color
+    ) + # Usar ps.pp$color
     ggtitle(label = paste0(">", ps$query)) +
     ylim(c(-1, 1)) +
     xlim(c(0, NA)) +
-    theme(axis.text.y=element_blank(),
-          axis.ticks.y=element_blank(),
-          axis.title.y=element_blank(),
-          legend.position="none",
-          panel.background=element_blank(),
-          panel.border=element_blank(),
-          panel.grid.major=element_blank(),
-          panel.grid.minor=element_blank(),
-          plot.background=element_rect(fill = "white",
-                                       colour = "white"))
-  
+    theme(
+      axis.text.y = element_blank(),
+      axis.ticks.y = element_blank(),
+      axis.title.y = element_blank(),
+      legend.position = "none",
+      panel.background = element_blank(),
+      panel.border = element_blank(),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      plot.background = element_rect(
+        fill = "white",
+        colour = "white"
+      )
+    )
+
   return(ppPlot)
 }
 
@@ -693,110 +726,109 @@ pp.col.canonical <- c("#440154", "gray60", "#3b528b", "gray60", "#fde725")
 file_info <- file.info(params$darkmatter_file)
 
 if (!is.na(file_info$size) && file_info$size > 0) {
-    # Carrega a tabela com tryCatch para evitar falhas caso o arquivo contenha apenas linhas em branco
-    fev <- tryCatch({
-        read.table(file = params$darkmatter_file, header = TRUE, sep = "\t")
-    }, error = function(e) {
-        data.frame() # Retorna dataframe vazio em caso de erro de leitura
-    })
+  # Carrega a tabela com tryCatch para evitar falhas caso o arquivo contenha apenas linhas em branco
+  fev <- tryCatch(
+    {
+      read.table(file = params$darkmatter_file, header = TRUE, sep = "\t")
+    },
+    error = function(e) {
+      data.frame() # Retorna dataframe vazio em caso de erro de leitura
+    }
+  )
 } else {
-    fev <- data.frame() # Arquivo vazio gera dataframe vazio
+  fev <- data.frame() # Arquivo vazio gera dataframe vazio
 }
 
 # AQUI ESTA A CORRECAO: Verificar se a tabela tem dados
 if (nrow(fev) > 0) {
+  # 1. Mapeamento de Colunas Fixas
+  fev$query <- fev$Label
+  fev$qlen <- nchar(fev$aaseq)
 
-    # 1. Mapeamento de Colunas Fixas
-    fev$query <- fev$Label
-    fev$qlen <- nchar(fev$aaseq)
-    
-    # 2. Lógica Condicional para Ordem (ABC vs CAB)
-    fev$order_labels <- list(NA)
-    fev$order_colors <- list(NA)
-    fev$order_starts <- list(NA)
-    fev$order_ends <- list(NA)
-    
-    # Função para calcular as coordenadas e comprimentos baseados na ordem
-    for (i in 1:nrow(fev)) {
-      ps <- fev[i, ]
-      
-      # 2a. Definir os pontos de início dos motivos centrais
-      if (ps$pssm_ABC == "ABC") {
-        # Ordem Canônica: A -> B -> C
-        pA <- ps$posA
-        pB <- ps$posB
-        pC <- ps$posC
-        
-        # Calcular os comprimentos das regiões variáveis
-        v1_len <- pB - (pA + mA)
-        v2_len <- pC - (pB + mB)
-        
-        # Sequência de Motivos na Ordem de Plotagem
-        labels <- c("A", "v1", "B", "v2", "C")
-        colors <- pp.col.canonical
-        
-        # Coordenadas (baseadas em A -> B -> C)
-        starts <- c(pA, pA + mA + 1, pB, pB + mB + 1, pC)
-        ends <- c(pA + mA, pB, pB + mB, pC, pC + mC - 1) 
-        
-      } else if (ps$pssm_ABC == "CAB") {
-        # Ordem Invertida: C -> A -> B
-        pC <- ps$posC
-        pA <- ps$posA
-        pB <- ps$posB
-        
-        v1_len <- pA - (pC + mC) 
-        v2_len <- pB - (pA + mA) 
-        
-        labels <- c("C", "v1", "A", "v2", "B")
-        colors <- c(pp.col.canonical[5], pp.col.canonical[2], pp.col.canonical[1], pp.col.canonical[4], pp.col.canonical[3])
-        
-        starts <- c(pC, pC + mC + 1, pA, pA + mA + 1, pB)
-        ends <- c(pC + mC, pA, pA + mA, pB, pB + mB) 
-        
-      } else {
-        next 
-      }
-      
-      all_starts <- c(pA, pB, pC)
-      all_ends <- c(pA + mA, pB + mB, pC + mC)
-      
-      ps$pp_start <- min(all_starts)
-      ps$pp_end <- max(all_ends)
-      ps$v1_length <- v1_len
-      ps$v2_length <- v2_len
-      
-      fev[i, ]$pp_start <- ps$pp_start
-      fev[i, ]$pp_end <- ps$pp_end
-      fev[i, ]$v1_length <- ps$v1_length
-      fev[i, ]$v2_length <- ps$v2_length
-      
-      fev[i, ]$order_labels <- list(labels)
-      fev[i, ]$order_colors <- list(colors)
-      fev[i, ]$order_starts <- list(starts)
-      fev[i, ]$order_ends <- list(ends)
-    }
-    
-    
-    # --- EXECUÇÃO DO PLOT ---
-    for (i in 1:nrow(fev)) {
-      pp.plot <- PlotPP(fev[i, , drop = FALSE])
-      
-      output_filename <- file.path(OUTPUT_DIR_ABS,paste0(params$sample_name,"_",fev$query[i],"RdRp_Motifs.png"))
-      
-      ggsave(
-        filename = output_filename,
-        plot = pp.plot,
-        width = 8,
-        height = 6,
-        dpi = 300
-      )
-      
-      print(pp.plot)
+  # 2. Lógica Condicional para Ordem (ABC vs CAB)
+  fev$order_labels <- list(NA)
+  fev$order_colors <- list(NA)
+  fev$order_starts <- list(NA)
+  fev$order_ends <- list(NA)
+
+  # Função para calcular as coordenadas e comprimentos baseados na ordem
+  for (i in 1:nrow(fev)) {
+    ps <- fev[i, ]
+
+    # 2a. Definir os pontos de início dos motivos centrais
+    if (ps$pssm_ABC == "ABC") {
+      # Ordem Canônica: A -> B -> C
+      pA <- ps$posA
+      pB <- ps$posB
+      pC <- ps$posC
+
+      # Calcular os comprimentos das regiões variáveis
+      v1_len <- pB - (pA + mA)
+      v2_len <- pC - (pB + mB)
+
+      # Sequência de Motivos na Ordem de Plotagem
+      labels <- c("A", "v1", "B", "v2", "C")
+      colors <- pp.col.canonical
+
+      # Coordenadas (baseadas em A -> B -> C)
+      starts <- c(pA, pA + mA + 1, pB, pB + mB + 1, pC)
+      ends <- c(pA + mA, pB, pB + mB, pC, pC + mC - 1)
+    } else if (ps$pssm_ABC == "CAB") {
+      # Ordem Invertida: C -> A -> B
+      pC <- ps$posC
+      pA <- ps$posA
+      pB <- ps$posB
+
+      v1_len <- pA - (pC + mC)
+      v2_len <- pB - (pA + mA)
+
+      labels <- c("C", "v1", "A", "v2", "B")
+      colors <- c(pp.col.canonical[5], pp.col.canonical[2], pp.col.canonical[1], pp.col.canonical[4], pp.col.canonical[3])
+
+      starts <- c(pC, pC + mC + 1, pA, pA + mA + 1, pB)
+      ends <- c(pC + mC, pA, pA + mA, pB, pB + mB)
+    } else {
+      next
     }
 
+    all_starts <- c(pA, pB, pC)
+    all_ends <- c(pA + mA, pB + mB, pC + mC)
+
+    ps$pp_start <- min(all_starts)
+    ps$pp_end <- max(all_ends)
+    ps$v1_length <- v1_len
+    ps$v2_length <- v2_len
+
+    fev[i, ]$pp_start <- ps$pp_start
+    fev[i, ]$pp_end <- ps$pp_end
+    fev[i, ]$v1_length <- ps$v1_length
+    fev[i, ]$v2_length <- ps$v2_length
+
+    fev[i, ]$order_labels <- list(labels)
+    fev[i, ]$order_colors <- list(colors)
+    fev[i, ]$order_starts <- list(starts)
+    fev[i, ]$order_ends <- list(ends)
+  }
+
+
+  # --- EXECUÇÃO DO PLOT ---
+  for (i in 1:nrow(fev)) {
+    pp.plot <- PlotPP(fev[i, , drop = FALSE])
+
+    output_filename <- file.path(OUTPUT_DIR_ABS, paste0(params$sample_name, "_", fev$query[i], "RdRp_Motifs.png"))
+
+    ggsave(
+      filename = output_filename,
+      plot = pp.plot,
+      width = 8,
+      height = 6,
+      dpi = 300
+    )
+
+    print(pp.plot)
+  }
 } else {
-    cat("**No putative RdRp sequences identified in this sample (Dark Matter Analysis).**")
+  cat("**No putative RdRp sequences identified in this sample (Dark Matter Analysis).**")
 }
 ```
 
@@ -824,10 +856,10 @@ To mitigate the risk of **false positives** arising from misidentified **Host Pr
 ### Pipeline
 
 ```{r incluir-logos-NovaVir, echo=FALSE, fig.show='hold', out.width='50%', out.height='10%'}
-
 # Use the pipeline_logo_path variable defined in the logo-setup chunk
 if (length(pipeline_logo_path) > 0 && pipeline_logo_path != "") {
-    knitr::include_graphics(pipeline_logo_path) }
+  knitr::include_graphics(pipeline_logo_path)
+}
 ```
 
 ### Institutions
@@ -838,11 +870,10 @@ if (length(pipeline_logo_path) > 0 && pipeline_logo_path != "") {
 # 'fig.show='hold'' é crucial para tentar manter todas as imagens na mesma linha.
 # 'out.width='25%'' define que cada imagem terá 25% da largura da página.
 # 'fig.align='center'' centraliza o grupo de imagens.
- # Access the list of paths passed via the parameter
+# Access the list of paths passed via the parameter
 # Use the institution_logo_paths variable defined in the logo-setup chunk
 if (length(institution_logo_paths) > 0) {
-    # knitr::include_graphics automatically handles a vector of paths
-    knitr::include_graphics(institution_logo_paths)
+  # knitr::include_graphics automatically handles a vector of paths
+  knitr::include_graphics(institution_logo_paths)
 }
-
 ```

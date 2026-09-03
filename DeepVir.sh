@@ -1,20 +1,20 @@
 #!/bin/bash
-###################################################################################
-#                               NovaVir.sh                                       #
-#                         MSc. Matheus Cosentino                                  # 
-###################################################################################
-#                                                                                 #
-#                    █   █  ███  █   █  ███  █   █ ███ ████                       #
-#                    ██  █░█ ░░█ █░  █░█ ░░█ █░  █░ █░░█░░░█                      #
-#                    █░█ █░█░ ░█░█░░ █░█████░█░░ █░░█░░████░░                     #
-#                    █░░██░█░░ █░░█░█ ░█░░░█░░█░█ ░░█░░█░░█░ ░                    #
-#                    █░░ █░░███ ░░ █ ░ █░░░█░░ █ ░ ███░█░░░█░                     #
-#                     ░░  ░░ ░░░ ░  ░ ░ ░░  ░░  ░ ░ ░░░ ░░  ░                     #
-#                      ░   ░  ░░░    ░   ░   ░   ░   ░░░ ░   ░                    #
-#                                                                                 #
-###################################################################################
-#                              version: 09.2026                                   #
-###################################################################################
+#################################################################
+#                               DeepVir.sh                      #
+#                         MSc. Matheus Cosentino                # 
+#################################################################
+#                                                               #
+#         ████  █████ █████ ████  █   █ ███ ████                #
+#         █░░░█ █░░░░░█░░░░░█░░░█ █░  █░ █░░█░░░█               #
+#         █░░░█░████░░████░░████░░█░░ █░░█░░████░░              #
+#         █░░ █░█░░░░ █░░░░ █░░░░ ░█░█ ░░█░░█░░█░ ░             #
+#         ████ ░█████░█████░█░░░░░  █ ░ ███░█░░░█░              #
+#          ░░░░ ░░░░░░ ░░░░░ ░░      ░ ░ ░░░ ░░  ░              #
+#           ░░░░  ░░░░░ ░░░░░ ░       ░   ░░░ ░   ░             #
+#                                                               #
+#################################################################
+#                         version: 1.0  |  09.2026                 #
+#################################################################
 
 # --- Color Palettes ---
 blu="\033[1;34m"  
@@ -23,9 +23,9 @@ red="\033[1;31m"
 ylo="\033[1;33m"   
 nc="\033[0m"       
 
-# Nome do ambiente Conda (deve bater com workflow/envs/NovaVir.yaml)
-ENV_NAME="NovaVir"
-ENV_FILE="workflow/envs/NovaVir.yaml"
+# Nome do ambiente Conda (deve bater com workflow/envs/DeepVir.yaml)
+ENV_NAME="DeepVir"
+ENV_FILE="workflow/envs/DeepVir.yaml"
 
 #####################
 # --- Functions --- #
@@ -85,13 +85,13 @@ run_with_spinner() {
 help(){
  echo -e "
  ${green}
- NovaVir${nc}: Viral Metagenomics & 'Dark Matter' Discovery
+ DeepVir${nc}: Viral Metagenomics & 'Dark Matter' Discovery
 
  ${green}Author${nc}: MSc. Matheus Cosentino 
- ${green}Version${nc}: 03.2026
+ ${green}Version${nc}: 1.0  |  09.2026
 
  ${ylo}Usage:${nc}
-  bash NovaVir.sh --input <DIR> --output <DIR> [OPTIONS]
+  bash DeepVir.sh --input <DIR> --output <DIR> [OPTIONS]
 
  ${ylo}Required Arguments:${nc}
    --input <DIR>        Directory containing raw reads (.fastq.gz) or contigs (.fasta)
@@ -126,7 +126,7 @@ help(){
 }
 
 version(){
-    echo "NovaVir v.03.2026"
+    echo "DeepVir v1.0 | 09.2026"
 }
 
 ###################################
@@ -145,6 +145,10 @@ manage_environment(){
             . "${HOME}/miniconda3/etc/profile.d/conda.sh"
         elif [ -f "${HOME}/anaconda3/etc/profile.d/conda.sh" ]; then
             . "${HOME}/anaconda3/etc/profile.d/conda.sh"
+        elif [ -f "${HOME}/mambaforge/etc/profile.d/conda.sh" ]; then
+            . "${HOME}/mambaforge/etc/profile.d/conda.sh"
+        elif [ -f "${HOME}/miniforge3/etc/profile.d/conda.sh" ]; then
+            . "${HOME}/miniforge3/etc/profile.d/conda.sh"
         elif [ -f "/usr/local/bioinfo/Miniforge3-24.9.2-0/etc/profile.d/conda.sh" ]; then
             . "/usr/local/bioinfo/Miniforge3-24.9.2-0/etc/profile.d/conda.sh"
         else
@@ -153,9 +157,26 @@ manage_environment(){
         fi
     fi
 
+    # Also source mamba if available (mambaforge/miniforge)
+    for _mamba_sh in \
+        "${HOME}/mambaforge/etc/profile.d/mamba.sh" \
+        "${HOME}/miniforge3/etc/profile.d/mamba.sh" \
+        "${HOME}/miniconda3/etc/profile.d/mamba.sh"; do
+        if [ -f "$_mamba_sh" ]; then . "$_mamba_sh"; break; fi
+    done
+
+    # Prefer mamba over conda for env ops (avoids pkgs_dirs bug in old conda)
+    if command -v mamba &>/dev/null; then
+        _PKG_MGR="mamba"
+        echo -e "${blu}[INFO]${nc} Using ${ylo}mamba${nc} for environment management."
+    else
+        _PKG_MGR="conda"
+        echo -e "${blu}[INFO]${nc} Using ${ylo}conda${nc} for environment management."
+    fi
+
     if [[ ! -f "$ENV_FILE" ]]; then
-         if [[ -f "workflow/envs/NovaVir.yaml" ]]; then
-            ENV_FILE="workflow/envs/NovaVir.yaml"
+         if [[ -f "workflow/envs/DeepVir.yaml" ]]; then
+            ENV_FILE="workflow/envs/DeepVir.yaml"
          else
             echo -e "${red}[ERROR]${nc} Environment file $ENV_FILE not found!"
             exit 1
@@ -164,12 +185,12 @@ manage_environment(){
 
     if conda env list | grep -q "^${ENV_NAME} "; then
         echo -e "       > Environment found: ${green}Yes${nc}"
-        echo -e "${blu}[INFO]${nc} Activating environment from ${ylo}$ENV_FILE${nc}..."
-        #run_with_spinner conda env update --name "$ENV_NAME" --file "$ENV_FILE" --prune --quiet
+        echo -e "${blu}[INFO]${nc} Updating environment from ${ylo}$ENV_FILE${nc}..."
+        run_with_spinner $_PKG_MGR env update --name "$ENV_NAME" --file "$ENV_FILE" --prune --quiet
     else 
         echo -e "       > Environment found: ${red}No${nc}"
         echo -e "${blu}[INFO]${nc} Creating environment from ${ylo}$ENV_FILE${nc}..."
-        run_with_spinner conda env create --name "$ENV_NAME" --file "$ENV_FILE" --quiet
+        run_with_spinner $_PKG_MGR env create --name "$ENV_NAME" --file "$ENV_FILE" --quiet
     fi
 
     echo -ne "${blu}[INFO]${nc} Activating environment... "
@@ -346,7 +367,7 @@ manage_environment
 setup_resources
 generate_sample_list
 
-echo -e "${blu}[INFO]${nc} Initializing NovaVir Workflow..."
+echo -e "${blu}[INFO]${nc} Initializing DeepVir Workflow..."
 
 # 1. Locate the STATIC Main Config
 main_config="$PROJECT_DIR/config/config.yaml"
@@ -412,7 +433,7 @@ echo -e "${blu}[INFO]${nc} A copy will be saved at: ${ylo}$backup_overrides${nc}
 echo -e "${blu}[INFO]${nc} Snakemake workdir   set to: ${ylo}$snakemake_workdir${nc}"
 
 cat <<EOF > "$run_overrides"
-# Dynamic Overrides generated by NovaVir.sh
+# Dynamic Overrides generated by DeepVir.sh
 workdir: "$snakemake_workdir"
 output_dir: "$output"
 data_dir: "$input"
@@ -448,9 +469,10 @@ echo -e "${blu}[INFO]${nc} Global TMPDIR set to: ${ylo}$TMPDIR${nc}"
 
 # --- Paths used by all snakemake invocations ---
 JOB_ID=${SLURM_JOB_ID:-local}
-SHADOW_DIR="${temp_dir}/novavir_shadow/${JOB_ID}"
+SHADOW_DIR="${temp_dir}/deepvir_shadow/${JOB_ID}"
+CONDA_DIR="${temp_dir}/deepvir_conda"
 mkdir -p "$SHADOW_DIR"
-CONDA_DIR="$PROJECT_DIR/.snakemake/conda"
+mkdir -p "$CONDA_DIR"
 SNAKEFILE="$PROJECT_DIR/workflow/Snakefile"
 
 echo -e "${blu}[INFO]${nc} Shadow directory  set to: ${ylo}$SHADOW_DIR${nc}"
@@ -478,11 +500,6 @@ snakemake --profile "$SNAKEMAKE_PROFILE" --snakefile "$SNAKEFILE" \
     --directory "$snakemake_workdir" \
     --configfile "$main_config" "$run_overrides" --unlock --quiet
 
-echo -e "\n${green}> Snakemake: Creating conda environments (if needed)...${nc}"
-snakemake --profile "$SNAKEMAKE_PROFILE" --snakefile "$SNAKEFILE" \
-    --directory "$snakemake_workdir" \
-    --configfile "$main_config" "$run_overrides" --use-conda --conda-create-envs-only --quiet
-
 echo -e "\n${green}> Snakemake: Performing a dry-run...${nc}"
 snakemake --profile "$SNAKEMAKE_PROFILE" --snakefile "$SNAKEFILE" \
     --directory "$snakemake_workdir" \
@@ -499,6 +516,7 @@ snakemake --profile "$SNAKEMAKE_PROFILE" \
     --conda-prefix "$CONDA_DIR" \
     --configfile "$main_config" "$run_overrides" \
     --shadow-prefix "$SHADOW_DIR" \
+    --rerun-triggers mtime \
     --keep-going --scheduler greedy
 
 echo -e "\n${green}> Snakemake: Creating DAG & Report...${nc}"
@@ -515,4 +533,4 @@ echo -e "\n${blu}[INFO]${nc} Deactivating ${ylo}${ENV_NAME}${nc} conda environme
 conda deactivate
 echo -e "${green}✔ Done.${nc}"
 
-echo -e "\n${green} Thank you for using NovaVir${nc}"
+echo -e "\n${green} Thank you for using DeepVir${nc}"

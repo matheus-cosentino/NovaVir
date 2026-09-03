@@ -23,8 +23,8 @@ data_dir: "data"
 
 ### Snakemake working directory: where SLURM jobs run from and where relative paths resolve.
 ### On HPC, point this to a fast scratch path (e.g. /scr/$USER or /scratch/$USER).
-### NovaVir.sh --workdir overrides this at runtime via run_overrides.yaml.
-workdir: "novavir"
+### DeepVir.sh --workdir overrides this at runtime via run_overrides.yaml.
+workdir: "DeepVir"
 
 ### File with sample names of interest to be wildcards of sample
 sample_list: "accessions.txt"
@@ -66,7 +66,7 @@ envs:
   kraken2_biom: "envs/kraken2_biom.yaml"
   taxonkit: "envs/taxonkit.yaml"
   download: "envs/download.yaml"
-  core: "envs/NovaVir.yaml"
+  core: "envs/DeepVir.yaml"
   report: "envs/report.yaml"
   palm_annot: "envs/palm_annot.yaml"
   multiqc: "envs/multiqc.yaml"
@@ -216,7 +216,7 @@ hmmscan:
     #- 90
     #- 100
 #  lengths: #minimum hit length of orf to be considered to basta lca algorythim
-    #- 30 #novavir default to calculate lca for small hits
+    #- 30 #DeepVir default to calculate lca for small hits
     #- 40
     #- 50
     #- 60
@@ -262,7 +262,7 @@ kraken_biom:
 #  Dark Matter Search
 palm_annot: 
   seqtype: "aa" 
-  minscore: 75
+  minscore: 50
   minpssmscore: 10
 
 # Medaka correction

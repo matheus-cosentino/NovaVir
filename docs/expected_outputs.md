@@ -2,7 +2,7 @@
 
 ## Expected Outputs
 
-Once successfully executed, NovaVir cleanly organizes your results within your standard `--output` directories. Below is a generic overview of an assembled mapping workflow:
+Once successfully executed, DeepVir cleanly organizes your results within your standard `--output` directories. Below is a generic overview of an assembled mapping workflow:
 
 ```text
 results/

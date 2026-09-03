@@ -3,16 +3,16 @@
 #                         MSc. Matheus Cosentino                                  # 
 ###################################################################################
 #                                                                                 #
-#                    █   █  ███  █   █  ███  █   █ ███ ████                       #
-#                    ██  █░█ ░░█ █░  █░█ ░░█ █░  █░ █░░█░░░█                      #
-#                    █░█ █░█░ ░█░█░░ █░█████░█░░ █░░█░░████░░                     #
-#                    █░░██░█░░ █░░█░█ ░█░░░█░░█░█ ░░█░░█░░█░ ░                    #
-#                    █░░ █░░███ ░░ █ ░ █░░░█░░ █ ░ ███░█░░░█░                     #
-#                     ░░  ░░ ░░░ ░  ░ ░ ░░  ░░  ░ ░ ░░░ ░░  ░                     #
-#                      ░   ░  ░░░    ░   ░   ░   ░   ░░░ ░   ░                    #
+#         ████  █████ █████ ████  █   █ ███ ████                                  #
+#         █░░░█ █░░░░░█░░░░░█░░░█ █░  █░ █░░█░░░█                                 #
+#         █░░░█░████░░████░░████░░█░░ █░░█░░████░░                                #
+#         █░░ █░█░░░░ █░░░░ █░░░░ ░█░█ ░░█░░█░░█░ ░                               #
+#         ████ ░█████░█████░█░░░░░  █ ░ ███░█░░░█░                                #
+#          ░░░░ ░░░░░░ ░░░░░ ░░      ░ ░ ░░░ ░░  ░                                 #
+#           ░░░░  ░░░░░ ░░░░░ ░       ░   ░░░ ░   ░                                #
 #                                                                                 #
 ###################################################################################
-#                              version: 09.2026                                   #
+#                         version: 1.0  |  09.2026                              #
 ###################################################################################
 
 ############################################
@@ -30,7 +30,8 @@ rule fastp_paired:
         #r2= temp(os.path.join(OUT_DIR, "{sample}", "fastp" , "{sample}_2.fastq.gz")),
         r1= os.path.join(OUT_DIR, "{sample}", "fastp", "{sample}_1.fastq.gz"),
         r2= os.path.join(OUT_DIR, "{sample}", "fastp" , "{sample}_2.fastq.gz"),
-        orphans=temp(os.path.join(OUT_DIR, "{sample}", "fastp", "{sample}_orphans.fastq.gz")),
+        orphans=os.path.join(OUT_DIR, "{sample}", "fastp", "{sample}_orphans.fastq.gz"),
+       #orphans=temp(os.path.join(OUT_DIR, "{sample}", "fastp", "{sample}_orphans.fastq.gz")),
         html = os.path.join(OUT_DIR, "{sample}", "fastp", "{sample}_paired.html"),
         json= os.path.join(OUT_DIR, "{sample}", "fastp", "{sample}_paired.json")
     log:

@@ -1,9 +1,10 @@
-name: NovaVir
+name: DeepVir
 channels:
   - conda-forge
   - bioconda
   - nodefaults
 dependencies:
+  - conda>=25.9
   - snakemake=9.11.1
   - pysradb=2.5.1
   - entrez-direct=24.0

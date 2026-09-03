@@ -1,19 +1,19 @@
-# NovaVir HPC (Slurm) Usage Guide
+# DeepVir HPC (Slurm) Usage Guide
 
-This document explains how to execute the NovaVir pipeline in a High-Performance Computing (HPC) environment managed by the Slurm workload manager.
+This document explains how to execute the DeepVir pipeline in a High-Performance Computing (HPC) environment managed by the Slurm workload manager.
 
 ## Resource Management
 
-When running on an HPC cluster, it is crucial to use a Snakemake profile so that each pipeline rule receives the correct CPU, memory, and time limits. The NovaVir repository provides a pre-configured profile for Slurm located at `profiles/profile_slurm`.
+When running on an HPC cluster, it is crucial to use a Snakemake profile so that each pipeline rule receives the correct CPU, memory, and time limits. The DeepVir repository provides a pre-configured profile for Slurm located at `profiles/profile_slurm`.
 
-**The `--profile` flag is key** to running NovaVir successfully on an HPC. It delegates the job submission to the Slurm manager, individually limiting and scheduling the partition requirements per rule.
+**The `--profile` flag is key** to running DeepVir successfully on an HPC. It delegates the job submission to the Slurm manager, individually limiting and scheduling the partition requirements per rule.
 
 ## Basic Execution
 
 A typical invocation for the complete deep viral discovery pipeline (Assembly + Diamond + Dark Matter) is:
 
 ```shell
-bash NovaVir.sh \
+bash DeepVir.sh \
     --input /path/to/raw_reads \
     --output /path/to/results \
     --profile profiles/profile_slurm \
@@ -34,7 +34,7 @@ bash NovaVir.sh \
 If you want to add the optional RVDB validation on top of the dark matter analysis, simply append the `--rvdb` flag:
 
 ```shell
-bash NovaVir.sh \
+bash DeepVir.sh \
     --input /path/to/raw_reads \
     --output /path/to/results \
     --profile profiles/profile_slurm \
@@ -51,7 +51,7 @@ bash NovaVir.sh \
 If you only want a rapid initial evaluation of your samples directly on the reads without running resource-intensive assemblies, you can run:
 
 ```shell
-bash NovaVir.sh \
+bash DeepVir.sh \
     --input /path/to/raw_reads \
     --output /path/to/results \
     --profile profiles/profile_slurm \

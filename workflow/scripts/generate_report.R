@@ -22,7 +22,7 @@ on.exit({
 
 # Define the expected logos and their filenames
 EXPECTED_LOGOS <- list(
-  pipeline_logo = "NovaVir_Logo.png",
+  pipeline_logo = "DeepVir_Logo.png",
   institution_logos = c(
     "LDDV.png",
     "ufrj-vertical-cor-rgb-telas.png",

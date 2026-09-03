@@ -3,16 +3,16 @@
 #                         MSc. Matheus Cosentino                                  # 
 ###################################################################################
 #                                                                                 #
-#                    █   █  ███  █   █  ███  █   █ ███ ████                       #
-#                    ██  █░█ ░░█ █░  █░█ ░░█ █░  █░ █░░█░░░█                      #
-#                    █░█ █░█░ ░█░█░░ █░█████░█░░ █░░█░░████░░                     #
-#                    █░░██░█░░ █░░█░█ ░█░░░█░░█░█ ░░█░░█░░█░ ░                    #
-#                    █░░ █░░███ ░░ █ ░ █░░░█░░ █ ░ ███░█░░░█░                     #
-#                     ░░  ░░ ░░░ ░  ░ ░ ░░  ░░  ░ ░ ░░░ ░░  ░                     #
-#                      ░   ░  ░░░    ░   ░   ░   ░   ░░░ ░   ░                    #
+#         ████  █████ █████ ████  █   █ ███ ████                                  #
+#         █░░░█ █░░░░░█░░░░░█░░░█ █░  █░ █░░█░░░█                                 #
+#         █░░░█░████░░████░░████░░█░░ █░░█░░████░░                                #
+#         █░░ █░█░░░░ █░░░░ █░░░░ ░█░█ ░░█░░█░░█░ ░                               #
+#         ████ ░█████░█████░█░░░░░  █ ░ ███░█░░░█░                                #
+#          ░░░░ ░░░░░░ ░░░░░ ░░      ░ ░ ░░░ ░░  ░                                 #
+#           ░░░░  ░░░░░ ░░░░░ ░       ░   ░░░ ░   ░                                #
 #                                                                                 #
 ###################################################################################
-#                              version: 09.2026                                   #
+#                         version: 1.0  |  09.2026                              #
 ###################################################################################
 
 #######################################################################
@@ -135,12 +135,12 @@ rule multiqc_aggregate:
         final_outputs = get_final_outputs()
     output:
         report = os.path.join(OUT_DIR, "multiqc_report.html"),
-        data_dir = directory(os.path.join(OUT_DIR, "multiqc_data"))
+        data_dir = directory(os.path.join(OUT_DIR, "multiqc_report_data"))
     params:
         files = [f for s in SAMPLE for f in get_multiqc_inputs(sample=s)],
-        config = os.path.join("workflow", "multiqc_config.yaml"),
+        config = os.path.join(workflow.basedir, "multiqc_config.yaml"),
         #config_override = "sp: { diamond/log: { fn: '*_diamond.log' } }",
-        extra = "--title 'NovaVir Aggregate Report'",
+        extra = "--title 'DeepVir Aggregate Report'",
         outdir = lambda w, output: os.path.dirname(output.report)
     conda:
         MULTIQC    
@@ -170,11 +170,11 @@ rule multiqc_sample:
         files = lambda wc: get_multiqc_inputs(wildcards=wc)
     output:
         report = os.path.join(OUT_DIR, "{sample}", "multiqc", "multiqc_report.html"),
-        data_dir = directory(os.path.join(OUT_DIR, "{sample}", "multiqc"))
+        data_dir = directory(os.path.join(OUT_DIR, "{sample}", "multiqc", "multiqc_report_data"))
     params:
-        config = os.path.join("workflow", "multiqc_config.yaml"),
-        #config_override = "sp: {{ diamond/log: {{ fn: '*_diamond.log' }} }}",
-        extra = "--title 'Report for {sample}'"
+        config = os.path.join(workflow.basedir, "multiqc_config.yaml"),
+        extra = "--title 'Report for {sample}'",
+        outdir = lambda w, output: os.path.dirname(output.report)
     log:
         os.path.join(OUT_DIR, "{sample}", "log", "multiqc.log")
     shell:
@@ -184,7 +184,7 @@ rule multiqc_sample:
         --export \
         --force \
         --config {params.config} \
-        --outdir {output.data_dir} \
+        --outdir {params.outdir} \
         --filename multiqc_report.html \
         {params.extra} \
         {input.files} > {log} 2>&1 

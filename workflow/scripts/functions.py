@@ -3,16 +3,16 @@
 #                         MSc. Matheus Cosentino                                  # 
 ###################################################################################
 #                                                                                 #
-#                    █   █  ███  █   █  ███  █   █ ███ ████                       #
-#                    ██  █░█ ░░█ █░  █░█ ░░█ █░  █░ █░░█░░░█                      #
-#                    █░█ █░█░ ░█░█░░ █░█████░█░░ █░░█░░████░░                     #
-#                    █░░██░█░░ █░░█░█ ░█░░░█░░█░█ ░░█░░█░░█░ ░                    #
-#                    █░░ █░░███ ░░ █ ░ █░░░█░░ █ ░ ███░█░░░█░                     #
-#                     ░░  ░░ ░░░ ░  ░ ░ ░░  ░░  ░ ░ ░░░ ░░  ░                     #
-#                      ░   ░  ░░░    ░   ░   ░   ░   ░░░ ░   ░                    #
+#         ████  █████ █████ ████  █   █ ███ ████                                  #
+#         █░░░█ █░░░░░█░░░░░█░░░█ █░  █░ █░░█░░░█                                 #
+#         █░░░█░████░░████░░████░░█░░ █░░█░░████░░                                #
+#         █░░ █░█░░░░ █░░░░ █░░░░ ░█░█ ░░█░░█░░█░ ░                               #
+#         ████ ░█████░█████░█░░░░░  █ ░ ███░█░░░█░                                #
+#          ░░░░ ░░░░░░ ░░░░░ ░░      ░ ░ ░░░ ░░  ░                                 #
+#           ░░░░  ░░░░░ ░░░░░ ░       ░   ░░░ ░   ░                                #
 #                                                                                 #
 ###################################################################################
-#                              version: 09.2026                                   #
+#                         version: 1.0  |  09.2026                              #
 ###################################################################################
 
 ###########################################
@@ -46,7 +46,7 @@ SINGLE_SRA = []
 ## list to generate all output
 # workflow/scripts/functions.py
 
-def get_final_outputs():
+def get_final_outputs(include_multiqc=False):
   final_outputs = []
 
   # 1. Keep Download
@@ -190,8 +190,14 @@ def get_final_outputs():
   if MODULES["reads_kraken2"]:
     final_outputs.extend(expand("{out_dir}/{sample}/stats/{sample}_reads_kraken2_stats.tsv", out_dir=OUT_DIR, sample=SAMPLE))
 
+  # MultiQC Reports
+  if include_multiqc:
+      final_outputs.append(f"{OUT_DIR}/multiqc_report.html")
+      final_outputs.extend(expand("{out_dir}/{sample}/multiqc/multiqc_report.html", out_dir=OUT_DIR, sample=SAMPLE))
 
   return final_outputs
+
+
 
 ## in process
 # list of all expected inputs of multiqc
@@ -213,18 +219,19 @@ def get_multiqc_inputs(wildcards=None, sample=None):
     label_reads = "paired" if is_paired else "unpaired"
     fastp_suffix = "paired" if is_paired else "unp"
 
-    # Reads QC
-    mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "fastp", f"{sample_id}_{fastp_suffix}.json"))
-    
-    # Reads Diamond & Kraken2 Statistics
-    if MODULES.get("reads_diamond", False):
-        # Add Diamond read statistics summary
-        mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "stats", "{}_reads_diamond_stats.tsv".format(sample_id)))
-    
-    if MODULES.get("reads_kraken2", False):
-        mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "kraken2_reads", f"{sample_id}_{label_reads}_reads_report.txt"))
-        # Add Kraken2 read statistics summary
-        mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "stats", "{}_reads_kraken2_stats.tsv".format(sample_id)))
+    # Reads QC and Statistics (Skip for CONTIGS mode)
+    if meta['mode'] != 'CONTIGS':
+        mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "fastp", f"{sample_id}_{fastp_suffix}.json"))
+        
+        # Reads Diamond & Kraken2 Statistics
+        if MODULES.get("reads_diamond", False):
+            # Add Diamond read statistics summary
+            mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "stats", "{}_reads_diamond_stats.tsv".format(sample_id)))
+        
+        if MODULES.get("reads_kraken2", False):
+            mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "kraken2_reads", f"{sample_id}_{label_reads}_reads_report.txt"))
+            # Add Kraken2 read statistics summary
+            mqc_inputs.append(os.path.join(OUT_DIR, sample_id, "stats", "{}_reads_kraken2_stats.tsv".format(sample_id)))
 
     # Contigs QC (Expandido por K-mer)
     assembler_list = MAPPER if isinstance(MAPPER, list) else [MAPPER]

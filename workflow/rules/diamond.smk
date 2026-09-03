@@ -3,16 +3,16 @@
 #                         MSc. Matheus Cosentino                                  # 
 ###################################################################################
 #                                                                                 #
-#                    █   █  ███  █   █  ███  █   █ ███ ████                       #
-#                    ██  █░█ ░░█ █░  █░█ ░░█ █░  █░ █░░█░░░█                      #
-#                    █░█ █░█░ ░█░█░░ █░█████░█░░ █░░█░░████░░                     #
-#                    █░░██░█░░ █░░█░█ ░█░░░█░░█░█ ░░█░░█░░█░ ░                    #
-#                    █░░ █░░███ ░░ █ ░ █░░░█░░ █ ░ ███░█░░░█░                     #
-#                     ░░  ░░ ░░░ ░  ░ ░ ░░  ░░  ░ ░ ░░░ ░░  ░                     #
-#                      ░   ░  ░░░    ░   ░   ░   ░   ░░░ ░   ░                    #
+#         ████  █████ █████ ████  █   █ ███ ████                                  #
+#         █░░░█ █░░░░░█░░░░░█░░░█ █░  █░ █░░█░░░█                                 #
+#         █░░░█░████░░████░░████░░█░░ █░░█░░████░░                                #
+#         █░░ █░█░░░░ █░░░░ █░░░░ ░█░█ ░░█░░█░░█░ ░                               #
+#         ████ ░█████░█████░█░░░░░  █ ░ ███░█░░░█░                                #
+#          ░░░░ ░░░░░░ ░░░░░ ░░      ░ ░ ░░░ ░░  ░                                 #
+#           ░░░░  ░░░░░ ░░░░░ ░       ░   ░░░ ░   ░                                #
 #                                                                                 #
 ###################################################################################
-#                              version: 09.2026                                   #
+#                         version: 1.0  |  09.2026                              #
 ###################################################################################
 
 rule filter_contigs_diamond:
@@ -30,8 +30,7 @@ rule filter_contigs_diamond:
     os.path.join(OUT_DIR, "benchmarks", "filter_contigs_diamond", "{sample}_{tool}.tsv")
   conda:
     DIAMOND
-  shadow:
-    "shallow"
+
   shell:
     """
     seqkit seq -m {params.min_len} {input.contigs} > {output.filtered} 2> {log}
@@ -75,7 +74,7 @@ rule diamond_blastx_contigs:
         exit 1
     fi
 
-    # Garante que o TMPDIR exportado pelo NovaVir.sh ou o do sistema será usado
+    # Garante que o TMPDIR exportado pelo DeepVir.sh ou o do sistema será usado
     # Fallback para o shadow dir do Snakemake, ou /tmp local do nó caso a variável falhe
     DIAMOND_TMP="${{TMPDIR:-${{SNAKEMAKE_SHADOW_DIR:-/tmp}}}}"
     mkdir -p "$DIAMOND_TMP"
@@ -167,7 +166,7 @@ rule diamond_blastx_reads:
         exit 1
     fi
 
-    # Garante que o TMPDIR exportado pelo NovaVir.sh ou o do sistema será usado
+    # Garante que o TMPDIR exportado pelo DeepVir.sh ou o do sistema será usado
     # Fallback para o shadow dir do Snakemake, ou /tmp local do nó caso a variável falhe
     DIAMOND_TMP="${{TMPDIR:-${{SNAKEMAKE_SHADOW_DIR:-/tmp}}}}"
     mkdir -p "$DIAMOND_TMP"

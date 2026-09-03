@@ -1,6 +1,6 @@
 # Advanced configuration tutorial
 
-This page gathers the main options for tuning preprocessing with fastp and choosing the contig assembler in NovaVir.
+This page gathers the main options for tuning preprocessing with fastp and choosing the contig assembler in DeepVir.
 
 ## 1. Where to edit configuration
 
@@ -131,7 +131,7 @@ Besides fastp and the assembler, other parameters can significantly affect resul
 ## 8. Example run after editing configuration
 
 ```bash
-bash NovaVir.sh --input <DIR> --output <DIR> --profile local --diamond --darkmatter
+bash DeepVir.sh --input <DIR> --output <DIR> --profile local --diamond --darkmatter
 ```
 
 If you are running on a cluster, change the profile to `profile_slurm`.
