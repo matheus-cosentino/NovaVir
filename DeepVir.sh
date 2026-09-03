@@ -424,6 +424,15 @@ if [[ -z "$snakemake_workdir" ]]; then
 fi
 mkdir -p "$snakemake_workdir"
 
+# Alerta crítico para SLURM/Clusters
+if [[ "$temp_dir" == "/tmp/"* ]] && [[ "$profile" == *"slurm"* || "$profile" == *"cluster"* ]]; then
+    echo -e "${ylo}[WARNING]${nc} You are using a cluster profile ($profile) but temp_dir is inside /tmp/."
+    echo -e "${ylo}[WARNING]${nc} Compute nodes usually have their own isolated /tmp partitions."
+    echo -e "${ylo}[WARNING]${nc} Your jobs will likely FAIL because they won't find the Conda environments."
+    echo -e "${ylo}[WARNING]${nc} Please explicitly pass --temp-dir pointing to a shared network filesystem (e.g., /scratch-ib/...)"
+    sleep 3
+fi
+
 run_overrides="$PROJECT_DIR/run_overrides.yaml"
 timestamp=$(date +%Y%m%d_%H%M%S)
 backup_overrides="$output/run_overrides_${timestamp}.yaml"
